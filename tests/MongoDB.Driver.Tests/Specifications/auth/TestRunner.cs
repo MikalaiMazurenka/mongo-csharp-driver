@@ -20,18 +20,19 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Misc;
 using Xunit;
 
 namespace MongoDB.Driver.Tests.Specifications.auth
 {
     public class TestRunner
     {
+        private const string MechanismOptionCanonicalizeHostNameKey = "CANONICALIZE_HOST_NAME";
+        private const string MechanismOptionServiceNameKey = "SERVICE_NAME";
+
         [SkippableTheory]
         [ClassData(typeof(TestCaseFactory))]
         public void RunTestDefinition(BsonDocument definition)
@@ -64,31 +65,45 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 throw new AssertionException($"The connection string '{definition["uri"]}' should be invalid.");
             }
 
-            var hostsValue = definition["hosts"] as BsonArray;
-            if (hostsValue != null)
-            {
-                var expectedEndPoints = hostsValue
-                    .Select(x => ConvertExpectedHostToEndPoint((BsonDocument)x))
-                    .ToList();
-
-                var missing = expectedEndPoints.Except(connectionString.Hosts, EndPointHelper.EndPointEqualityComparer);
-                missing.Any().Should().Be(false);
-
-                var additions = connectionString.Hosts.Except(expectedEndPoints, EndPointHelper.EndPointEqualityComparer);
-                additions.Any().Should().Be(false);
-            }
+            var mongoCredential = MongoClientSettings.FromConnectionString(connectionString.ToString()).Credential;
 
             var authValue = definition["auth"] as BsonDocument;
-
-            var mongoCredential = MongoClientSettings.FromConnectionString(connectionString.ToString()).Credential;
             if (authValue != null)
             {
-                mongoCredential.Source.Should().Be(ValueToString(authValue["db"]));
                 mongoCredential.Username.Should().Be(ValueToString(authValue["username"]));
 #pragma warning disable 618
                 mongoCredential.Password.Should().Be(ValueToString(authValue["password"]));
 #pragma warning restore 618
-                
+                mongoCredential.Source.Should().Be(ValueToString(authValue["db"]));
+            }
+
+            var optionsValue = definition["options"] as BsonDocument;
+            if (optionsValue != null)
+            {
+                optionsValue.TryGetValue("authmechanism", out var authMechanism);
+                if (authMechanism != null)
+                {
+                    mongoCredential.Mechanism.Should().Be(ValueToString(authMechanism));
+                }
+
+                optionsValue.TryGetValue("authmechanismproperties", out var authMechanismOptionsBsonValue);
+                var authMechanismOptions = authMechanismOptionsBsonValue as BsonDocument;
+                if (authMechanismOptions != null)
+                {
+                    authMechanismOptions.TryGetValue(MechanismOptionCanonicalizeHostNameKey, out var canonicalizeHostNameValue);
+                    if (canonicalizeHostNameValue != null)
+                    {
+                        mongoCredential.GetMechanismProperty<bool?>(MechanismOptionCanonicalizeHostNameKey, null)
+                            .Should().Be(canonicalizeHostNameValue.AsBoolean);
+                    }
+
+                    authMechanismOptions.TryGetValue(MechanismOptionServiceNameKey, out var serviceNameValue);
+                    if (serviceNameValue != null)
+                    {
+                        mongoCredential.GetMechanismProperty<string>(MechanismOptionServiceNameKey, null)
+                            .Should().Be(ValueToString(serviceNameValue));
+                    }
+                }
             }
         }
 
@@ -147,7 +162,7 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 "connection-string: should throw an exception if no username (SCRAM-SHA-1)",
                 "connection-string: should throw an exception if no username (SCRAM-SHA-256)",
                 "connection-string: should throw an exception if no username is supplied (MONGODB-CR)",
-                "connection-string: should throw an exception if supplied a password (MONGODB-X509)"                
+                "connection-string: should throw an exception if supplied a password (MONGODB-X509)"
             };
 
             public IEnumerator<object[]> GetEnumerator()
