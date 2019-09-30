@@ -14,20 +14,14 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentAssertions;
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Misc;
-using MongoDB.Driver.Core.Operations;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
-using Moq;
 using Xunit;
+
 namespace MongoDB.Driver.Tests
 {
     /// <summary>
@@ -46,7 +40,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-1");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
-                .FromComponents(mechanism: "SCRAM-SHA-256", source: null, username: userName, password: password);
+                .FromComponents(mechanism: "SCRAM-SHA-256", authenticationSource: null, databaseName: null, username: userName, password: password);
             settings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
             
             AssertAuthenticationFails(settings);
@@ -62,7 +56,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-256");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
-                .FromComponents(mechanism: "SCRAM-SHA-1", source: null, username: userName, password: password);
+                .FromComponents(mechanism: "SCRAM-SHA-1", authenticationSource: null, databaseName: null, username: userName, password: password);
             settings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
 
             AssertAuthenticationFails(settings);
@@ -77,7 +71,7 @@ namespace MongoDB.Driver.Tests
             var password = "bluepill";
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
-                .FromComponents(mechanism: null, source: null, username: userName, password: password);
+                .FromComponents(mechanism: null, authenticationSource: null, databaseName: null, username: userName, password: password);
             settings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
 
             AssertAuthenticationFails(settings);
@@ -94,7 +88,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-256", "SCRAM-SHA-1");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
-                .FromComponents(mechanism: null, source: null, username: userName, password: password);
+                .FromComponents(mechanism: null, authenticationSource: null, databaseName: null, username: userName, password: password);
             
             AssertAuthenticationSucceeds(settings);
         }
@@ -110,7 +104,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-256", "SCRAM-SHA-1");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
-                .FromComponents(mechanism: "SCRAM-SHA-256", source: null, username: userName, password: password);
+                .FromComponents(mechanism: "SCRAM-SHA-256", authenticationSource: null, databaseName: null, username: userName, password: password);
             
             AssertAuthenticationSucceeds(settings);
         }
@@ -127,7 +121,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-1");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
-                .FromComponents(mechanism: null, source: null, username: userName, password: password);
+                .FromComponents(mechanism: null, authenticationSource: null, databaseName: null, username: userName, password: password);
 
             AssertAuthenticationSucceeds(settings);
         }
@@ -143,7 +137,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-256");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
-                .FromComponents(mechanism: null, source: null, username: userName, password: password);
+                .FromComponents(mechanism: null, authenticationSource: null, databaseName: null, username: userName, password: password);
 
             AssertAuthenticationSucceeds(settings);
         }
@@ -160,7 +154,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-1");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
-                .FromComponents(mechanism: "SCRAM-SHA-1", source: null, username: userName, password: password);
+                .FromComponents(mechanism: "SCRAM-SHA-1", authenticationSource: null, databaseName: null, username: userName, password: password);
 
             AssertAuthenticationSucceeds(settings);
         }
@@ -175,7 +169,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-256");            
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
-                .FromComponents(mechanism: "SCRAM-SHA-256", source: null, username: userName, password: password);
+                .FromComponents(mechanism: "SCRAM-SHA-256", authenticationSource: null, databaseName: null, username: userName, password: password);
 
             AssertAuthenticationSucceeds(settings);
         }
@@ -198,8 +192,8 @@ namespace MongoDB.Driver.Tests
             settings.Credentials = new[]
             {
 #pragma warning restore 618
-                MongoCredential.FromComponents(mechanism: null, source: source1, username: userName1, password: password1),
-                MongoCredential.FromComponents(mechanism: null, source: source2, username: userName2, password: password2)
+                MongoCredential.FromComponents(mechanism: null, authenticationSource: source1, databaseName: null, username: userName1, password: password1),
+                MongoCredential.FromComponents(mechanism: null, authenticationSource: source2, databaseName: null, username: userName2, password: password2)
             };
 
             AssertAuthenticationSucceeds(settings);
@@ -222,7 +216,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseUser(client, uniqueUnicodeUserName, unicodePassword, "root", "SCRAM-SHA-256");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential.FromComponents(
-                mechanism: "SCRAM-SHA-256", source: null, username: uniqueAsciiUserName, password: asciiPassword);
+                mechanism: "SCRAM-SHA-256", authenticationSource: null, databaseName: null, username: uniqueAsciiUserName, password: asciiPassword);
             
             AssertAuthenticationSucceeds(settings);
         }
@@ -248,7 +242,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseUser(client, uniqueUnicodeUserName, unicodePassword, "root", "SCRAM-SHA-256");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential.FromComponents(
-                mechanism: "SCRAM-SHA-256", source: null, username: uniqueAsciiUserName, password: nonSaslPreppedPassword);
+                mechanism: "SCRAM-SHA-256", authenticationSource: null, databaseName: null, username: uniqueAsciiUserName, password: nonSaslPreppedPassword);
             
             AssertAuthenticationSucceeds(settings);
         }
@@ -271,7 +265,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseUser(client, uniqueUnicodeUserName, unicodePassword, "root", "SCRAM-SHA-256");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential.FromComponents(
-                mechanism: "SCRAM-SHA-256", source: null, username: uniqueUnicodeUserName, password: nonSaslPreppedPassword);
+                mechanism: "SCRAM-SHA-256", authenticationSource: null, databaseName: null, username: uniqueUnicodeUserName, password: nonSaslPreppedPassword);
             
             AssertAuthenticationSucceeds(settings);
         }
@@ -293,7 +287,7 @@ namespace MongoDB.Driver.Tests
             CreateAdminDatabaseUser(client, uniqueUnicodeUserName, unicodePassword, "root", "SCRAM-SHA-256");
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential.FromComponents(
-                mechanism: "SCRAM-SHA-256", source: null, username: uniqueUnicodeUserName, password: unicodePassword);
+                mechanism: "SCRAM-SHA-256", authenticationSource: null, databaseName: null, username: uniqueUnicodeUserName, password: unicodePassword);
             
             AssertAuthenticationSucceeds(settings);
         }
