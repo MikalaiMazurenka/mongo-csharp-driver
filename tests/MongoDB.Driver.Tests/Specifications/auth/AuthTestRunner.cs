@@ -24,7 +24,7 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests.Specifications.auth
 {
-    public class TestRunner
+    public class AuthTestRunner
     {
         [SkippableTheory]
         [ClassData(typeof(TestCaseFactory))]
