@@ -168,8 +168,8 @@ namespace MongoDB.Driver
                 mechanism: null,
                 source: null,
                 databaseName: databaseName,
-                username: username,
-                evidence: new PasswordEvidence(password));
+                username,
+                new PasswordEvidence(password));
         }
 
         /// <summary>
@@ -191,8 +191,8 @@ namespace MongoDB.Driver
                 mechanism: null,
                 source: null,
                 databaseName: databaseName,
-                username: username,
-                evidence: new PasswordEvidence(password));
+                username,
+                new PasswordEvidence(password));
         }
 
         /// <summary>
@@ -207,8 +207,8 @@ namespace MongoDB.Driver
                 mechanism: "GSSAPI",
                 source: "$external",
                 databaseName: null,
-                username: username,
-                evidence: new ExternalEvidence());
+                username,
+                new ExternalEvidence());
         }
 
         /// <summary>
@@ -223,8 +223,8 @@ namespace MongoDB.Driver
                 mechanism: "GSSAPI",
                 source: "$external",
                 databaseName: null,
-                username: username,
-                evidence: new PasswordEvidence(password));
+                username,
+                new PasswordEvidence(password));
         }
 
         /// <summary>
@@ -239,8 +239,8 @@ namespace MongoDB.Driver
                 mechanism: "GSSAPI",
                 source: "$external",
                 databaseName: null,
-                username: username,
-                evidence: new PasswordEvidence(password));
+                username,
+                new PasswordEvidence(password));
         }
 
         /// <summary>
@@ -257,8 +257,8 @@ namespace MongoDB.Driver
                 mechanism: "MONGODB-CR",
                 source: null,
                 databaseName: databaseName,
-                username: username,
-                evidence: new PasswordEvidence(password));
+                username,
+                new PasswordEvidence(password));
         }
 
         /// <summary>
@@ -275,8 +275,8 @@ namespace MongoDB.Driver
                 mechanism: "MONGODB-CR",
                 source: null,
                 databaseName: databaseName,
-                username: username,
-                evidence: new PasswordEvidence(password));
+                username,
+                new PasswordEvidence(password));
         }
 
         /// <summary>
@@ -290,8 +290,8 @@ namespace MongoDB.Driver
                 mechanism: "MONGODB-X509",
                 source: "$external",
                 databaseName: null,
-                username: username,
-                evidence: new ExternalEvidence());
+                username,
+                new ExternalEvidence());
         }
 
         /// <summary>
@@ -307,8 +307,8 @@ namespace MongoDB.Driver
                 mechanism: "PLAIN",
                 source: null,
                 databaseName: databaseName,
-                username: username,
-                evidence: new PasswordEvidence(password));
+                username,
+                new PasswordEvidence(password));
         }
 
         /// <summary>
@@ -324,8 +324,8 @@ namespace MongoDB.Driver
                 mechanism: "PLAIN",
                 source: null,
                 databaseName: databaseName,
-                username: username,
-                evidence: new PasswordEvidence(password));
+                username,
+                new PasswordEvidence(password));
         }
 
         // public methods
