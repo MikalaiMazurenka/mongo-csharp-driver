@@ -516,12 +516,12 @@ namespace MongoDB.Driver
                         new MongoInternalIdentity(source, username),
                         evidence);
                 case "MONGODB-X509":
+                    // always $external for X509.
+                    ensureNullOrExternal(source);
                     if (evidence == null || !(evidence is ExternalEvidence))
                     {
                         throw new ArgumentException("A MONGODB-X509 does not support a password.");
                     }
-
-                    ensureNullOrExternal(source);
 
                     return new MongoCredential(
                         mechanism,
