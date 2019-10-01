@@ -81,25 +81,28 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                         if (authenticator.GetType() == typeof(GssapiAuthenticator))
                         {
                             var serviceName = authenticator._mechanism()._serviceName();
-                            var canonicalizeHostName = mongoCredential.ToAuthenticator()._mechanism()._canonicalizeHostName();
-                            // These are default values according to specification
-                            serviceName.Should().Be("mongodb");
-                            canonicalizeHostName.Should().BeFalse();
+                            serviceName.Should().Be("mongodb"); // The default is "mongodb".
+                            var canonicalizeHostName = authenticator._mechanism()._canonicalizeHostName();
+                            canonicalizeHostName.Should().BeFalse(); // The default is "false".
+                        }
+                        else
+                        {
+                            // Other authenticators do not contain mechanism properties
                         }
                     }
                     else
                     {
-                        var serviceName = authenticator._mechanism()._serviceName();
-                        var canonicalizeHostName = mongoCredential.ToAuthenticator()._mechanism()._canonicalizeHostName();
                         foreach (var mechanismProperty in mechanismProperties.AsBsonDocument)
                         {
                             var mechanismName = mechanismProperty.Name;
                             switch (mechanismName)
                             {
                                 case "SERVICE_NAME":
+                                    var serviceName = authenticator._mechanism()._serviceName();
                                     serviceName.Should().Be(ValueToString(mechanismProperty.Value));
                                     break;
                                 case "CANONICALIZE_HOST_NAME":
+                                    var canonicalizeHostName = authenticator._mechanism()._canonicalizeHostName();
                                     canonicalizeHostName.Should().Be(mechanismProperty.Value.ToBoolean());
                                     break;
                                 default:

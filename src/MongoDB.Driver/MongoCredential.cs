@@ -167,7 +167,7 @@ namespace MongoDB.Driver
             return FromComponents(
                 mechanism: null,
                 source: null,
-                databaseName: databaseName,
+                databaseName,
                 username,
                 new PasswordEvidence(password));
         }
@@ -190,7 +190,7 @@ namespace MongoDB.Driver
             return FromComponents(
                 mechanism: null,
                 source: null,
-                databaseName: databaseName,
+                databaseName,
                 username,
                 new PasswordEvidence(password));
         }
@@ -256,7 +256,7 @@ namespace MongoDB.Driver
             return FromComponents(
                 mechanism: "MONGODB-CR",
                 source: null,
-                databaseName: databaseName,
+                databaseName,
                 username,
                 new PasswordEvidence(password));
         }
@@ -274,7 +274,7 @@ namespace MongoDB.Driver
             return FromComponents(
                 mechanism: "MONGODB-CR",
                 source: null,
-                databaseName: databaseName,
+                databaseName,
                 username,
                 new PasswordEvidence(password));
         }
@@ -306,7 +306,7 @@ namespace MongoDB.Driver
             return FromComponents(
                 mechanism: "PLAIN",
                 source: null,
-                databaseName: databaseName,
+                databaseName,
                 username,
                 new PasswordEvidence(password));
         }
@@ -323,7 +323,7 @@ namespace MongoDB.Driver
             return FromComponents(
                 mechanism: "PLAIN",
                 source: null,
-                databaseName: databaseName,
+                databaseName,
                 username,
                 new PasswordEvidence(password));
         }
@@ -517,7 +517,7 @@ namespace MongoDB.Driver
                         new MongoInternalIdentity(source, username),
                         evidence);
                 case "MONGODB-X509":
-                    // always $external for X509.
+                    // MUST be "$external". Defaults to $external.
                     ensureNullOrExternal(source);
                     if (evidence == null || !(evidence is ExternalEvidence))
                     {
@@ -529,11 +529,11 @@ namespace MongoDB.Driver
                         new MongoX509Identity(username),
                         evidence);
                 case "GSSAPI":
-                    // always $external for GSSAPI.
+                    // MUST be "$external". Defaults to $external.
                     ensureNullOrExternal(source);
 
                     return new MongoCredential(
-                        "GSSAPI",
+                        mechanism,
                         new MongoExternalIdentity(username),
                         evidence);
                 case "PLAIN":
