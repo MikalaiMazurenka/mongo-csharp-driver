@@ -14,14 +14,20 @@
 */
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using FluentAssertions;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.Operations;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
+using Moq;
 using Xunit;
-
 namespace MongoDB.Driver.Tests
 {
     /// <summary>
@@ -42,10 +48,10 @@ namespace MongoDB.Driver.Tests
             settings.Credential = MongoCredential
                 .FromComponents(mechanism: "SCRAM-SHA-256", source: null, username: userName, password: password);
             settings.ServerSelectionTimeout = TimeSpan.FromSeconds(5);
-
+            
             AssertAuthenticationFails(settings);
         }
-
+        
         [SkippableFact]
         public void Authentication_fails_when_user_has_Scram_Sha_256_mechanism_and_mechanism_is_Scram_Sha_1()
         {
@@ -61,7 +67,7 @@ namespace MongoDB.Driver.Tests
 
             AssertAuthenticationFails(settings);
         }
-
+        
         [SkippableFact]
         public void Authentication_fails_when_user_is_non_extant_and_mechanism_is_not_specified()
         {
@@ -76,7 +82,7 @@ namespace MongoDB.Driver.Tests
 
             AssertAuthenticationFails(settings);
         }
-
+            
         [SkippableFact]
         public void Authentication_succeeds_when_user_has_both_Scram_Sha_mechanisms_and_mechanism_is_not_specified()
         {
@@ -89,15 +95,15 @@ namespace MongoDB.Driver.Tests
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
                 .FromComponents(mechanism: null, source: null, username: userName, password: password);
-
+            
             AssertAuthenticationSucceeds(settings);
         }
-
+        
         [SkippableFact]
         public void Authentication_succeeds_when_user_has_both_scram_sha_mechanisms_and_mechanism_is_Scram_Sha_256()
         {
             RequireServer.Check().Supports(Feature.ScramSha256Authentication).Authentication(true);
-
+            
             var client = DriverTestConfiguration.Client;
             var userName = $"both{Guid.NewGuid()}";
             var password = "both";
@@ -105,17 +111,17 @@ namespace MongoDB.Driver.Tests
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
                 .FromComponents(mechanism: "SCRAM-SHA-256", source: null, username: userName, password: password);
-
+            
             AssertAuthenticationSucceeds(settings);
         }
-
+        
         [SkippableFact]
         public void Authentication_succeeds_when_user_has_Scram_Sha_1_Mechanism_and_mechanism_is_not_specified()
         {
             RequireServer.Check().Supports(Feature.ScramSha256Authentication).Authentication(true);
             // mechanisms field in createUser command requires server >=4.0
             var client = DriverTestConfiguration.Client;
-
+            
             var userName = $"sha1{Guid.NewGuid()}";
             var password = "sha1";
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-1");
@@ -125,13 +131,13 @@ namespace MongoDB.Driver.Tests
 
             AssertAuthenticationSucceeds(settings);
         }
-
+        
         [SkippableFact]
         public void Authentication_succeeds_when_user_has_Scram_Sha_256_mechanism_and_mechanism_is_not_specified()
         {
             RequireServer.Check().Supports(Feature.ScramSha256Authentication).Authentication(true);
             var client = DriverTestConfiguration.Client;
-
+                        
             var userName = $"sha256{Guid.NewGuid()}";
             var password = "sha256";
             CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-256");
@@ -141,12 +147,12 @@ namespace MongoDB.Driver.Tests
 
             AssertAuthenticationSucceeds(settings);
         }
-
+        
         [SkippableFact]
         public void Authentication_succeeds_when_user_has_Scram_Sha_1_mechanism_and_mechanism_is_Scram_Sha_1()
         {
             RequireServer.Check().Supports(Feature.ScramSha256Authentication).Authentication(true);
-
+            
             // mechanisms field in createUser command requires server >=4.0
             var client = DriverTestConfiguration.Client;
             var userName = $"sha1{Guid.NewGuid()}";
@@ -158,7 +164,7 @@ namespace MongoDB.Driver.Tests
 
             AssertAuthenticationSucceeds(settings);
         }
-
+        
         [SkippableFact]
         public void Authentication_succeeds_when_user_has_Scram_Sha_256_mechanism_and_mechanism_is_Scram_Sha_256()
         {
@@ -166,14 +172,14 @@ namespace MongoDB.Driver.Tests
             var client = DriverTestConfiguration.Client;
             var userName = $"sha256{Guid.NewGuid()}";
             var password = "sha256";
-            CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-256");
+            CreateAdminDatabaseReadWriteUser(client, userName, password, "SCRAM-SHA-256");            
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential
                 .FromComponents(mechanism: "SCRAM-SHA-256", source: null, username: userName, password: password);
 
             AssertAuthenticationSucceeds(settings);
         }
-
+        
         [SkippableFact]
         public void Authentication_succeeds_when_user_has_multiple_credentials_and_mechanism_is_not_specified()
         {
@@ -198,14 +204,14 @@ namespace MongoDB.Driver.Tests
 
             AssertAuthenticationSucceeds(settings);
         }
-
+        
         [SkippableTheory]
         [ParameterAttributeData]
         [InlineData("IX", "IX", "\u2168", "\u2163")] // "IX", "IX", Roman numeral nine, Roman numeral four
         public void Authentication_succeeds_with_Ascii_username_and_Ascii_password_when_SaslPrep_equivalent_username_exists(
-            string asciiUsername,
-            string asciiPassword,
-            string unicodeUsername,
+            string asciiUsername, 
+            string asciiPassword, 
+            string unicodeUsername, 
             string unicodePassword)
         {
             RequireServer.Check().Supports(Feature.ScramSha256Authentication).Authentication(true);
@@ -217,10 +223,10 @@ namespace MongoDB.Driver.Tests
             var settings = client.Settings.Clone();
             settings.Credential = MongoCredential.FromComponents(
                 mechanism: "SCRAM-SHA-256", source: null, username: uniqueAsciiUserName, password: asciiPassword);
-
+            
             AssertAuthenticationSucceeds(settings);
         }
-
+        
         // Currently, we only support SaslPrep in .NET Framework due to a lack of a string normalization function in
         // .NET Standard
 #if NET452
@@ -292,23 +298,23 @@ namespace MongoDB.Driver.Tests
             AssertAuthenticationSucceeds(settings);
         }
 #endif
-
+        
         private void AssertAuthenticationSucceeds(MongoClientSettings settings)
         {
-            new MongoClient(settings).ListDatabaseNames().ToEnumerable().ToList();
+             new MongoClient(settings).ListDatabaseNames().ToEnumerable().ToList();
         }
-
+	    
         private void AssertAuthenticationFails(MongoClientSettings settings)
         {
-            var exception = Record.Exception(() => new MongoClient(settings).ListDatabaseNames().ToEnumerable().ToList());
+            var exception = Record.Exception(()=>new MongoClient(settings).ListDatabaseNames().ToEnumerable().ToList());
 
             exception.Should().BeOfType<MongoAuthenticationException>();
         }
-
+	    
         private BsonDocument CreateAdminDatabaseReadWriteUser(
-            MongoClient client,
-            string userName,
-            string password,
+            MongoClient client, 
+            string userName, 
+            string password, 
             params string[] mechanisms)
         {
             return CreateAdminDatabaseUser(client, userName, password, "readWriteAnyDatabase", mechanisms);
@@ -323,20 +329,20 @@ namespace MongoDB.Driver.Tests
         {
             return CreateDatabaseUser(client, "admin", userName, password, "readWriteAnyDatabase", mechanisms);
         }
-
+        
         private BsonDocument CreateDatabaseUser(
             MongoClient client,
             string source,
-            string userName,
-            string password,
-            string role,
+            string userName, 
+            string password, 
+            string role, 
             params string[] mechanisms)
         {
             var createUserCommand =
-                $"{{createUser: '{userName}', pwd: '{password}',"
+                $"{{createUser: '{userName}', pwd: '{password}'," 
                 + $"roles: ['{role}'], mechanisms: {mechanisms.ToJson()}}}";
             return client.GetDatabase(source).RunCommand<BsonDocument>(createUserCommand);
         }
-
+        
     }
 }

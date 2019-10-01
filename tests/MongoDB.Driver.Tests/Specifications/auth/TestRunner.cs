@@ -37,7 +37,8 @@ namespace MongoDB.Driver.Tests.Specifications.auth
             Exception parseException = null;
             try
             {
-                mongoCredential = MongoClientSettings.FromConnectionString((string)definition["uri"]).Credential;
+                var connectionString = (string)definition["uri"];
+                mongoCredential = MongoClientSettings.FromConnectionString(connectionString).Credential;
             }
             catch (Exception ex)
             {
@@ -75,38 +76,36 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 var authenticator = mongoCredential.ToAuthenticator();
                 if (credential.TryGetValue("mechanism_properties", out var mechanismProperties))
                 {
-                    if (authenticator.GetType() == typeof(GssapiAuthenticator))
+                    if (mechanismProperties.IsBsonNull)
                     {
-                        var serviceName = authenticator._mechanism()._serviceName();
-                        var canonicalizeHostName = mongoCredential.ToAuthenticator()._mechanism()._canonicalizeHostName();
-
-                        if (mechanismProperties.IsBsonNull)
+                        if (authenticator.GetType() == typeof(GssapiAuthenticator))
                         {
+                            var serviceName = authenticator._mechanism()._serviceName();
+                            var canonicalizeHostName = mongoCredential.ToAuthenticator()._mechanism()._canonicalizeHostName();
+                            // These are default values according to specification
                             serviceName.Should().Be("mongodb");
                             canonicalizeHostName.Should().BeFalse();
                         }
-                        else
+                    }
+                    else
+                    {
+                        var serviceName = authenticator._mechanism()._serviceName();
+                        var canonicalizeHostName = mongoCredential.ToAuthenticator()._mechanism()._canonicalizeHostName();
+                        foreach (var mechanismProperty in mechanismProperties.AsBsonDocument)
                         {
-                            foreach (var mechanismProperty in mechanismProperties.AsBsonDocument)
+                            var mechanismName = mechanismProperty.Name;
+                            switch (mechanismName)
                             {
-                                var mechanismName = mechanismProperty.Name;
-                                switch (mechanismName)
-                                {
-                                    case "SERVICE_NAME":
-                                        serviceName.Should().Be(ValueToString(mechanismProperty.Value));
-                                        break;
-                                    case "CANONICALIZE_HOST_NAME":
-                                        canonicalizeHostName.Should().Be(mechanismProperty.Value.ToBoolean());
-                                        break;
-                                    default:
-                                        throw new Exception($"Invalid mechanism property '{mechanismName}'.");
-                                }
+                                case "SERVICE_NAME":
+                                    serviceName.Should().Be(ValueToString(mechanismProperty.Value));
+                                    break;
+                                case "CANONICALIZE_HOST_NAME":
+                                    canonicalizeHostName.Should().Be(mechanismProperty.Value.ToBoolean());
+                                    break;
+                                default:
+                                    throw new Exception($"Invalid mechanism property '{mechanismName}'.");
                             }
                         }
-                    }
-                    else if (!mechanismProperties.IsBsonNull)
-                    {
-                        throw new Exception($"Mechanism properties are not supported for mechanism '{mongoCredential.Mechanism}'");
                     }
                 }
             }

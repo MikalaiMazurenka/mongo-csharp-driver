@@ -508,7 +508,8 @@ namespace MongoDB.Driver
                     source = source ?? databaseName ?? "admin";
                     if (evidence == null || !(evidence is PasswordEvidence))
                     {
-                        throw new ArgumentException($"A {defaultedMechanism} credential must have a password.");
+                        var message = string.Format("A {0} credential must have a password.", defaultedMechanism);
+                        throw new ArgumentException(message);
                     }
 
                     return new MongoCredential(
@@ -557,7 +558,7 @@ namespace MongoDB.Driver
                         identity,
                         evidence);
                 default:
-                    throw new NotSupportedException($"Unsupported MongoAuthenticationMechanism {mechanism}.");
+                    throw new NotSupportedException(string.Format("Unsupported MongoAuthenticationMechanism {0}.", mechanism));
             }
 
             void ensureNullOrExternal(string value)
