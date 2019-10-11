@@ -95,10 +95,11 @@ namespace MongoDB.Driver.Examples
             var documents = new[]
             {
                 new BsonDocument("x", 1),
-                new BsonDocument("x", 2)
+                new BsonDocument("x", 2),
+                new BsonDocument("x", 3),
             };
 
-            ChangeStreamDocument<BsonDocument> lastChangeStreamDocument;
+            IChangeStreamCursor<ChangeStreamDocument<BsonDocument>> previousCursor;
             {
                 new Thread(() =>
                 {
@@ -107,14 +108,14 @@ namespace MongoDB.Driver.Examples
                 })
                 .Start();
 
-                var enumerator = inventory.Watch().ToEnumerable().GetEnumerator();
+                previousCursor = inventory.Watch(new ChangeStreamOptions { BatchSize = 2 });
+                var enumerator = previousCursor.ToEnumerable().GetEnumerator();
                 enumerator.MoveNext();
-                lastChangeStreamDocument = enumerator.Current;
             }
 
             {
                 // Start Changestream Example 3
-                var resumeToken = lastChangeStreamDocument.ResumeToken;
+                var resumeToken = previousCursor.GetResumeToken();
                 var options = new ChangeStreamOptions { ResumeAfter = resumeToken };
                 var enumerator = inventory.Watch(options).ToEnumerable().GetEnumerator();
                 enumerator.MoveNext();
@@ -122,7 +123,7 @@ namespace MongoDB.Driver.Examples
                 enumerator.Dispose();
                 // End Changestream Example 3
 
-                next.FullDocument.Should().Be(documents[1]);
+                next.FullDocument.Should().Be(documents[2]);
             }
         }
 
