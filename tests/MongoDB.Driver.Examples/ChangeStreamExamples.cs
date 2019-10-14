@@ -19,6 +19,7 @@ using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Tests;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -95,8 +96,7 @@ namespace MongoDB.Driver.Examples
             var documents = new[]
             {
                 new BsonDocument("x", 1),
-                new BsonDocument("x", 2),
-                new BsonDocument("x", 3),
+                new BsonDocument("x", 2)
             };
 
             IChangeStreamCursor<ChangeStreamDocument<BsonDocument>> previousCursor;
@@ -108,22 +108,21 @@ namespace MongoDB.Driver.Examples
                 })
                 .Start();
 
-                previousCursor = inventory.Watch(new ChangeStreamOptions { BatchSize = 2 });
-                var enumerator = previousCursor.ToEnumerable().GetEnumerator();
-                enumerator.MoveNext();
+                previousCursor = inventory.Watch(new ChangeStreamOptions { BatchSize = 1 });
+                while (previousCursor.MoveNext() && previousCursor.Current.Count() == 0) { } // keep calling MoveNext until we've read the first batch
             }
 
             {
                 // Start Changestream Example 3
                 var resumeToken = previousCursor.GetResumeToken();
                 var options = new ChangeStreamOptions { ResumeAfter = resumeToken };
-                var enumerator = inventory.Watch(options).ToEnumerable().GetEnumerator();
-                enumerator.MoveNext();
-                var next = enumerator.Current;
-                enumerator.Dispose();
+                var cursor = inventory.Watch(options);
+                cursor.MoveNext();
+                var next = cursor.Current.First();
+                cursor.Dispose();
                 // End Changestream Example 3
 
-                next.FullDocument.Should().Be(documents[2]);
+                next.FullDocument.Should().Be(documents[1]);
             }
         }
 
