@@ -58,6 +58,9 @@ namespace MongoDB.Driver.Core.Bindings
         public CoreTransaction CurrentTransaction => null;
 
         /// <inheritdoc />
+        public bool Dirty => false;
+
+        /// <inheritdoc />
         public BsonDocument Id => null;
 
         /// <inheritdoc />
@@ -126,6 +129,11 @@ namespace MongoDB.Driver.Core.Bindings
 
         /// <inheritdoc />
         public void Dispose()
+        {
+        }
+
+        /// <inheritdoc />
+        public void MarkDirty()
         {
         }
 

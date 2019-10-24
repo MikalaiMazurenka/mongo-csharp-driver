@@ -28,6 +28,8 @@ namespace MongoDB.Driver.Core.Bindings
         public static ICoreServerSession Instance => __instance;
         #endregion
 
+        public bool Dirty => false;
+
         public BsonDocument Id => null;
 
         public DateTime? LastUsedAt => null;
@@ -38,6 +40,10 @@ namespace MongoDB.Driver.Core.Bindings
         }
 
         public void Dispose()
+        {
+        }
+
+        public void MarkDirty()
         {
         }
 

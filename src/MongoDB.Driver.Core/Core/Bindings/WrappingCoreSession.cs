@@ -64,6 +64,16 @@ namespace MongoDB.Driver.Core.Bindings
                 return _wrapped.CurrentTransaction;
             }
         }
+        
+        /// <inheritdoc />
+        public virtual bool Dirty
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _wrapped.Dirty;
+            }
+        }
 
         /// <inheritdoc />
         public virtual BsonDocument Id
@@ -211,6 +221,13 @@ namespace MongoDB.Driver.Core.Bindings
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        /// <inheritdoc />
+        public virtual void MarkDirty()
+        {
+            ThrowIfDisposed();
+            _wrapped.MarkDirty();
         }
 
         /// <inheritdoc />

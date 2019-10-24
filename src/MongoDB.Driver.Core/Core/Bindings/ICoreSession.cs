@@ -17,8 +17,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
-using MongoDB.Driver.Core.Clusters;
-using MongoDB.Driver.Core.Servers;
 
 namespace MongoDB.Driver.Core.Bindings
 {
@@ -43,6 +41,14 @@ namespace MongoDB.Driver.Core.Bindings
         /// The current transaction.
         /// </value>
         CoreTransaction CurrentTransaction { get; }
+        
+        /// <summary>
+        /// Gets a value indicate whether this session is dirty.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the session is dirty.
+        /// </value>
+        bool Dirty { get; }
 
         /// <summary>
         /// Gets the session Id.
@@ -149,6 +155,11 @@ namespace MongoDB.Driver.Core.Bindings
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A Task.</returns>
         Task CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Marks the session as dirty.
+        /// </summary>
+        void MarkDirty();
 
         /// <summary>
         /// Starts a transaction.

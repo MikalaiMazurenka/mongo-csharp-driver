@@ -34,6 +34,15 @@ namespace MongoDB.Driver
         }
 
         // public properties
+        public bool Dirty
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _wrapped.Dirty;
+            }
+        }
+
         public BsonDocument Id
         {
             get
@@ -72,6 +81,12 @@ namespace MongoDB.Driver
         {
             Dispose(true);
             GC.SuppressFinalize(this);
+        }
+
+        public void MarkDirty()
+        {
+            ThrowIfDisposed();
+            _wrapped.MarkDirty();
         }
 
         public void WasUsed()

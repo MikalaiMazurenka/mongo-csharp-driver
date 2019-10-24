@@ -74,6 +74,9 @@ namespace MongoDB.Driver.Core.Bindings
         public CoreTransaction CurrentTransaction => _currentTransaction;
 
         /// <inheritdoc />
+        public bool Dirty => _serverSession.Dirty;
+
+        /// <inheritdoc />
         public BsonDocument Id => _serverSession.Id;
 
         /// <inheritdoc />
@@ -346,6 +349,13 @@ namespace MongoDB.Driver.Core.Bindings
                 _disposed = true;
             }
         }
+
+        /// <inheritdoc />
+        public void MarkDirty()
+        {
+            _serverSession.MarkDirty();
+        }
+
 
         /// <inheritdoc />
         public void StartTransaction(TransactionOptions transactionOptions = null)
