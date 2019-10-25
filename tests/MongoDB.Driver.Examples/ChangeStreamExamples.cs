@@ -46,7 +46,7 @@ namespace MongoDB.Driver.Examples
 
             // Start Changestream Example 1
             var cursor = inventory.Watch();
-            while (cursor.MoveNext() && cursor.Current.Count() == 0) { }
+            while (cursor.MoveNext() && cursor.Current.Count() == 0) { } // keep calling MoveNext until we've read the first batch
             var next = cursor.Current.First();
             cursor.Dispose();
             // End Changestream Example 1
@@ -76,7 +76,7 @@ namespace MongoDB.Driver.Examples
             // Start Changestream Example 2
             var options = new ChangeStreamOptions { FullDocument = ChangeStreamFullDocumentOption.UpdateLookup };
             var cursor = inventory.Watch(options);
-            while (cursor.MoveNext() && cursor.Current.Count() == 0) { }
+            while (cursor.MoveNext() && cursor.Current.Count() == 0) { } // keep calling MoveNext until we've read the first batch
             var next = cursor.Current.First();
             cursor.Dispose();
             // End Changestream Example 2
@@ -163,7 +163,7 @@ namespace MongoDB.Driver.Examples
                 var collection = database.GetCollection<BsonDocument>("inventory");
                 using (var cursor = collection.Watch(pipeline))
                 {
-                    while (cursor.MoveNext() && cursor.Current.Count() == 0) { }
+                    while (cursor.MoveNext() && cursor.Current.Count() == 0) { } // keep calling MoveNext until we've read the first batch
                     var next = cursor.Current.First();
                 }
                 // End Changestream Example 4
