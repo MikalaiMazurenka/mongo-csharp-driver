@@ -356,7 +356,6 @@ namespace MongoDB.Driver.Core.Bindings
             _serverSession.MarkDirty();
         }
 
-
         /// <inheritdoc />
         public void StartTransaction(TransactionOptions transactionOptions = null)
         {

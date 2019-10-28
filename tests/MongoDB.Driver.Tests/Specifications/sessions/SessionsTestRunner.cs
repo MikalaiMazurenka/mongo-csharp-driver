@@ -24,7 +24,6 @@ namespace MongoDB.Driver.Tests.Specifications.sessions
 {
     public class SessionsTestRunner : MongoClientJsonDrivenSessionsTestRunner
     {
-        protected override string[] ExpectedSharedColumns => new string[] { "_path", "runOn", "database_name", "collection_name", "data", "tests" };
         protected override string[] ExpectedTestColumns => new string[] { "async", "clientOptions", "failPoint", "description", "operations", "expectations", "outcome" };
 
         [SkippableTheory]

@@ -28,6 +28,7 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
 
         public override void Act(CancellationToken cancellationToken)
         {
+            // do nothing
         }
 
         public override void Assert()

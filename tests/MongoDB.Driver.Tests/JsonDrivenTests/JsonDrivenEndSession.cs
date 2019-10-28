@@ -1,4 +1,4 @@
-﻿/* Copyright 2018-present MongoDB Inc.
+﻿/* Copyright 2019-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
         // protected methods
         protected override void AssertResult()
         {
+            // do nothing
         }
 
         protected override void CallMethod(CancellationToken cancellationToken)
@@ -48,7 +49,8 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
 
         protected override Task CallMethodAsync(CancellationToken cancellationToken)
         {
-            return Task.Run(() => _session.Dispose());
+            _session.Dispose();
+            return Task.FromResult(true);
         }
     }
 }
