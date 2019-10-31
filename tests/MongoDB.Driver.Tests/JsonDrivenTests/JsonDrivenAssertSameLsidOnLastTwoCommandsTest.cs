@@ -23,11 +23,11 @@ using System.Threading;
 
 namespace MongoDB.Driver.Tests.JsonDrivenTests
 {
-    public class JsonDrivenAssertSameLsidOnLastTwoCommands : JsonDrivenTestRunnerTest
+    public class JsonDrivenAssertSameLsidOnLastTwoCommandsTest : JsonDrivenTestRunnerTest
     {
         private readonly EventCapturer _eventCapturer;
 
-        public JsonDrivenAssertSameLsidOnLastTwoCommands(IJsonDrivenTestRunner testRunner, EventCapturer eventCapturer, Dictionary<string, object> objectMap)
+        public JsonDrivenAssertSameLsidOnLastTwoCommandsTest(IJsonDrivenTestRunner testRunner, EventCapturer eventCapturer, Dictionary<string, object> objectMap)
             : base(testRunner, objectMap)
         {
             _eventCapturer = eventCapturer;
@@ -43,9 +43,10 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
             var lastTwoCommands = _eventCapturer
                 .Events
                 .Skip(_eventCapturer.Events.Count - 2)
-                .Select(commandStartedEvent => ((CommandStartedEvent)commandStartedEvent).Command);
+                .Select(commandStartedEvent => ((CommandStartedEvent)commandStartedEvent).Command)
+                .ToList();
 
-            AssertSameLsid(lastTwoCommands.First(), lastTwoCommands.Last());
+            AssertSameLsid(lastTwoCommands[0], lastTwoCommands[1]);
         }
 
         // private methods

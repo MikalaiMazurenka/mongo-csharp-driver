@@ -21,10 +21,10 @@ using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 
 namespace MongoDB.Driver.Tests.JsonDrivenTests
 {
-    public sealed class JsonDrivenEndSession : JsonDrivenSessionTest
+    public sealed class JsonDrivenEndSessionTest : JsonDrivenSessionTest
     {
         // public constructors
-        public JsonDrivenEndSession(Dictionary<string, object> objectMap)
+        public JsonDrivenEndSessionTest(Dictionary<string, object> objectMap)
             : base(objectMap)
         {
         }

@@ -32,7 +32,7 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
             _testRunner = testRunner;
         }
 
-        protected ICoreSessionHandle Session => _session.WrappedCoreSession;
+        protected ICoreSessionHandle CoreSession => _session.WrappedCoreSession;
 
         protected IJsonDrivenTestRunner TestRunner => _testRunner;
 

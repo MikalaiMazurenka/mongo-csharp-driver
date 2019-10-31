@@ -64,12 +64,12 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
                     switch (name)
                     {
                         case "targetedFailPoint": return new JsonDrivenTargetedFailPointTest(_testRunner, _objectMap);
-                        case "assertDifferentLsidOnLastTwoCommands": return new JsonDrivenAssertDifferentLsidOnLastTwoCommands(_testRunner, _eventCapturer, _objectMap);
-                        case "assertSessionDirty": return new JsonDrivenAssertSessionDirty(_testRunner, _objectMap);
-                        case "assertSessionNotDirty": return new JsonDrivenAssertSessionNotDirty(_testRunner, _objectMap);
+                        case "assertDifferentLsidOnLastTwoCommands": return new JsonDrivenAssertDifferentLsidOnLastTwoCommandsTest(_testRunner, _eventCapturer, _objectMap);
+                        case "assertSessionDirty": return new JsonDrivenAssertSessionDirtyTest(_testRunner, _objectMap);
+                        case "assertSessionNotDirty": return new JsonDrivenAssertSessionNotDirtyTest(_testRunner, _objectMap);
                         case "assertSessionPinned": return new JsonDrivenAssertSessionPinnedTest(_testRunner, _objectMap);
                         case "assertSessionUnpinned": return new JsonDrivenAssertSessionUnpinnedTest(_testRunner, _objectMap);
-                        case "assertSameLsidOnLastTwoCommands": return new JsonDrivenAssertSameLsidOnLastTwoCommands(_testRunner, _eventCapturer, _objectMap);
+                        case "assertSameLsidOnLastTwoCommands": return new JsonDrivenAssertSameLsidOnLastTwoCommandsTest(_testRunner, _eventCapturer, _objectMap);
                         default: throw new FormatException($"Invalid method name: \"{name}\".");
                     }
 
@@ -87,7 +87,7 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
                     {
                         case "abortTransaction": return new JsonDrivenAbortTransactionTest(_objectMap);
                         case "commitTransaction": return new JsonDrivenCommitTransactionTest(_objectMap);
-                        case "endSession": return new JsonDrivenEndSession(_objectMap);
+                        case "endSession": return new JsonDrivenEndSessionTest(_objectMap);
                         case "startTransaction": return new JsonDrivenStartTransactionTest(_objectMap);
                         case "withTransaction": return new JsonDrivenWithTransactionTest(this, _objectMap);
                         default: throw new FormatException($"Invalid method name: \"{name}\".");

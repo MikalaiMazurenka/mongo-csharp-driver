@@ -19,9 +19,9 @@ using FluentAssertions;
 
 namespace MongoDB.Driver.Tests.JsonDrivenTests
 {
-    public class JsonDrivenAssertSessionNotDirty : JsonDrivenTestRunnerTest
+    public class JsonDrivenAssertSessionNotDirtyTest : JsonDrivenTestRunnerTest
     {
-        public JsonDrivenAssertSessionNotDirty(IJsonDrivenTestRunner testRunner, Dictionary<string, object> objectMap)
+        public JsonDrivenAssertSessionNotDirtyTest(IJsonDrivenTestRunner testRunner, Dictionary<string, object> objectMap)
             : base(testRunner, objectMap)
         {
         }
@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
 
         public override void Assert()
         {
-            Session.Dirty.Should().BeFalse();
+            CoreSession.Dirty.Should().BeFalse();
         }
     }
 }
