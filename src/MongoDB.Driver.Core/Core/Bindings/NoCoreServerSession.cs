@@ -28,9 +28,9 @@ namespace MongoDB.Driver.Core.Bindings
         public static ICoreServerSession Instance => __instance;
         #endregion
 
-        public bool Dirty => false;
-
         public BsonDocument Id => null;
+
+        public bool IsDirty => false;
 
         public DateTime? LastUsedAt => null;
 

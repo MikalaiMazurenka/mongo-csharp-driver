@@ -35,8 +35,8 @@ namespace MongoDB.Driver
         #endregion
 
         // private fields
-        private bool _dirty;
         private readonly BsonDocument _id;
+        private bool _isDirty;
         private DateTime? _lastUsedAt;
         private long _transactionNumber;
 
@@ -49,10 +49,10 @@ namespace MongoDB.Driver
 
         // public properties
         /// <inheritdoc />
-        public bool Dirty => _dirty;
+        public BsonDocument Id => _id;
 
         /// <inheritdoc />
-        public BsonDocument Id => _id;
+        public bool IsDirty => _isDirty;
 
         /// <inheritdoc />
         public DateTime? LastUsedAt => _lastUsedAt;
@@ -72,7 +72,7 @@ namespace MongoDB.Driver
         /// <inheritdoc />
         public void MarkDirty()
         {
-            _dirty = true;
+            _isDirty = true;
         }
 
         /// <inheritdoc />

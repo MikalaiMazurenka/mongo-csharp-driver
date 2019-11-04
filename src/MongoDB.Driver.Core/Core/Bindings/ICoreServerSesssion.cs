@@ -23,15 +23,6 @@ namespace MongoDB.Driver
     /// </summary>
     public interface ICoreServerSession : IDisposable
     {
-        // properties
-        /// <summary>
-        /// Gets a value indicate whether this session is dirty.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if the session is dirty.
-        /// </value>
-        bool Dirty { get; }
-
         /// <summary>
         /// Gets the session Id.
         /// </summary>
@@ -39,6 +30,15 @@ namespace MongoDB.Driver
         /// The session Id.
         /// </value>
         BsonDocument Id { get; }
+
+        // properties
+        /// <summary>
+        /// Gets a value indicate whether this session is dirty.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the session is dirty.
+        /// </value>
+        bool IsDirty { get; }
 
         /// <summary>
         /// Gets the time this server session was last used (in UTC).

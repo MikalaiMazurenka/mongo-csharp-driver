@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
 
         public override void Assert()
         {
-            CoreSession.Dirty.Should().BeTrue();
+            CoreSession.IsDirty.Should().BeTrue();
         }
     }
 }

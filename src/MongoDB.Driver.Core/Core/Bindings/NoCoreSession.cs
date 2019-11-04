@@ -58,13 +58,13 @@ namespace MongoDB.Driver.Core.Bindings
         public CoreTransaction CurrentTransaction => null;
 
         /// <inheritdoc />
-        public bool Dirty => false;
-
-        /// <inheritdoc />
         public BsonDocument Id => null;
 
         /// <inheritdoc />
         public bool IsCausallyConsistent => false;
+
+        /// <inheritdoc />
+        public bool IsDirty => false;
 
         /// <inheritdoc />
         public bool IsImplicit => true;

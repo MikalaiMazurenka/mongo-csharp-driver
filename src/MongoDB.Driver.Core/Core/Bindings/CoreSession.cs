@@ -74,13 +74,13 @@ namespace MongoDB.Driver.Core.Bindings
         public CoreTransaction CurrentTransaction => _currentTransaction;
 
         /// <inheritdoc />
-        public bool Dirty => _serverSession.Dirty;
-
-        /// <inheritdoc />
         public BsonDocument Id => _serverSession.Id;
 
         /// <inheritdoc />
         public bool IsCausallyConsistent => _options.IsCausallyConsistent;
+
+        /// <inheritdoc />
+        public bool IsDirty => _serverSession.IsDirty;
 
         /// <inheritdoc />
         public bool IsImplicit => _options.IsImplicit;

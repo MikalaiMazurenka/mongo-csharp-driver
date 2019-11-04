@@ -41,14 +41,6 @@ namespace MongoDB.Driver.Core.Bindings
         /// The current transaction.
         /// </value>
         CoreTransaction CurrentTransaction { get; }
-        
-        /// <summary>
-        /// Gets a value indicate whether this session is dirty.
-        /// </summary>
-        /// <value>
-        ///   <c>true</c> if the session is dirty.
-        /// </value>
-        bool Dirty { get; }
 
         /// <summary>
         /// Gets the session Id.
@@ -65,6 +57,14 @@ namespace MongoDB.Driver.Core.Bindings
         ///   <c>true</c> if the session is causally consistent.
         /// </value>
         bool IsCausallyConsistent { get; }
+        
+        /// <summary>
+        /// Gets a value indicate whether this session is dirty.
+        /// </summary>
+        /// <value>
+        ///   <c>true</c> if the session is dirty.
+        /// </value>
+        bool IsDirty { get; }
 
         /// <summary>
         /// Gets a value indicating whether this instance is implicit session.

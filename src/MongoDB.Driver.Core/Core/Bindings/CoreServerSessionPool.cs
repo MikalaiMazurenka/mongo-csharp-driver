@@ -109,7 +109,7 @@ namespace MongoDB.Driver
 
         private bool IsAboutToExpireOrDirty(ICoreServerSession session)
         {
-            return IsAboutToExpire(session) || session.Dirty;
+            return IsAboutToExpire(session) || session.IsDirty;
         }
 
         // nested types

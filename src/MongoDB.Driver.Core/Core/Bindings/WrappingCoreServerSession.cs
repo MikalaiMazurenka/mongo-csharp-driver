@@ -34,21 +34,21 @@ namespace MongoDB.Driver
         }
 
         // public properties
-        public bool Dirty
-        {
-            get
-            {
-                ThrowIfDisposed();
-                return _wrapped.Dirty;
-            }
-        }
-
         public BsonDocument Id
         {
             get
             {
                 ThrowIfDisposed();
                 return _wrapped.Id;
+            }
+        }
+
+        public bool IsDirty
+        {
+            get
+            {
+                ThrowIfDisposed();
+                return _wrapped.IsDirty;
             }
         }
 
