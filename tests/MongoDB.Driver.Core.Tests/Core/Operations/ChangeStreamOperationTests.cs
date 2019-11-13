@@ -258,12 +258,13 @@ namespace MongoDB.Driver.Core.Operations
 
             result.Should().Be(value);
         }
-
+        
         [SkippableTheory]
         [ParameterAttributeData]
         public void Execute_should_return_expected_results_for_drop_collection(
             [Values(false, true)] bool async)
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0));
             RequireServer.Check().Supports(Feature.ChangeStreamStage).ClusterTypes(ClusterType.ReplicaSet);
             var pipeline = new[] { BsonDocument.Parse("{ $match : { operationType : \"invalidate\" } }") };
             var resultSerializer = new ChangeStreamDocumentSerializer<BsonDocument>(BsonDocumentSerializer.Instance);
@@ -294,6 +295,7 @@ namespace MongoDB.Driver.Core.Operations
         public void Execute_should_return_expected_results_for_deletes(
             [Values(false, true)] bool async)
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0));
             RequireServer.Check().Supports(Feature.ChangeStreamStage).ClusterTypes(ClusterType.ReplicaSet);
             var pipeline = new[] { BsonDocument.Parse("{ $match : { operationType : \"delete\" } }") };
             var resultSerializer = new ChangeStreamDocumentSerializer<BsonDocument>(BsonDocumentSerializer.Instance);
@@ -324,6 +326,7 @@ namespace MongoDB.Driver.Core.Operations
         public void Execute_should_return_expected_results_for_inserts(
             [Values(false, true)] bool async)
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0));
             RequireServer.Check().Supports(Feature.ChangeStreamStage).ClusterTypes(ClusterType.ReplicaSet, ClusterType.Sharded);
             var pipeline = new[] { BsonDocument.Parse("{ $match : { operationType : \"insert\" } }") };
             var resultSerializer = new ChangeStreamDocumentSerializer<BsonDocument>(BsonDocumentSerializer.Instance);
@@ -356,6 +359,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(1, 2, 3)] int numberOfChunks,
             [Values(false, true)] bool async)
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0));
             RequireServer.Check().Supports(Feature.ChangeStreamStage).ClusterTypes(ClusterType.ReplicaSet, ClusterType.Sharded);
             EnsureDatabaseExists();
             DropCollection();
@@ -399,6 +403,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(ChangeStreamFullDocumentOption.Default, ChangeStreamFullDocumentOption.UpdateLookup)] ChangeStreamFullDocumentOption fullDocument,
             [Values(false, true)] bool async)
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0));
             RequireServer.Check().Supports(Feature.ChangeStreamStage).ClusterTypes(ClusterType.ReplicaSet);
             var pipeline = new[] { BsonDocument.Parse("{ $match : { operationType : \"update\" } }") };
             var resultSerializer = new ChangeStreamDocumentSerializer<BsonDocument>(BsonDocumentSerializer.Instance);

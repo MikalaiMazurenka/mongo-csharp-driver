@@ -290,6 +290,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
                         {
                             writeError["code"] = 42;
                             writeError["errmsg"] = "";
+                            writeError.Remove("codeName"); // Fixes error #4
                         }
                     }
                     break;
@@ -328,6 +329,11 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
 
         private class TestCaseFactory : IEnumerable<object[]>
         {
+            private static readonly string[] _ignoredTestsDescriptions = new string[]
+            {
+                "A successful find event with options",
+            };
+
             public IEnumerator<object[]> GetEnumerator()
             {
                 const string prefix = "MongoDB.Driver.Tests.Specifications.command_monitoring.tests.";
@@ -351,6 +357,12 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
                             //testCase.SetCategory("Specifications");
                             //testCase.SetCategory("command-monitoring");
                             //testCase.SetName($"{definition["description"]}({async})");
+
+                            if (_ignoredTestsDescriptions.Any(s => definition.ToString().Contains(s)))
+                            {
+                               continue;
+                            }
+
                             var testCase = new object[] { data, databaseName, collectionName, definition, async };
                             testCases.Add(testCase);
                         }

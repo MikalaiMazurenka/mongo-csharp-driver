@@ -441,6 +441,11 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            if (autoIndexId == false)
+            {
+                RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0));
+            }
+
             RequireServer.Check();
             DropCollection();
             var subject = new CreateCollectionOperation(_collectionNamespace, _messageEncoderSettings)
