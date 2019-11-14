@@ -127,13 +127,19 @@ namespace MongoDB.Bson.Tests
         public void ToDouble_should_not_depend_on_current_culture(string valueString, double expectedDouble)
         {
             var currentCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("fr-FR");
-            var subject = Decimal128.Parse(valueString);
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("fr-FR");
+                var subject = Decimal128.Parse(valueString);
 
-            var result = Decimal128.ToDouble(subject);
+                var result = Decimal128.ToDouble(subject);
 
-            result.Should().Be(expectedDouble);
-            Thread.CurrentThread.CurrentCulture = currentCulture;
+                result.Should().Be(expectedDouble);
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = currentCulture;
+            }
         }
 
         [Theory]
@@ -141,13 +147,19 @@ namespace MongoDB.Bson.Tests
         public void ToSingle_should_not_depend_on_current_culture(string valueString, float expectedFloat)
         {
             var currentCulture = Thread.CurrentThread.CurrentCulture;
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("fr-FR");
-            var subject = Decimal128.Parse(valueString);
+            try
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("fr-FR");
+                var subject = Decimal128.Parse(valueString);
 
-            var result = Decimal128.ToSingle(subject);
+                var result = Decimal128.ToSingle(subject);
 
-            result.Should().Be(expectedFloat);
-            Thread.CurrentThread.CurrentCulture = currentCulture;
+                result.Should().Be(expectedFloat);
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentCulture = currentCulture;
+            }
         }
 
         [Theory]
