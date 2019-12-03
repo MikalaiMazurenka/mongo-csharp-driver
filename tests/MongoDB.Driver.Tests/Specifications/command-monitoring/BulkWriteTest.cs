@@ -16,8 +16,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using FluentAssertions;
 using MongoDB.Bson;
 
 namespace MongoDB.Driver.Tests.Specifications.command_monitoring
@@ -26,18 +24,21 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
     {
         private List<WriteModel<BsonDocument>> _requests;
         private BulkWriteOptions _options = new BulkWriteOptions();
-        private WriteConcern _writeConcern = WriteConcern.Acknowledged;
 
         protected override void Execute(IMongoCollection<BsonDocument> collection, bool async)
         {
-            var collectionWithWriteConcern = collection.WithWriteConcern(_writeConcern);
+            if (collection.Settings.WriteConcern == null)
+            {
+                collection = collection.WithWriteConcern(WriteConcern.Acknowledged);
+            }
+
             if (async)
             {
-                collectionWithWriteConcern.BulkWriteAsync(_requests, _options).GetAwaiter().GetResult();
+                collection.BulkWriteAsync(_requests, _options).GetAwaiter().GetResult();
             }
             else
             {
-                collectionWithWriteConcern.BulkWrite(_requests, _options);
+                collection.BulkWrite(_requests, _options);
             }
         }
 
@@ -48,32 +49,53 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
                 case "requests":
                     _requests = ParseRequests((BsonArray)value).ToList();
                     return true;
+                case "options":
+                    _options = ParseOptions(value.AsBsonDocument);
+                    return true;
                 case "ordered":
                     _options.IsOrdered = value.ToBoolean();
-                    return true;
-                case "writeConcern":
-                    _writeConcern = WriteConcern.FromBsonDocument((BsonDocument)value);
                     return true;
             }
 
             return false;
+        }
+        
+        // private methods
+        private BulkWriteOptions ParseOptions(BsonDocument value)
+        {
+            var options = new BulkWriteOptions();
+
+            foreach (var option in value.Elements)
+            {
+                switch (option.Name)
+                {
+                    case "ordered":
+                        options.IsOrdered = option.Value.ToBoolean();
+                        break;
+                    default:
+                        throw new FormatException($"Unexpected option: ${option.Name}.");
+                }
+            }
+
+            return options;
         }
 
         private IEnumerable<WriteModel<BsonDocument>> ParseRequests(BsonArray requests)
         {
             foreach (BsonDocument request in requests)
             {
-                var element = request.GetElement(0);
-                switch (element.Name)
+                var name = request["name"].AsString;
+                var arguments = request["arguments"].AsBsonDocument;
+                switch (name)
                 {
                     case "deleteOne":
-                        yield return ParseDeleteOne((BsonDocument)element.Value);
+                        yield return ParseDeleteOne(arguments);
                         break;
                     case "insertOne":
-                        yield return ParseInsertOne((BsonDocument)element.Value);
+                        yield return ParseInsertOne(arguments);
                         break;
                     case "updateOne":
-                        yield return ParseUpdateOne((BsonDocument)element.Value);
+                        yield return ParseUpdateOne(arguments);
                         break;
                 }
             }
@@ -98,7 +120,5 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             model.IsUpsert = request.GetValue("upsert", false).ToBoolean();
             return model;
         }
-
-
     }
 }
