@@ -19,7 +19,7 @@ var artifactsBinNet452Directory = artifactsBinDirectory.Combine("net452");
 var artifactsBinNetStandard15Directory = artifactsBinDirectory.Combine("netstandard1.5");
 var artifactsDocsDirectory = artifactsDirectory.Combine("docs");
 var artifactsDocsApiDocsDirectory = artifactsDocsDirectory.Combine("ApiDocs-" + gitVersion.LegacySemVer);
-var artifactsDocsRefDocsDirectory = artifactsDocsDirectory.Combine("RefDocs-" + gitVersion.LegacySemVer + "-html");
+var artifactsDocsRefDocsDirectory = artifactsDocsDirectory.Combine("RefDocs-" + gitVersion.LegacySemVer);
 var artifactsPackagesDirectory = artifactsDirectory.Combine("packages");
 var docsDirectory = solutionDirectory.Combine("Docs");
 var docsApiDirectory = docsDirectory.Combine("Api");
@@ -172,16 +172,9 @@ Task("ApiDocs")
         var upperCaseIndexFile = artifactsDocsApiDocsDirectory.CombineWithFilePath("Index.html");
         MoveFile(upperCaseIndexFile, lowerCaseIndexFile);
 
-        var apiDocsZipFileName = artifactsDocsApiDocsDirectory.GetDirectoryName() + "-html.zip";
-        var apiDocsZipFile = artifactsDocsDirectory.CombineWithFilePath(apiDocsZipFileName);
-        Console.WriteLine(apiDocsZipFile.FullPath);
-        Zip(artifactsDocsApiDocsDirectory, apiDocsZipFile);
-
         var chmFile = artifactsDocsApiDocsDirectory.CombineWithFilePath("CSharpDriverDocs.chm");
         var artifactsDocsChmFile = artifactsDocsDirectory.CombineWithFilePath("CSharpDriverDocs.chm");
         CopyFile(chmFile, artifactsDocsChmFile);
-
-        DeleteDirectory(artifactsDocsApiDocsDirectory, recursive: true);
     });
 
 Task("RefDocs")
