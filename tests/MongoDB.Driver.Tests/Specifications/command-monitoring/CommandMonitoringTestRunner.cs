@@ -238,8 +238,9 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             test.Execute(__client.Cluster.Description, database, collection, arguments, async);
         }
 
-        private void ParseCollectionOptions(MongoCollectionSettings settings, BsonDocument collectionOptions)
+        private MongoCollectionSettings GetOperationCollectionOptions(BsonDocument collectionOptions)
         {
+            var settings = new MongoCollectionSettings();
             foreach (var collectionOption in collectionOptions.Elements)
             {
                 switch (collectionOption.Name)
@@ -251,15 +252,15 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
                         throw new FormatException($"Unexpected collection option: {collectionOption.Name}.");
                 }
             }
+
+            return settings;
         }
 
         private MongoCollectionSettings ParseCollectionOptions(BsonDocument operation)
         {
             if (operation.TryGetValue("collectionOptions", out var collectionOptions))
             {
-                var settings = new MongoCollectionSettings();
-                ParseCollectionOptions(settings, collectionOptions.AsBsonDocument);
-                return settings;
+                return GetOperationCollectionOptions(collectionOptions.AsBsonDocument);
             }
             else
             {

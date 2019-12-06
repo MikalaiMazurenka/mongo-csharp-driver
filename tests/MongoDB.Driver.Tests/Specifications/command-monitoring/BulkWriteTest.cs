@@ -47,13 +47,10 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             switch (name)
             {
                 case "requests":
-                    _requests = ParseRequests((BsonArray)value).ToList();
+                    _requests = ParseRequests(value.AsBsonArray);
                     return true;
                 case "options":
                     _options = ParseOptions(value.AsBsonDocument);
-                    return true;
-                case "ordered":
-                    _options.IsOrdered = value.ToBoolean();
                     return true;
             }
 
@@ -80,8 +77,9 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             return options;
         }
 
-        private IEnumerable<WriteModel<BsonDocument>> ParseRequests(BsonArray requests)
+        private List<WriteModel<BsonDocument>> ParseRequests(BsonArray requests)
         {
+            var result = new List<WriteModel<BsonDocument>>();
             foreach (BsonDocument request in requests)
             {
                 var name = request["name"].AsString;
@@ -89,16 +87,18 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
                 switch (name)
                 {
                     case "deleteOne":
-                        yield return ParseDeleteOne(arguments);
+                        result.Add(ParseDeleteOne(arguments));
                         break;
                     case "insertOne":
-                        yield return ParseInsertOne(arguments);
+                        result.Add(ParseInsertOne(arguments));
                         break;
                     case "updateOne":
-                        yield return ParseUpdateOne(arguments);
+                        result.Add(ParseUpdateOne(arguments));
                         break;
                 }
             }
+
+            return result;
         }
 
         private DeleteOneModel<BsonDocument> ParseDeleteOne(BsonDocument request)
