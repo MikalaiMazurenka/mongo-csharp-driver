@@ -202,7 +202,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
 
         private IMongoCollection<BsonDocument> GetCollection(IMongoDatabase database, string collectionName, BsonDocument operation)
         {
-            var collectionSettings = ParseCollectionOptions(operation);
+            var collectionSettings = ParseOperationCollectionSettings(operation);
 
             var collection = database.GetCollection<BsonDocument>(
                 collectionName,
@@ -238,7 +238,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             test.Execute(__client.Cluster.Description, database, collection, arguments, async);
         }
 
-        private MongoCollectionSettings GetOperationCollectionOptions(BsonDocument collectionOptions)
+        private MongoCollectionSettings ParseCollectionSettings(BsonDocument collectionOptions)
         {
             var settings = new MongoCollectionSettings();
             foreach (var collectionOption in collectionOptions.Elements)
@@ -256,11 +256,11 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             return settings;
         }
 
-        private MongoCollectionSettings ParseCollectionOptions(BsonDocument operation)
+        private MongoCollectionSettings ParseOperationCollectionSettings(BsonDocument operation)
         {
             if (operation.TryGetValue("collectionOptions", out var collectionOptions))
             {
-                return GetOperationCollectionOptions(collectionOptions.AsBsonDocument);
+                return ParseCollectionSettings(collectionOptions.AsBsonDocument);
             }
             else
             {
