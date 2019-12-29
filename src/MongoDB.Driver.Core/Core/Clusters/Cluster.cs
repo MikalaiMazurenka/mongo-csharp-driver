@@ -507,25 +507,23 @@ namespace MongoDB.Driver.Core.Clusters
             private IServerSelector DecorateSelector(IServerSelector selector)
             {
                 var settings = _cluster.Settings;
-                if (settings.PreServerSelector != null || settings.PostServerSelector != null)
+                var allSelectors = new List<IServerSelector>();
+
+                if (settings.PreServerSelector != null)
                 {
-                    var allSelectors = new List<IServerSelector>();
-                    if (settings.PreServerSelector != null)
-                    {
-                        allSelectors.Add(settings.PreServerSelector);
-                    }
-
-                    allSelectors.Add(selector);
-
-                    if (settings.PostServerSelector != null)
-                    {
-                        allSelectors.Add(settings.PostServerSelector);
-                    }
-
-                    return new CompositeServerSelector(allSelectors);
+                    allSelectors.Add(settings.PreServerSelector);
                 }
 
-                return selector;
+                allSelectors.Add(selector);
+
+                if (settings.PostServerSelector != null)
+                {
+                    allSelectors.Add(settings.PostServerSelector);
+                }
+
+                allSelectors.Add(new LatencyLimitingServerSelector(settings.LocalThreshold));
+
+                return new CompositeServerSelector(allSelectors);
             }
         }
 

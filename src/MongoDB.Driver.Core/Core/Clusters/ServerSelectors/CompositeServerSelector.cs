@@ -47,6 +47,11 @@ namespace MongoDB.Driver.Core.Clusters.ServerSelectors
             foreach (var selector in _selectors)
             {
                 selectedServers = selector.SelectServers(cluster, selectedServers);
+
+                if (!selectedServers.Any())
+                {
+                    break;
+                }
             }
             return selectedServers;
         }
