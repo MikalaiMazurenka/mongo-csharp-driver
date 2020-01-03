@@ -507,7 +507,10 @@ namespace MongoDB.Driver.Core.Clusters
 
             for (int i = 0; i < 3; i++)
             {
-                var selectedServer = SelectServerAttempt(subject, new DelegateServerSelector((c, s) => s), async); // do not filter servers
+                var selectedServer = SelectServerAttempt(
+                    subject,
+                    new DelegateServerSelector((c, s) => s), // do not filter servers
+                    async);
 
                 ((DnsEndPoint)selectedServer.EndPoint).Port.Should().Be(27020);
                 _capturedEvents.Next().Should().BeOfType<ClusterSelectingServerEvent>();
@@ -526,7 +529,6 @@ namespace MongoDB.Driver.Core.Clusters
             var customServerSelector = new DelegateServerSelector((c, s) =>
             {
                 numberOfCustomServerSelectorCalls++;
-
                 return s; // return all servers
             });
 
