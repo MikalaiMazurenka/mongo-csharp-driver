@@ -488,7 +488,6 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Supports(Feature.AggregateOut);
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 
@@ -507,7 +506,6 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Supports(Feature.AggregateOut);
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
@@ -529,7 +527,6 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Supports(Feature.AggregateOut);
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
@@ -551,7 +548,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Supports(Feature.AggregateOut, Feature.Collation);
+            RequireServer.Check().Supports(Feature.Collation);
             EnsureTestData();
             var pipeline = new[]
             {
@@ -577,7 +574,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Supports(Feature.AggregateOut).DoesNotSupport(Feature.Collation);
+            RequireServer.Check().DoesNotSupport(Feature.Collation);
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 Collation = new Collation("en_US")
@@ -593,7 +590,7 @@ namespace MongoDB.Driver.Core.Operations
         public void Execute_should_throw_when_maxTime_is_exceeded(
             [Values(false, true)] bool async)
         {
-            RequireServer.Check().Supports(Feature.FailPoints, Feature.AggregateOut).ClusterTypes(ClusterType.Standalone, ClusterType.ReplicaSet);
+            RequireServer.Check().ClusterTypes(ClusterType.Standalone, ClusterType.ReplicaSet);
             var pipeline = new[]
             {
                 BsonDocument.Parse("{ $match : { x : \"x\" } }"),
@@ -620,7 +617,7 @@ namespace MongoDB.Driver.Core.Operations
         {
             RequireServer.Check()
                 .ClusterTypes(ClusterType.Standalone, ClusterType.ReplicaSet)
-                .Supports(Feature.AggregateOut, Feature.AggregateComment);
+                .Supports(Feature.AggregateComment);
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
@@ -646,7 +643,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Supports(Feature.AggregateOut, Feature.AggregateHint);
+            RequireServer.Check().Supports(Feature.AggregateHint);
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
@@ -667,7 +664,6 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Supports(Feature.AggregateOut);
             EnsureTestData();
             var maxTime = milliseconds == null ? (TimeSpan?)null : TimeSpan.FromMilliseconds(milliseconds.Value);
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
@@ -688,7 +684,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Supports(Feature.AggregateOut, Feature.CommandsThatWriteAcceptWriteConcern).ClusterType(ClusterType.ReplicaSet);
+            RequireServer.Check().Supports(Feature.CommandsThatWriteAcceptWriteConcern).ClusterType(ClusterType.ReplicaSet);
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
@@ -705,7 +701,6 @@ namespace MongoDB.Driver.Core.Operations
         public void Execute_should_send_session_id_when_supported(
             [Values(false, true)] bool async)
         {
-            RequireServer.Check().Supports(Feature.AggregateOut);
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 

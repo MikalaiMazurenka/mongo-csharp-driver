@@ -343,16 +343,13 @@ namespace MongoDB.Driver.Core.Operations
                 { "readConcern", readConcern, readConcern != null }
             };
 
-            if (Feature.AggregateCursorResult.IsSupported(connectionDescription.ServerVersion))
+            var useCursor = _useCursor.GetValueOrDefault(true) || connectionDescription.ServerVersion >= new SemanticVersion(3, 5, 0);
+            if (useCursor)
             {
-                var useCursor = _useCursor.GetValueOrDefault(true) || connectionDescription.ServerVersion >= new SemanticVersion(3, 5, 0);
-                if (useCursor)
+                command["cursor"] = new BsonDocument
                 {
-                    command["cursor"] = new BsonDocument
-                    {
-                        { "batchSize", () => _batchSize.Value, _batchSize.HasValue }
-                    };
-                }
+                    { "batchSize", () => _batchSize.Value, _batchSize.HasValue }
+                };
             }
 
             return command;
