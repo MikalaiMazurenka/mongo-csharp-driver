@@ -87,7 +87,8 @@ namespace MongoDB.Driver.Tests
             var collection = _database.GetCollection("testindexoptiondefaults");
             collection.Drop();
             Assert.False(collection.Exists());
-            var storageEngineOptions = new BsonDocument("mmapv1", new BsonDocument());
+            var storageEngine = CoreTestConfiguration.GetStorageEngine(); // #5 (old storageEngine)
+            var storageEngineOptions = new BsonDocument(storageEngine, new BsonDocument());
             var indexOptionDefaults = new IndexOptionDefaults { StorageEngine = storageEngineOptions };
             var expectedIndexOptionDefaultsDocument = new BsonDocument("storageEngine", storageEngineOptions);
             var options = CollectionOptions.SetIndexOptionDefaults(indexOptionDefaults);
@@ -106,10 +107,11 @@ namespace MongoDB.Driver.Tests
             var collection = _database.GetCollection("storage_engine_collection");
             collection.Drop();
             Assert.False(collection.Exists());
+            var storageEngine = CoreTestConfiguration.GetStorageEngine(); // #5 (old storageEngine)
             var storageEngineOptions = new BsonDocument
             {
                 { "wiredTiger", new BsonDocument("configString", "block_compressor=zlib") },
-                { "mmapv1", new BsonDocument() }
+                { storageEngine, new BsonDocument() }
             };
             var options = CollectionOptions.SetStorageEngineOptions(storageEngineOptions);
             _database.CreateCollection(collection.Name, options);

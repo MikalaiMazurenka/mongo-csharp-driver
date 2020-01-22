@@ -290,6 +290,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
                         {
                             writeError["code"] = 42;
                             writeError["errmsg"] = "";
+                            writeError.Remove("codeName"); // #4 (extra field "codeName")
                         }
                     }
                     break;
@@ -328,6 +329,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
 
         private class TestCaseFactory : IEnumerable<object[]>
         {
+            // Issues #6 and #7 are fixed in find.json
             public IEnumerator<object[]> GetEnumerator()
             {
                 const string prefix = "MongoDB.Driver.Tests.Specifications.command_monitoring.tests.";

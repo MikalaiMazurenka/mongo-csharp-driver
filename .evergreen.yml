@@ -1,0 +1,11 @@
+user: "mikalai.mazurenka"
+api_key: "498eb0056e3bef0c06cf0a0431ae2d15"
+api_server_host: "https://evergreen.mongodb.com/api"
+ui_server_host: "https://evergreen.mongodb.com"
+projects:
+- name: dot-net-driver
+  default: true
+  variants:
+  - all
+  tasks:
+  - all
