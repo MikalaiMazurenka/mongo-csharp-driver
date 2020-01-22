@@ -441,6 +441,11 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            if (autoIndexId == false) // #2 (autoIndexId)
+            {
+                RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0));
+            }
+
             RequireServer.Check();
             DropCollection();
             var subject = new CreateCollectionOperation(_collectionNamespace, _messageEncoderSettings)
@@ -520,9 +525,10 @@ namespace MongoDB.Driver.Core.Operations
         {
             RequireServer.Check().Supports(Feature.IndexOptionsDefaults);
             DropCollection();
+            var storageEngine = CoreTestConfiguration.GetStorageEngine(); // #5 (old storageEngine)
             var indexOptionDefaults = new BsonDocument
             {
-                {  "storageEngine", new BsonDocument("mmapv1", new BsonDocument()) }
+                {  "storageEngine", new BsonDocument(storageEngine, new BsonDocument()) }
             };
             var subject = new CreateCollectionOperation(_collectionNamespace, _messageEncoderSettings)
             {
