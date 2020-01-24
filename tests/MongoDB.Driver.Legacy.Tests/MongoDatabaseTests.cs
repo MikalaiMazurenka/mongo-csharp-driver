@@ -190,9 +190,10 @@ namespace MongoDB.Driver.Tests
             exception.Should().BeOfType<MongoWriteConcernException>();
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestEvalNoArgs()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
 #pragma warning disable 618
             if (!DriverTestConfiguration.Client.Settings.Credentials.Any())
             {
@@ -203,9 +204,10 @@ namespace MongoDB.Driver.Tests
 #pragma warning restore
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestEvalNoArgsNoLock()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
 #pragma warning disable 618
             if (!DriverTestConfiguration.Client.Settings.Credentials.Any())
             {
@@ -216,9 +218,10 @@ namespace MongoDB.Driver.Tests
 #pragma warning restore
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestEvalWithMaxTime()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
 #pragma warning disable 618
             if (!DriverTestConfiguration.Client.Settings.Credentials.Any())
             {
@@ -242,9 +245,10 @@ namespace MongoDB.Driver.Tests
 #pragma warning restore
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestEvalWithOneArg()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
 #pragma warning disable 618
             if (!DriverTestConfiguration.Client.Settings.Credentials.Any())
             {
@@ -255,9 +259,10 @@ namespace MongoDB.Driver.Tests
 #pragma warning restore
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestEvalWithOneArgNoLock()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
 #pragma warning disable 618
             if (!DriverTestConfiguration.Client.Settings.Credentials.Any())
             {
@@ -268,9 +273,10 @@ namespace MongoDB.Driver.Tests
 #pragma warning restore
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestEvalWithTwoArgs()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
 #pragma warning disable 618
             if (!DriverTestConfiguration.Client.Settings.Credentials.Any())
             {
@@ -281,9 +287,10 @@ namespace MongoDB.Driver.Tests
 #pragma warning restore
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestEvalWithTwoArgsNoLock()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
 #pragma warning disable 618
             if (!DriverTestConfiguration.Client.Settings.Credentials.Any())
             {
