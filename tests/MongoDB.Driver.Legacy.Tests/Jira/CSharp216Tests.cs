@@ -16,6 +16,8 @@
 using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver;
+using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 using Xunit;
 
 namespace MongoDB.Driver.Tests.Jira.CSharp216
@@ -32,6 +34,7 @@ namespace MongoDB.Driver.Tests.Jira.CSharp216
         [Fact]
         public void TestAmbiguousEvalArguments()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #11 eval
 #pragma warning disable 618
             if (!DriverTestConfiguration.Client.Settings.Credentials.Any())
             {
@@ -50,6 +53,7 @@ namespace MongoDB.Driver.Tests.Jira.CSharp216
         [Fact]
         public void TestNoLock()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #11 eval
 #pragma warning disable 618
             if (!DriverTestConfiguration.Client.Settings.Credentials.Any())
             {

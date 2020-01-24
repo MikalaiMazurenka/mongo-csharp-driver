@@ -107,11 +107,9 @@ namespace MongoDB.Driver.Tests
             var collection = _database.GetCollection("storage_engine_collection");
             collection.Drop();
             Assert.False(collection.Exists());
-            var storageEngine = CoreTestConfiguration.GetStorageEngine(); // #5 (old storageEngine)
             var storageEngineOptions = new BsonDocument
             {
                 { "wiredTiger", new BsonDocument("configString", "block_compressor=zlib") },
-                { storageEngine, new BsonDocument() }
             };
             var options = CollectionOptions.SetStorageEngineOptions(storageEngineOptions);
             _database.CreateCollection(collection.Name, options);
