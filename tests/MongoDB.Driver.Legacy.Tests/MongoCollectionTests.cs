@@ -1565,9 +1565,10 @@ namespace MongoDB.Driver.Tests
             // note: the hits are unordered
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestFindWithMaxScan()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #9 geoNear
             _collection.Drop();
             var docs = Enumerable.Range(0, 10).Select(x => new BsonDocument("_id", x));
             _collection.InsertBatch(docs);
