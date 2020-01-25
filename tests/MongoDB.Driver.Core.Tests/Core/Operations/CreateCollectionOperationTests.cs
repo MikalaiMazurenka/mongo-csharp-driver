@@ -523,7 +523,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Supports(Feature.IndexOptionsDefaults);
+            RequireServer.Check().Supports(Feature.IndexOptionsDefaults).ClusterTypes(ClusterType.Standalone, ClusterType.ReplicaSet);
             DropCollection();
             var storageEngine = CoreTestConfiguration.GetStorageEngine(); // #5 (old storageEngine)
             var indexOptionDefaults = new BsonDocument
