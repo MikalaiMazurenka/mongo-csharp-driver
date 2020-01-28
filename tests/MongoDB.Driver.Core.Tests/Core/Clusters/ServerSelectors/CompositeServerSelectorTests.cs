@@ -71,26 +71,5 @@ namespace MongoDB.Driver.Core.Clusters.ServerSelectors
             mockSelector1.Verify(s => s.SelectServers(_description, _description.Servers), Times.Once);
             mockSelector2.Verify(s => s.SelectServers(_description, selector1Selected), Times.Once);
         }
-
-        [Fact]
-        public void Should_skip_subsequent_selectors_if_the_current_selector_returns_empty_servers_collection()
-        {
-            var mockSelector1 = new Mock<IServerSelector>();
-            mockSelector1
-                .Setup(s => s.SelectServers(It.IsAny<ClusterDescription>(), It.IsAny<IEnumerable<ServerDescription>>()))
-                .Returns(new ServerDescription[0]);
-
-            var mockSelector2 = new Mock<IServerSelector>();
-            mockSelector2
-                .Setup(s => s.SelectServers(It.IsAny<ClusterDescription>(), It.IsAny<IEnumerable<ServerDescription>>()))
-                .Returns(_description.Servers);
-
-            var subject = new CompositeServerSelector(new[] { mockSelector1.Object, mockSelector2.Object });
-
-            subject.SelectServers(_description, _description.Servers);
-
-            mockSelector1.Verify(s => s.SelectServers(It.IsAny<ClusterDescription>(), It.IsAny<IEnumerable<ServerDescription>>()), Times.Once);
-            mockSelector2.Verify(s => s.SelectServers(It.IsAny<ClusterDescription>(), It.IsAny<IEnumerable<ServerDescription>>()), Times.Never);
-        }
     }
 }

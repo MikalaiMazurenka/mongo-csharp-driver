@@ -523,7 +523,7 @@ namespace MongoDB.Driver.Core.Clusters
 
         [Theory]
         [ParameterAttributeData]
-        public void SelectServer_should_not_call_custom_selector_if_there_are_no_eligible_servers([Values(true, false)] bool async)
+        public void SelectServer_should_call_custom_selector_if_there_are_no_eligible_servers([Values(true, false)] bool async)
         {
             int numberOfCustomServerSelectorCalls = 0;
             var customServerSelector = new DelegateServerSelector((c, s) =>
@@ -559,7 +559,7 @@ namespace MongoDB.Driver.Core.Clusters
                 _capturedEvents.Next().Should().BeOfType<ClusterSelectingServerFailedEvent>();
             }
 
-            numberOfCustomServerSelectorCalls.Should().Be(0);
+            numberOfCustomServerSelectorCalls.Should().Be(3);
             _capturedEvents.Any().Should().BeFalse();
         }
 
