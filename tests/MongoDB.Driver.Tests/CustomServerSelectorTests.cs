@@ -54,27 +54,27 @@ namespace MongoDB.Driver.Tests
                 .GetCollection<BsonDocument>(DriverTestConfiguration.CollectionNamespace.CollectionName)
                 .WithReadPreference(ReadPreference.Nearest);
 
-            for (int i = 1; i <= 10; i++)
+            for (int i = 0; i < 10; i++)
             {
+                customServerSelector.CustomSelectorWasCalled = false;
                 eventCapturer.Clear();
 
                 collection.CountDocuments(new BsonDocument());
 
-                customServerSelector.NumberOfCustomServerSelectorCalls.Should().Be(i);
+                customServerSelector.CustomSelectorWasCalled.Should().BeTrue();
                 eventCapturer.Next().Should().BeOfType<ClusterSelectingServerEvent>();
                 eventCapturer.Next().Should().BeOfType<ClusterSelectedServerEvent>();
-                eventCapturer.Any().Should().BeFalse();
             }
         }
 
         // nested types
         private class CustomServerSelector : IServerSelector
         {
-            public int NumberOfCustomServerSelectorCalls { get; set; }
+            public bool CustomSelectorWasCalled { get; set; }
 
             public IEnumerable<ServerDescription> SelectServers(ClusterDescription cluster, IEnumerable<ServerDescription> servers)
             {
-                NumberOfCustomServerSelectorCalls++;
+                CustomSelectorWasCalled = true;
                 var server = servers.FirstOrDefault(x => ((DnsEndPoint)x.EndPoint).Port == 27017);
 
                 return server != null
