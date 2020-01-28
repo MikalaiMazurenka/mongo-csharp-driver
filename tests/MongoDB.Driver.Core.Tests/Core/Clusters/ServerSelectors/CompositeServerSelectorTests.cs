@@ -24,7 +24,7 @@ namespace MongoDB.Driver.Core.Clusters.ServerSelectors
 {
     public class CompositeServerSelectorTests
     {
-        private readonly ClusterDescription _description;
+        private ClusterDescription _description;
 
         public CompositeServerSelectorTests()
         {

@@ -512,7 +512,8 @@ namespace MongoDB.Driver.Core.Clusters
                     new DelegateServerSelector((c, s) => s), // do not filter servers
                     async);
 
-                ((DnsEndPoint)selectedServer.EndPoint).Port.Should().Be(27020);
+                var selectedServerPort = ((DnsEndPoint)selectedServer.EndPoint).Port;
+                selectedServerPort.Should().Be(27020);
                 _capturedEvents.Next().Should().BeOfType<ClusterSelectingServerEvent>();
                 _capturedEvents.Next().Should().BeOfType<ClusterSelectedServerEvent>();
             }

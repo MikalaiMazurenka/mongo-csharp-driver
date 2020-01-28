@@ -1,4 +1,18 @@
-﻿using System;
+﻿/* Copyright 2020-present MongoDB Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+* http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*/
+
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -31,7 +45,6 @@ namespace MongoDB.Driver.Tests
                             c.ConfigureCluster(
                                 s =>
                                     new ClusterSettings(
-                                        serverSelectionTimeout: TimeSpan.FromSeconds(2),
                                         postServerSelector: customServerSelector));
                             c.Subscribe(eventCapturer);
                         });
@@ -41,19 +54,20 @@ namespace MongoDB.Driver.Tests
                 .GetCollection<BsonDocument>(DriverTestConfiguration.CollectionNamespace.CollectionName)
                 .WithReadPreference(ReadPreference.Nearest);
 
-            for (int i = 0; i < 10; i++)
+            for (int i = 1; i <= 10; i++)
             {
                 eventCapturer.Clear();
 
                 collection.CountDocuments(new BsonDocument());
 
-                customServerSelector.NumberOfCustomServerSelectorCalls.Should().Be(i + 1);
+                customServerSelector.NumberOfCustomServerSelectorCalls.Should().Be(i);
                 eventCapturer.Next().Should().BeOfType<ClusterSelectingServerEvent>();
                 eventCapturer.Next().Should().BeOfType<ClusterSelectedServerEvent>();
                 eventCapturer.Any().Should().BeFalse();
             }
         }
 
+        // nested types
         private class CustomServerSelector : IServerSelector
         {
             public int NumberOfCustomServerSelectorCalls { get; set; }
@@ -63,7 +77,9 @@ namespace MongoDB.Driver.Tests
                 NumberOfCustomServerSelectorCalls++;
                 var server = servers.FirstOrDefault(x => ((DnsEndPoint)x.EndPoint).Port == 27017);
 
-                return server != null ? new[] { server } : Enumerable.Empty<ServerDescription>();
+                return server != null
+                    ? new ServerDescription[1] {server}
+                    : new ServerDescription[0];
             }
         }
     }
