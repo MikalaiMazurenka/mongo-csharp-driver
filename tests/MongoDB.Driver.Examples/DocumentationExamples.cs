@@ -1531,6 +1531,7 @@ namespace MongoDB.Driver.Examples
         [Fact]
         public void Index_Example_1()
         {
+            RequireServer.Check();
             //db.records.createIndex( { score: 1 } )
 
             // Start Index Example 1

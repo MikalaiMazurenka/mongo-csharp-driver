@@ -481,6 +481,7 @@ namespace MongoDB.Driver.Tests
         [SkippableFact]
         public void TestCountWithHint()
         {
+            RequireServer.Check();
             _collection.Drop();
             _collection.Insert(new BsonDocument("x", 1));
             _collection.Insert(new BsonDocument("x", 2));
@@ -497,6 +498,7 @@ namespace MongoDB.Driver.Tests
         [SkippableFact]
         public void TestCountWithHintFromFind()
         {
+            RequireServer.Check();
             _collection.Drop();
             _collection.Insert(new BsonDocument("x", 1));
             _collection.Insert(new BsonDocument("x", 2));
@@ -508,6 +510,7 @@ namespace MongoDB.Driver.Tests
         [SkippableFact]
         public void TestCountWithHintAndLimitFromFind()
         {
+            RequireServer.Check();
             _collection.Drop();
             _collection.Insert(new BsonDocument("x", 1));
             _collection.Insert(new BsonDocument("x", 2));
