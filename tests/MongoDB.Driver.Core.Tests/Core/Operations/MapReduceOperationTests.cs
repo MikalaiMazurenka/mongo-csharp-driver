@@ -286,6 +286,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var maxTime = seconds.HasValue ? TimeSpan.FromSeconds(seconds.Value) : (TimeSpan?)null;
             var subject = new MapReduceOperation<BsonDocument>(_collectionNamespace, _mapFunction, _reduceFunction, _resultSerializer, _messageEncoderSettings)

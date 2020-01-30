@@ -302,6 +302,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 
             var result = ExecuteOperation(subject, async);
@@ -315,6 +316,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 AllowDiskUse = true
@@ -426,6 +428,7 @@ namespace MongoDB.Driver.Core.Operations
            [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
                 MaxTime = TimeSpan.FromSeconds(1)
@@ -441,6 +444,7 @@ namespace MongoDB.Driver.Core.Operations
         public void Execute_should_send_session_id_when_supported(
             [Values(false, true)] bool async)
         {
+            RequireServer.Check();
             var subject = new AggregateExplainOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
             var cancellationToken = new CancellationTokenSource().Token;
 

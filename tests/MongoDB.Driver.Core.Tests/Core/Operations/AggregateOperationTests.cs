@@ -333,9 +333,7 @@ namespace MongoDB.Driver.Core.Operations
         [ParameterAttributeData]
         public void CreateCommand_should_return_the_expected_result_when_BatchSize_is_set(
             [Values(null, 1)]
-            int? batchSize,
-            [Values(false, true)]
-            bool useServerVersionSupportingAggregateCursorResult)
+            int? batchSize)
         {
             var subject = new AggregateOperation<BsonDocument>(_collectionNamespace, __pipeline, __resultSerializer, _messageEncoderSettings)
             {
@@ -664,6 +662,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var subject = new AggregateOperation<BsonDocument>(_collectionNamespace, __pipeline, __resultSerializer, _messageEncoderSettings)
             {
@@ -685,6 +684,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var subject = new AggregateOperation<BsonDocument>(_collectionNamespace, __pipeline, __resultSerializer, _messageEncoderSettings)
             {
@@ -821,6 +821,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var maxTime = milliseconds == null ? (TimeSpan?)null : TimeSpan.FromMilliseconds(milliseconds.Value);
             var subject = new AggregateOperation<BsonDocument>(_collectionNamespace, __pipeline, __resultSerializer, _messageEncoderSettings)
@@ -884,6 +885,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var subject = new AggregateOperation<BsonDocument>(_collectionNamespace, __pipeline, __resultSerializer, _messageEncoderSettings)
             {
@@ -902,6 +904,7 @@ namespace MongoDB.Driver.Core.Operations
         public void Execute_should_send_session_id_when_supported(
             [Values(false, true)] bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var subject = new AggregateOperation<BsonDocument>(_collectionNamespace, __pipeline, __resultSerializer, _messageEncoderSettings);
 

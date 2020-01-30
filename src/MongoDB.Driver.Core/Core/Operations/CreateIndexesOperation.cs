@@ -122,11 +122,7 @@ namespace MongoDB.Driver.Core.Operations
             using (var channel = channelSource.GetChannel(cancellationToken))
             using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, binding.Session.Fork()))
             {
-                var operation = new CreateIndexesUsingCommandOperation(_collectionNamespace, _requests, _messageEncoderSettings)
-                {
-                    MaxTime = _maxTime,
-                    WriteConcern = _writeConcern
-                };
+                var operation = CreateOperation();
                 return operation.Execute(channelBinding, cancellationToken);
             }
         }
@@ -139,13 +135,19 @@ namespace MongoDB.Driver.Core.Operations
             using (var channel = await channelSource.GetChannelAsync(cancellationToken).ConfigureAwait(false))
             using (var channelBinding = new ChannelReadWriteBinding(channelSource.Server, channel, binding.Session.Fork()))
             {
-                var operation = new CreateIndexesUsingCommandOperation(_collectionNamespace, _requests, _messageEncoderSettings)
-                {
-                    MaxTime = _maxTime,
-                    WriteConcern = _writeConcern
-                };
+                var operation = CreateOperation();
                 return await operation.ExecuteAsync(channelBinding, cancellationToken).ConfigureAwait(false);
             }
         }
-   }
+
+        // internal methods
+        internal IWriteOperation<BsonDocument> CreateOperation()
+        {
+            return new CreateIndexesUsingCommandOperation(_collectionNamespace, _requests, _messageEncoderSettings)
+            {
+                MaxTime = _maxTime,
+                WriteConcern = _writeConcern
+            };
+        }
+    }
 }

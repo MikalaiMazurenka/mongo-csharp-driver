@@ -488,6 +488,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 
@@ -506,6 +507,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
@@ -527,6 +529,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
             {
@@ -664,6 +667,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var maxTime = milliseconds == null ? (TimeSpan?)null : TimeSpan.FromMilliseconds(milliseconds.Value);
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings)
@@ -701,6 +705,7 @@ namespace MongoDB.Driver.Core.Operations
         public void Execute_should_send_session_id_when_supported(
             [Values(false, true)] bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var subject = new AggregateToCollectionOperation(_collectionNamespace, __pipeline, _messageEncoderSettings);
 

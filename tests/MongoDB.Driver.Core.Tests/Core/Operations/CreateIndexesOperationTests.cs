@@ -67,6 +67,31 @@ namespace MongoDB.Driver.Core.Operations
             argumentNullException.ParamName.Should().Be("messageEncoderSettings");
         }
 
+        [Theory]
+        [ParameterAttributeData]
+        public void CreateOperation_should_return_expected_result(
+            [Values(null, -10000, 0, 1, 42, 9000, 10000, 10001)] int? maxTimeTicks)
+        {
+            var requests = new[] { new CreateIndexRequest(new BsonDocument("x", 1)) };
+            var writeConcern = new WriteConcern(1);
+            var maxTime = maxTimeTicks == null ? (TimeSpan?)null : TimeSpan.FromTicks(maxTimeTicks.Value);
+            var subject = new CreateIndexesOperation(_collectionNamespace, requests, _messageEncoderSettings)
+            {
+                MaxTime = maxTime,
+                WriteConcern = writeConcern
+            };
+
+            var result = subject.CreateOperation();
+
+            result.Should().BeOfType<CreateIndexesUsingCommandOperation>();
+            var operation = (CreateIndexesUsingCommandOperation)result;
+            operation.CollectionNamespace.Should().BeSameAs(_collectionNamespace);
+            operation.MessageEncoderSettings.Should().BeSameAs(_messageEncoderSettings);
+            operation.Requests.Should().Equal(requests);
+            operation.WriteConcern.Should().BeSameAs(writeConcern);
+            operation.MaxTime.Should().Be(maxTime);
+        }
+
         [SkippableTheory]
         [ParameterAttributeData]
         public void Execute_should_work_when_background_is_true(
@@ -236,6 +261,7 @@ namespace MongoDB.Driver.Core.Operations
         public void Execute_should_send_session_id_when_supported(
             [Values(false, true)] bool async)
         {
+            RequireServer.Check();
             DropCollection();
             var requests = new[] { new CreateIndexRequest(new BsonDocument("x", 1)) };
             var subject = new CreateIndexesOperation(_collectionNamespace, requests, _messageEncoderSettings);

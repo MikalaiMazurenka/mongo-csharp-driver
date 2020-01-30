@@ -651,6 +651,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
+            RequireServer.Check();
             EnsureTestData();
             var smallDocument = new BsonDocument { { "_id", 7 }, { "x", "" } };
             var smallDocumentSize = smallDocument.ToBson().Length;

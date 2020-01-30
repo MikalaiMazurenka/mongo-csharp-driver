@@ -2349,7 +2349,7 @@ namespace MongoDB.Driver.Tests
             CheckExpectedResult(expectedResult, result);
 
             var results = ((IEnumerable<WriteConcernResult>)exception.Data["results"]).ToArray();
-            // it the opcode was emulated there will just be one synthesized result
+            // because the opcode was emulated there will just be one synthesized result
             Assert.Equal(1, results.Length);
             Assert.Equal(true, results[0].HasLastErrorMessage);
 
@@ -2395,7 +2395,7 @@ namespace MongoDB.Driver.Tests
             CheckExpectedResult(expectedResult, result);
 
             var results = ((IEnumerable<WriteConcernResult>)exception.Data["results"]).ToArray();
-            // it the opcode was emulated there will just be one synthesized result
+            // because the opcode was emulated there will just be one synthesized result
             Assert.Equal(1, results.Length);
             Assert.Equal(true, results[0].HasLastErrorMessage);
 
@@ -3401,19 +3401,22 @@ namespace MongoDB.Driver.Tests
         [Fact]
         public void TestValidateWithMaxTime()
         {
-            using (var failpoint = new FailPoint(FailPointName.MaxTimeAlwaysTimeout, _server, _primary))
+            if (_primary.InstanceType != MongoServerInstanceType.ShardRouter)
             {
-                if (failpoint.IsSupported())
+                using (var failpoint = new FailPoint(FailPointName.MaxTimeAlwaysTimeout, _server, _primary))
                 {
-                    _collection.Drop();
-                    _collection.Insert(new BsonDocument("x", 1)); // ensure collection is not empty
-
-                    failpoint.SetAlwaysOn();
-                    var args = new ValidateCollectionArgs
+                    if (failpoint.IsSupported())
                     {
-                        MaxTime = TimeSpan.FromMilliseconds(1)
-                    };
-                    Assert.Throws<MongoExecutionTimeoutException>(() => _collection.Validate(args));
+                        _collection.Drop();
+                        _collection.Insert(new BsonDocument("x", 1)); // ensure collection is not empty
+
+                        failpoint.SetAlwaysOn();
+                        var args = new ValidateCollectionArgs
+                        {
+                            MaxTime = TimeSpan.FromMilliseconds(1)
+                        };
+                        Assert.Throws<MongoExecutionTimeoutException>(() => _collection.Validate(args));
+                    }
                 }
             }
         }
