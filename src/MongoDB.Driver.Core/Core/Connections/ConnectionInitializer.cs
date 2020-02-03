@@ -53,6 +53,14 @@ namespace MongoDB.Driver.Core.Connections
 
             AuthenticationHelper.Authenticate(connection, description, cancellationToken);
 
+            var connectionIdServerValue = isMasterResult.ConnectionIdServerValue;
+            if (connectionIdServerValue.HasValue)
+            {
+                description = UpdateConnectionIdWithServerValue(description, connectionIdServerValue.Value);
+
+                return description;
+            }
+
             try
             {
                 var getLastErrorProtocol = CreateGetLastErrorProtocol();
@@ -81,6 +89,14 @@ namespace MongoDB.Driver.Core.Connections
             var description = new ConnectionDescription(connection.ConnectionId, isMasterResult, buildInfoResult);
 
             await AuthenticationHelper.AuthenticateAsync(connection, description, cancellationToken).ConfigureAwait(false);
+
+            var connectionIdServerValue = isMasterResult.ConnectionIdServerValue;
+            if (connectionIdServerValue.HasValue)
+            {
+                description = UpdateConnectionIdWithServerValue(description, connectionIdServerValue.Value);
+
+                return description;
+            }
 
             try
             {
@@ -132,12 +148,18 @@ namespace MongoDB.Driver.Core.Connections
 
         private ConnectionDescription UpdateConnectionIdWithServerValue(ConnectionDescription description, BsonDocument getLastErrorResult)
         {
-            BsonValue connectionIdBsonValue;
-            if (getLastErrorResult.TryGetValue("connectionId", out connectionIdBsonValue))
+            if (getLastErrorResult.TryGetValue("connectionId", out var connectionIdBsonValue))
             {
-                var connectionId = description.ConnectionId.WithServerValue(connectionIdBsonValue.ToInt32());
-                description = description.WithConnectionId(connectionId);
+                description = UpdateConnectionIdWithServerValue(description, connectionIdBsonValue.ToInt32());
             }
+
+            return description;
+        }
+
+        private ConnectionDescription UpdateConnectionIdWithServerValue(ConnectionDescription description, int serverValue)
+        {
+            var connectionId = description.ConnectionId.WithServerValue(serverValue);
+            description = description.WithConnectionId(connectionId);
 
             return description;
         }
