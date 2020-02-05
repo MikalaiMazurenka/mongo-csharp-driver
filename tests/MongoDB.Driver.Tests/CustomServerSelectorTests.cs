@@ -14,8 +14,6 @@
 */
 
 using System.Collections.Generic;
-using System.Linq;
-using System.Net;
 using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Driver.Core;
@@ -37,7 +35,7 @@ namespace MongoDB.Driver.Tests
                 .Capture<ClusterSelectingServerEvent>()
                 .Capture<ClusterSelectedServerEvent>();
             var customServerSelector = new CustomServerSelector();
-            var client = DriverTestConfiguration.CreateDisposableClient(
+            using (var client = DriverTestConfiguration.CreateDisposableClient(
                 clientSettings =>
                     clientSettings.ClusterConfigurator =
                         c =>
@@ -47,15 +45,13 @@ namespace MongoDB.Driver.Tests
                                     new ClusterSettings(
                                         postServerSelector: customServerSelector));
                             c.Subscribe(eventCapturer);
-                        });
-
-            var collection = client
-                .GetDatabase(DriverTestConfiguration.DatabaseNamespace.DatabaseName)
-                .GetCollection<BsonDocument>(DriverTestConfiguration.CollectionNamespace.CollectionName)
-                .WithReadPreference(ReadPreference.Nearest);
-
-            for (int i = 0; i < 10; i++)
+                        }))
             {
+                var collection = client
+                    .GetDatabase(DriverTestConfiguration.DatabaseNamespace.DatabaseName)
+                    .GetCollection<BsonDocument>(DriverTestConfiguration.CollectionNamespace.CollectionName)
+                    .WithReadPreference(ReadPreference.Nearest);
+
                 customServerSelector.CustomSelectorWasCalled = false;
                 eventCapturer.Clear();
 
@@ -75,11 +71,8 @@ namespace MongoDB.Driver.Tests
             public IEnumerable<ServerDescription> SelectServers(ClusterDescription cluster, IEnumerable<ServerDescription> servers)
             {
                 CustomSelectorWasCalled = true;
-                var server = servers.FirstOrDefault(x => ((DnsEndPoint)x.EndPoint).Port == 27017);
 
-                return server != null
-                    ? new ServerDescription[1] {server}
-                    : new ServerDescription[0];
+                return servers;
             }
         }
     }
