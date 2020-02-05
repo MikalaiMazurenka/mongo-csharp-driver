@@ -60,9 +60,11 @@ namespace MongoDB.Driver.Core.Configuration
         [Fact]
         public void constructor_should_throw_when_localThreshold_is_negative()
         {
-            Action action = () => new ClusterSettings(localThreshold: TimeSpan.FromSeconds(-1));
+            var exception = Record.Exception(() => new ClusterSettings(localThreshold: TimeSpan.FromSeconds(-1)));
 
-            action.ShouldThrow<ArgumentException>().And.ParamName.Should().Be("localThreshold");
+            var argumentException = exception.Should().BeOfType<ArgumentOutOfRangeException>().Subject;
+            argumentException.ParamName.Should().Be("localThreshold");
+
         }
 
         [Fact]
