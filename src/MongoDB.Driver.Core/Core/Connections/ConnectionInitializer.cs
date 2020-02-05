@@ -57,20 +57,20 @@ namespace MongoDB.Driver.Core.Connections
             if (connectionIdServerValue.HasValue)
             {
                 description = UpdateConnectionIdWithServerValue(description, connectionIdServerValue.Value);
-
-                return description;
             }
-
-            try
+            else
             {
-                var getLastErrorProtocol = CreateGetLastErrorProtocol();
-                var getLastErrorResult = getLastErrorProtocol.Execute(connection, cancellationToken);
+                try
+                {
+                    var getLastErrorProtocol = CreateGetLastErrorProtocol();
+                    var getLastErrorResult = getLastErrorProtocol.Execute(connection, cancellationToken);
 
-                description = UpdateConnectionIdWithServerValue(description, getLastErrorResult);
-            }
-            catch
-            {
-                // if we couldn't get the server's connection id, so be it.
+                    description = UpdateConnectionIdWithServerValue(description, getLastErrorResult);
+                }
+                catch
+                {
+                    // if we couldn't get the server's connection id, so be it.
+                }
             }
 
             return description;
@@ -94,20 +94,21 @@ namespace MongoDB.Driver.Core.Connections
             if (connectionIdServerValue.HasValue)
             {
                 description = UpdateConnectionIdWithServerValue(description, connectionIdServerValue.Value);
-
-                return description;
             }
-
-            try
+            else
             {
-                var getLastErrorProtocol = CreateGetLastErrorProtocol();
-                var getLastErrorResult = await getLastErrorProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
+                try
+                {
+                    var getLastErrorProtocol = CreateGetLastErrorProtocol();
+                    var getLastErrorResult = await getLastErrorProtocol.ExecuteAsync(connection, cancellationToken)
+                        .ConfigureAwait(false);
 
-                description = UpdateConnectionIdWithServerValue(description, getLastErrorResult);
-            }
-            catch
-            {
-                // if we couldn't get the server's connection id, so be it.
+                    description = UpdateConnectionIdWithServerValue(description, getLastErrorResult);
+                }
+                catch
+                {
+                    // if we couldn't get the server's connection id, so be it.
+                }
             }
 
             return description;

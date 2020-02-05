@@ -44,16 +44,13 @@ namespace MongoDB.Driver.Core.Connections
         public void InitializeConnection_should_acquire_connectionId_from_isMaster_response([Values(false, true)] bool async)
         {
             var isMasterReply = MessageHelper.BuildReply(
-                RawBsonDocumentHelper.FromJson("{ ok: 1, connectionId: 1 }"));
+                RawBsonDocumentHelper.FromJson("{ ok : 1, connectionId : 1 }"));
             var buildInfoReply = MessageHelper.BuildReply(
-                RawBsonDocumentHelper.FromJson("{ ok: 1, version: \"4.2.0\" }"));
-            var gleReply = MessageHelper.BuildReply(
-                RawBsonDocumentHelper.FromJson("{ ok: 1, connectionId: 2 }"));
+                RawBsonDocumentHelper.FromJson("{ ok : 1, version : \"4.2.0\" }"));
 
             var connection = new MockConnection(__serverId);
             connection.EnqueueReplyMessage(isMasterReply);
             connection.EnqueueReplyMessage(buildInfoReply);
-            connection.EnqueueReplyMessage(gleReply);
 
             ConnectionDescription result;
             if (async)
