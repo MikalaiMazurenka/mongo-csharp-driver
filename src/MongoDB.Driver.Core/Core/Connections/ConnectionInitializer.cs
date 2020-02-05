@@ -100,7 +100,8 @@ namespace MongoDB.Driver.Core.Connections
                 try
                 {
                     var getLastErrorProtocol = CreateGetLastErrorProtocol();
-                    var getLastErrorResult = await getLastErrorProtocol.ExecuteAsync(connection, cancellationToken)
+                    var getLastErrorResult = await getLastErrorProtocol
+                        .ExecuteAsync(connection, cancellationToken)
                         .ConfigureAwait(false);
 
                     description = UpdateConnectionIdWithServerValue(description, getLastErrorResult);
