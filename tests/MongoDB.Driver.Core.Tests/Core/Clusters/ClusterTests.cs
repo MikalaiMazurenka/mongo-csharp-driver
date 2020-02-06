@@ -43,8 +43,7 @@ namespace MongoDB.Driver.Core.Clusters
 
         public ClusterTests()
         {
-            _settings = new ClusterSettings(serverSelectionTimeout: TimeSpan.FromSeconds(2),
-                postServerSelector: new LatencyLimitingServerSelector(TimeSpan.FromMinutes(2)));
+            _settings = new ClusterSettings(serverSelectionTimeout: TimeSpan.FromSeconds(2));
             _mockServerFactory = new Mock<IClusterableServerFactory>();
             _mockServerFactory.Setup(f => f.CreateServer(It.IsAny<ClusterId>(), It.IsAny<IClusterClock>(), It.IsAny<EndPoint>()))
                 .Returns((ClusterId clusterId, IClusterClock clusterClock, EndPoint endPoint) =>
@@ -484,32 +483,27 @@ namespace MongoDB.Driver.Core.Clusters
         [Theory]
         [ParameterAttributeData]
         public void SelectServer_should_call_custom_selector(
-            [Values(true, false)] bool doNotFilterInitialServers,
+            [Values(true, false)] bool withEligibleServers,
             [Values(true, false)] bool async)
         {
             int numberOfCustomServerSelectorCalls = 0;
             var customServerSelector = new DelegateServerSelector((c, s) =>
             {
                 numberOfCustomServerSelectorCalls++;
-                var highestPortServer = s.OrderByDescending(x => ((DnsEndPoint)x.EndPoint).Port).FirstOrDefault();
 
-                return highestPortServer != null ? new[] {highestPortServer} : Enumerable.Empty<ServerDescription>();
+                return s.Skip(1);
             });
 
-            var settings = _settings.With(
-                postServerSelector: customServerSelector,
-                localThreshold: TimeSpan.FromSeconds(3));
+            var settings = _settings.With(postServerSelector: customServerSelector);
             var subject = new StubCluster(settings, _mockServerFactory.Object, _capturedEvents);
 
             subject.Initialize();
             subject.SetServerDescriptions(
-                ServerDescriptionHelper.Connected(subject.Description.ClusterId, new DnsEndPoint("localhost", 27017)),
-                ServerDescriptionHelper.Connected(subject.Description.ClusterId, new DnsEndPoint("localhost", 27018)),
                 ServerDescriptionHelper.Connected(subject.Description.ClusterId, new DnsEndPoint("localhost", 27019)),
                 ServerDescriptionHelper.Connected(subject.Description.ClusterId, new DnsEndPoint("localhost", 27020)));
             _capturedEvents.Clear();
 
-            if (doNotFilterInitialServers)
+            if (withEligibleServers)
             {
                 var selectedServer = SelectServerAttempt(
                     subject,
