@@ -62,9 +62,8 @@ namespace MongoDB.Driver.Core.Configuration
         {
             var exception = Record.Exception(() => new ClusterSettings(localThreshold: TimeSpan.FromSeconds(-1)));
 
-            var argumentException = exception.Should().BeOfType<ArgumentOutOfRangeException>().Subject;
-            argumentException.ParamName.Should().Be("localThreshold");
-
+            var e = exception.Should().BeOfType<ArgumentOutOfRangeException>().Subject;
+            e.ParamName.Should().Be("localThreshold");
         }
 
         [Fact]

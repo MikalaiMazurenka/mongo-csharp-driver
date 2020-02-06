@@ -490,7 +490,6 @@ namespace MongoDB.Driver.Core.Clusters
             var customServerSelector = new DelegateServerSelector((c, s) =>
             {
                 numberOfCustomServerSelectorCalls++;
-
                 return s.Skip(1);
             });
 
