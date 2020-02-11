@@ -198,6 +198,39 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
+        [Theory]
+        [ParameterAttributeData]
+        public void Execute_with_hint_should_throw_when_hint_is_not_supported(
+            [Values(false, true)] bool async)
+        {
+            var requests = new List<WriteRequest>
+            {
+                new UpdateRequest(
+                    UpdateType.Update,
+                    new BsonDocument("x", 1),
+                    new BsonDocument("$set", new BsonDocument("x", 2)))
+                {
+                    Hint = new BsonDocument("_id", 1)
+                }
+            };
+            var subject = new BulkMixedWriteOperation(_collectionNamespace, requests, _messageEncoderSettings);
+
+            var exception = Record.Exception(() => ExecuteOperation(subject, async));
+
+            if (Feature.HintForWriteOperations.IsSupported(CoreTestConfiguration.ServerVersion))
+            {
+                exception.Should().BeNull();
+            }
+            else if (Feature.HintForWriteOperations.ShouldThrowIfNeeded(CoreTestConfiguration.ServerVersion))
+            {
+                exception.Should().BeOfType<NotSupportedException>();
+            }
+            else
+            {
+                exception.Should().BeOfType<MongoCommandException>();
+            }
+        }
+
         [SkippableTheory]
         [ParameterAttributeData]
         public void Execute_with_one_delete_against_a_matching_document(
