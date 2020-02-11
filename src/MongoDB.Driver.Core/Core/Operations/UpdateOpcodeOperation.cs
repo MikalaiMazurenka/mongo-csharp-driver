@@ -216,10 +216,6 @@ namespace MongoDB.Driver.Core.Operations
             {
                 throw new NotSupportedException("OP_UPDATE does not support arrayFilters.");
             }
-            if (_request.Hint != null)
-            {
-                throw new NotSupportedException("OP_UPDATE does not support hints.");
-            }
 
             return channel.Update(
                 _collectionNamespace,
@@ -242,10 +238,6 @@ namespace MongoDB.Driver.Core.Operations
             if (_request.ArrayFilters != null)
             {
                 throw new NotSupportedException("OP_UPDATE does not support arrayFilters.");
-            }
-            if (_request.Hint != null)
-            {
-                throw new NotSupportedException("OP_UPDATE does not support hints.");
             }
 
             return channel.UpdateAsync(
