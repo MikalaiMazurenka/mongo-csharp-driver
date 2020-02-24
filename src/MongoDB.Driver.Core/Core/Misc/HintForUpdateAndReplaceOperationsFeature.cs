@@ -19,29 +19,33 @@ namespace MongoDB.Driver.Core.Misc
     /// Represents the hint for write operations feature.
     /// </summary>
     /// <seealso cref="MongoDB.Driver.Core.Misc.Feature" />
-    public class HintForWriteOperationsFeature : Feature
+    public class HintForUpdateAndReplaceOperationsFeature : Feature
     {
-        private readonly SemanticVersion _shouldThrowExceptionIfServerVersionLessThan;
+        private readonly SemanticVersion _exceptionThresholdVersion;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="HintForWriteOperationsFeature"/> class.
+        /// Initializes a new instance of the <see cref="HintForUpdateAndReplaceOperationsFeature"/> class.
         /// </summary>
         /// <param name="name">The name of the feature.</param>
         /// <param name="firstSupportedVersion">The first server version that supports the feature.</param>
-        /// <param name="shouldThrowExceptionIfServerVersionLessThan">For servers below this version, the driver MUST raise an error if the caller explicitly provides hint value.</param>
-        public HintForWriteOperationsFeature(string name, SemanticVersion firstSupportedVersion, SemanticVersion shouldThrowExceptionIfServerVersionLessThan)
+        /// <param name="exceptionThresholdVersion">The version below which throwing exception is allowed.</param>
+        public HintForUpdateAndReplaceOperationsFeature(string name, SemanticVersion firstSupportedVersion, SemanticVersion exceptionThresholdVersion)
             : base(name, firstSupportedVersion)
         {
-            _shouldThrowExceptionIfServerVersionLessThan = shouldThrowExceptionIfServerVersionLessThan;
+            _exceptionThresholdVersion = exceptionThresholdVersion;
         }
 
         /// <summary>
-        /// Returns true if driver MUST raise an error if the caller explicitly provides hint value.
+        /// Determines whether a feature is supported by a version of the server.
         /// </summary>
         /// <param name="serverVersion">The server version.</param>
-        public bool ShouldThrowIfNeeded(SemanticVersion serverVersion)
+        /// <param name="isExceptionAllowed">Determines whether the driver can throw exception.</param>
+        /// <returns>Whether a feature is supported by a version of the server.</returns>
+        public bool IsSupported(SemanticVersion serverVersion, out bool isExceptionAllowed)
         {
-            return serverVersion < _shouldThrowExceptionIfServerVersionLessThan;
+            isExceptionAllowed = serverVersion < _exceptionThresholdVersion;
+
+            return base.IsSupported(serverVersion);
         }
     }
 }

@@ -58,7 +58,7 @@ namespace MongoDB.Driver.Core.Misc
         private static readonly Feature __findCommand = new Feature("FindCommand", new SemanticVersion(3, 2, 0));
         private static readonly Feature __geoNearCommand = new Feature("GeoNearCommand", new SemanticVersion(1, 0, 0), new SemanticVersion(4, 1, 0, ""));
         private static readonly Feature __groupCommand = new Feature("GroupCommand", new SemanticVersion(1, 0, 0), new SemanticVersion(4, 1, 1, ""));
-        private static readonly HintForWriteOperationsFeature __hintForWriteOperations = new HintForWriteOperationsFeature("HintForWriteOperations", new SemanticVersion(4, 2, 0), shouldThrowExceptionIfServerVersionLessThan: new SemanticVersion(3, 4, 0));
+        private static readonly HintForUpdateAndReplaceOperationsFeature __hintForUpdateAndReplaceOperations = new HintForUpdateAndReplaceOperationsFeature("HintForUpdateAndReplaceOperations", new SemanticVersion(4, 2, 0), exceptionThresholdVersion: new SemanticVersion(3, 4, 0));
         private static readonly Feature __keepConnectionPoolWhenNotMasterConnectionException = new Feature("KeepConnectionPoolWhenNotMasterConnectionException", new SemanticVersion(4, 1, 10));
         private static readonly Feature __keepConnectionPoolWhenReplSetStepDown = new Feature("KeepConnectionPoolWhenReplSetStepDown", new SemanticVersion(4, 1, 10));
         private static readonly Feature __killCursorsCommand = new Feature("KillCursorsCommand", new SemanticVersion(3, 2, 0));
@@ -262,7 +262,7 @@ namespace MongoDB.Driver.Core.Misc
         /// <summary>
         /// Gets the hint for write operations feature.
         /// </summary>
-        public static HintForWriteOperationsFeature HintForWriteOperations => __hintForWriteOperations;
+        public static HintForUpdateAndReplaceOperationsFeature HintForUpdateAndReplaceOperations => __hintForUpdateAndReplaceOperations;
 
         /// <summary>
         /// Gets the keep connection pool when NotMaster connection exception feature.
