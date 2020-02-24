@@ -217,17 +217,20 @@ namespace MongoDB.Driver.Core.Operations
 
             var exception = Record.Exception(() => ExecuteOperation(subject, async));
 
-            if (Feature.HintForUpdateAndReplaceOperations.IsSupported(CoreTestConfiguration.ServerVersion, out var isExceptionAllowed))
+            if (!Feature.HintForUpdateAndReplaceOperations.IsSupported(CoreTestConfiguration.ServerVersion, out var isExceptionAllowed))
             {
-                exception.Should().BeNull();
-            }
-            else if (isExceptionAllowed)
-            {
-                exception.Should().BeOfType<NotSupportedException>();
+                if (isExceptionAllowed)
+                {
+                    exception.Should().BeOfType<NotSupportedException>();
+                }
+                else
+                {
+                    exception.Should().BeOfType<MongoCommandException>();
+                }
             }
             else
             {
-                exception.Should().BeOfType<MongoCommandException>();
+                exception.Should().BeNull();
             }
         }
 
