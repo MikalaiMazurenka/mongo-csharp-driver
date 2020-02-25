@@ -16,7 +16,7 @@
 namespace MongoDB.Driver.Core.Misc
 {
     /// <summary>
-    /// Represents the hint for write operations feature.
+    /// Represents the hint for update and replace operations feature.
     /// </summary>
     /// <seealso cref="MongoDB.Driver.Core.Misc.Feature" />
     public class HintForUpdateAndReplaceOperationsFeature : Feature
