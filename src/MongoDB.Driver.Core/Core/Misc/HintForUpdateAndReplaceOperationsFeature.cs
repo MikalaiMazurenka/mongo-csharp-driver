@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Misc
     /// <seealso cref="MongoDB.Driver.Core.Misc.Feature" />
     public class HintForUpdateAndReplaceOperationsFeature : Feature
     {
-        private readonly SemanticVersion _firstServerVersionWhichReturnsError = new SemanticVersion(3, 4, 0);
+        private readonly SemanticVersion _firstServerVersionWhereWeRelyOnServerToReturnError = new SemanticVersion(3, 4, 0);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HintForUpdateAndReplaceOperationsFeature"/> class.
@@ -40,7 +40,7 @@ namespace MongoDB.Driver.Core.Misc
         /// <returns>Whether the driver must throw if feature is not supported.</returns>
         public bool DriverMustThrowIfNotSupported(SemanticVersion serverVersion)
         {
-            return serverVersion < _firstServerVersionWhichReturnsError;
+            return serverVersion < _firstServerVersionWhereWeRelyOnServerToReturnError;
         }
     }
 }
