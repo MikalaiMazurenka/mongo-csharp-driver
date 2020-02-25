@@ -20,27 +20,26 @@ namespace MongoDB.Driver.Core.Misc
     /// </summary>
     public class HintForFindAndModifyFeature : Feature
     {
-        private readonly SemanticVersion _shouldThrowExceptionIfServerVersionLessThan;
+        private readonly SemanticVersion _v4_2_0 = new SemanticVersion(4, 2, 0);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HintForFindAndModifyFeature"/> class.
         /// </summary>
         /// <param name="name">The name of the feature.</param>
         /// <param name="firstSupportedVersion">The first server version that supports the feature.</param>
-        /// <param name="shouldThrowExceptionIfServerVersionLessThan">For servers below this version, the driver MUST raise an error if the caller explicitly provides hint value.</param>
-        public HintForFindAndModifyFeature(string name, SemanticVersion firstSupportedVersion, SemanticVersion shouldThrowExceptionIfServerVersionLessThan)
+        public HintForFindAndModifyFeature(string name, SemanticVersion firstSupportedVersion)
             : base(name, firstSupportedVersion)
         {
-            _shouldThrowExceptionIfServerVersionLessThan = shouldThrowExceptionIfServerVersionLessThan;
         }
 
         /// <summary>
-        /// Returns true if driver MUST raise an error if the caller explicitly provides hint value.
+        /// Determines whether the driver must throw an exception if the feature is not supported by the server.
         /// </summary>
         /// <param name="serverVersion">The server version.</param>
-        public bool ShouldThrowIfNeeded(SemanticVersion serverVersion)
+        /// <returns>Whether the driver must throw if feature is not supported.</returns>
+        public bool DriverMustThrowIfNotSupported(SemanticVersion serverVersion)
         {
-            return serverVersion < _shouldThrowExceptionIfServerVersionLessThan;
+            return serverVersion < _v4_2_0;
         }
     }
 }

@@ -81,9 +81,6 @@ namespace MongoDB.Driver
         /// <summary>
         /// Gets or sets the hint.
         /// </summary>
-        /// <value>
-        /// The hint.
-        /// </value>
         public BsonValue Hint
         {
             get { return _hint; }

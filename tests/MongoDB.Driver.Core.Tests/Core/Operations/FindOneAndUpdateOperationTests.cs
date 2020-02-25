@@ -761,7 +761,7 @@ namespace MongoDB.Driver.Core.Operations
             {
                 exception.Should().BeNull();
             }
-            else if (Feature.HintForFindAndModifyFeature.ShouldThrowIfNeeded(serverVersion))
+            else if (Feature.HintForFindAndModifyFeature.DriverMustThrowIfNotSupported(serverVersion))
             {
                 exception.Should().BeOfType<NotSupportedException>();
             }
