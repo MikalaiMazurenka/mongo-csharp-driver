@@ -203,6 +203,7 @@ namespace MongoDB.Driver.Core.Operations
         public void Execute_with_hint_should_throw_when_hint_is_not_supported(
             [Values(false, true)] bool async)
         {
+            var serverVersion = CoreTestConfiguration.ServerVersion;
             var requests = new List<WriteRequest>
             {
                 new UpdateRequest(
@@ -217,20 +218,17 @@ namespace MongoDB.Driver.Core.Operations
 
             var exception = Record.Exception(() => ExecuteOperation(subject, async));
 
-            if (!Feature.HintForUpdateAndReplaceOperations.IsSupported(CoreTestConfiguration.ServerVersion, out var isExceptionAllowed))
+            if (Feature.HintForUpdateAndReplaceOperations.IsSupported(serverVersion))
             {
-                if (isExceptionAllowed)
-                {
-                    exception.Should().BeOfType<NotSupportedException>();
-                }
-                else
-                {
-                    exception.Should().BeOfType<MongoCommandException>();
-                }
+                exception.Should().BeNull();
+            }
+            else if (Feature.HintForUpdateAndReplaceOperations.DriverMustThrowIfNotSupported(serverVersion))
+            {
+                exception.Should().BeOfType<NotSupportedException>();
             }
             else
             {
-                exception.Should().BeNull();
+                exception.Should().BeOfType<MongoCommandException>();
             }
         }
 

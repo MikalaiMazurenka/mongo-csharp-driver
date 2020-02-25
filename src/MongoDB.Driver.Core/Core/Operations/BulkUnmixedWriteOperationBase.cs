@@ -187,7 +187,7 @@ namespace MongoDB.Driver.Core.Operations
         private void EnsureHintIsSupportedIfAnyRequestHasHint(RetryableWriteContext context, IEnumerable<TWriteRequest> requests)
         {
             var serverVersion = context.Channel.ConnectionDescription.ServerVersion;
-            if (!Feature.HintForUpdateAndReplaceOperations.IsSupported(serverVersion, out var isExceptionAllowed) && isExceptionAllowed)
+            if (Feature.HintForUpdateAndReplaceOperations.DriverMustThrowIfNotSupported(serverVersion))
             {
                 foreach (var request in requests)
                 {

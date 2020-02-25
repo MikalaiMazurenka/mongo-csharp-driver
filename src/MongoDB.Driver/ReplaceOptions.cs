@@ -47,6 +47,7 @@ namespace MongoDB.Driver
                 {
                     BypassDocumentValidation = updateOptions.BypassDocumentValidation,
                     Collation = updateOptions.Collation,
+                    Hint = updateOptions.Hint,
                     IsUpsert = updateOptions.IsUpsert
                 };
             }

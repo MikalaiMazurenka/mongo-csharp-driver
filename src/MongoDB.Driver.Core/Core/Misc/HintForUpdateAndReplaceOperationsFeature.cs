@@ -21,31 +21,26 @@ namespace MongoDB.Driver.Core.Misc
     /// <seealso cref="MongoDB.Driver.Core.Misc.Feature" />
     public class HintForUpdateAndReplaceOperationsFeature : Feature
     {
-        private readonly SemanticVersion _exceptionThresholdVersion;
+        private readonly SemanticVersion _v3_4_0 = new SemanticVersion(3, 4, 0);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HintForUpdateAndReplaceOperationsFeature"/> class.
         /// </summary>
         /// <param name="name">The name of the feature.</param>
         /// <param name="firstSupportedVersion">The first server version that supports the feature.</param>
-        /// <param name="exceptionThresholdVersion">The version below which throwing exception is allowed.</param>
-        public HintForUpdateAndReplaceOperationsFeature(string name, SemanticVersion firstSupportedVersion, SemanticVersion exceptionThresholdVersion)
+        public HintForUpdateAndReplaceOperationsFeature(string name, SemanticVersion firstSupportedVersion)
             : base(name, firstSupportedVersion)
         {
-            _exceptionThresholdVersion = exceptionThresholdVersion;
         }
 
         /// <summary>
-        /// Determines whether a feature is supported by a version of the server.
+        /// Determines whether the driver must throw an exception if the feature is not supported by the server.
         /// </summary>
         /// <param name="serverVersion">The server version.</param>
-        /// <param name="isExceptionAllowed">Determines whether the driver can throw exception.</param>
-        /// <returns>Whether a feature is supported by a version of the server.</returns>
-        public bool IsSupported(SemanticVersion serverVersion, out bool isExceptionAllowed)
+        /// <returns>Whether the driver must throw if feature is not supported.</returns>
+        public bool DriverMustThrowIfNotSupported(SemanticVersion serverVersion)
         {
-            isExceptionAllowed = serverVersion < _exceptionThresholdVersion;
-
-            return base.IsSupported(serverVersion);
+            return serverVersion < _v3_4_0;
         }
     }
 }
