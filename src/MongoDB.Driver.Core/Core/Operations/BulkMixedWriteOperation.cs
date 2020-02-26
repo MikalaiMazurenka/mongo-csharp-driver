@@ -214,7 +214,7 @@ namespace MongoDB.Driver.Core.Operations
             using (var context = RetryableWriteContext.Create(binding, _retryRequested, cancellationToken))
             {
                 EnsureCollationIsSupportedIfAnyRequestHasCollation(context);
-                EnsureHintIsSupportedIfAnyRequestHasHint(context);
+                EnsureHintIsSupportedIfAnyRequestHasHint(context, _requests, _writeConcern);
                 context.DisableRetriesIfAnyWriteRequestIsNotRetryable(_requests);
                 var helper = new BatchHelper(_requests, _isOrdered, _writeConcern);
                 foreach (var batch in helper.GetBatches())
@@ -232,7 +232,7 @@ namespace MongoDB.Driver.Core.Operations
             using (var context = await RetryableWriteContext.CreateAsync(binding, _retryRequested, cancellationToken).ConfigureAwait(false))
             {
                 EnsureCollationIsSupportedIfAnyRequestHasCollation(context);
-                EnsureHintIsSupportedIfAnyRequestHasHint(context);
+                EnsureHintIsSupportedIfAnyRequestHasHint(context, _requests, _writeConcern);
                 context.DisableRetriesIfAnyWriteRequestIsNotRetryable(_requests);
                 var helper = new BatchHelper(_requests, _isOrdered, _writeConcern);
                 foreach (var batch in helper.GetBatches())
@@ -311,12 +311,13 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private void EnsureHintIsSupportedIfAnyRequestHasHint(RetryableWriteContext context)
+        private void EnsureHintIsSupportedIfAnyRequestHasHint(RetryableWriteContext context, IEnumerable<WriteRequest> requests, WriteConcern writeConcern)
         {
             var serverVersion = context.Channel.ConnectionDescription.ServerVersion;
-            if (Feature.HintForUpdateAndReplaceOperations.DriverMustThrowIfNotSupported(serverVersion))
+            if (Feature.HintForUpdateAndReplaceOperations.DriverMustThrowIfNotSupported(serverVersion) ||
+                (!writeConcern.IsAcknowledged && !Feature.HintForUpdateAndReplaceOperations.IsSupported(serverVersion)))
             {
-                foreach (var request in _requests)
+                foreach (var request in requests)
                 {
                     if (RequestHasHint(request))
                     {
@@ -467,7 +468,7 @@ namespace MongoDB.Driver.Core.Operations
                     {
                         indexMap.Add(i, matching[i].Index);
                     }
-                    _unprocessed = _unprocessed.Where(r => r.Request.RequestType != batchType).ToList();                 
+                    _unprocessed = _unprocessed.Where(r => r.Request.RequestType != batchType).ToList();
                 }
 
                 var writeConcern = _writeConcern;
