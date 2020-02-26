@@ -218,7 +218,7 @@ namespace MongoDB.Driver.Core.Operations
             }
             if (_request.Hint != null)
             {
-                throw new NotSupportedException("Unacknowledged OP_UPDATE does not support hints.");
+                throw new NotSupportedException("OP_UPDATE does not support hints.");
             }
 
             return channel.Update(
@@ -245,7 +245,7 @@ namespace MongoDB.Driver.Core.Operations
             }
             if (_request.Hint != null)
             {
-                throw new NotSupportedException("Unacknowledged OP_UPDATE does not support hints.");
+                throw new NotSupportedException("OP_UPDATE does not support hints.");
             }
 
             return channel.UpdateAsync(

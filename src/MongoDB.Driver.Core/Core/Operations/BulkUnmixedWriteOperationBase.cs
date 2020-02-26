@@ -116,7 +116,7 @@ namespace MongoDB.Driver.Core.Operations
         public BulkWriteOperationResult Execute(RetryableWriteContext context, CancellationToken cancellationToken)
         {
             EnsureCollationIsSupportedIfAnyRequestHasCollation(context, _requests);
-            EnsureHintIsSupportedIfAnyRequestHasHint(context, _requests, _writeConcern);
+            EnsureHintIsSupportedIfAnyRequestHasHint(context);
 
             return ExecuteBatches(context, cancellationToken);
         }
@@ -134,7 +134,7 @@ namespace MongoDB.Driver.Core.Operations
         public Task<BulkWriteOperationResult> ExecuteAsync(RetryableWriteContext context, CancellationToken cancellationToken)
         {
             EnsureCollationIsSupportedIfAnyRequestHasCollation(context, _requests);
-            EnsureHintIsSupportedIfAnyRequestHasHint(context, _requests, _writeConcern);
+            EnsureHintIsSupportedIfAnyRequestHasHint(context);
 
             return ExecuteBatchesAsync(context, cancellationToken);
         }
@@ -184,13 +184,13 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private void EnsureHintIsSupportedIfAnyRequestHasHint(RetryableWriteContext context, IEnumerable<TWriteRequest> requests, WriteConcern writeConcern)
+        private void EnsureHintIsSupportedIfAnyRequestHasHint(RetryableWriteContext context)
         {
             var serverVersion = context.Channel.ConnectionDescription.ServerVersion;
             if (Feature.HintForUpdateAndReplaceOperations.DriverMustThrowIfNotSupported(serverVersion) ||
-                (!writeConcern.IsAcknowledged && !Feature.HintForUpdateAndReplaceOperations.IsSupported(serverVersion)))
+                (!_writeConcern.IsAcknowledged && !Feature.HintForUpdateAndReplaceOperations.IsSupported(serverVersion)))
             {
-                foreach (var request in requests)
+                foreach (var request in _requests)
                 {
                     if (RequestHasHint(request))
                     {
