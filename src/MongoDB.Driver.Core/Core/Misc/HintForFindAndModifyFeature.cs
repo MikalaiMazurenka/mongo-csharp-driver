@@ -20,7 +20,7 @@ namespace MongoDB.Driver.Core.Misc
     /// </summary>
     public class HintForFindAndModifyFeature : Feature
     {
-        private readonly SemanticVersion _v4_2_0 = new SemanticVersion(4, 2, 0);
+        private readonly SemanticVersion _firstServerVersionWhereWeRelyOnServerToReturnError = new SemanticVersion(4, 2, 0);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="HintForFindAndModifyFeature"/> class.
@@ -39,7 +39,7 @@ namespace MongoDB.Driver.Core.Misc
         /// <returns>Whether the driver must throw if feature is not supported.</returns>
         public bool DriverMustThrowIfNotSupported(SemanticVersion serverVersion)
         {
-            return serverVersion < _v4_2_0;
+            return serverVersion < _firstServerVersionWhereWeRelyOnServerToReturnError;
         }
     }
 }
