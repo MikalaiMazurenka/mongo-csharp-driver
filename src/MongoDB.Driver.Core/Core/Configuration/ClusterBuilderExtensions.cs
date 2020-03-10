@@ -16,6 +16,7 @@
 using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography.X509Certificates;
@@ -222,6 +223,10 @@ namespace MongoDB.Driver.Core.Configuration
                 {
                     return new GssapiAuthenticator(credential, connectionString.AuthMechanismProperties);
                 }
+                else if (connectionString.AuthMechanism == MongoAWSAuthenticator.MechanismName)
+                {
+                    return new MongoAWSAuthenticator(credential, connectionString.AuthMechanismProperties);
+                }
             }
             else
             {
@@ -232,6 +237,10 @@ namespace MongoDB.Driver.Core.Configuration
                 else if (connectionString.AuthMechanism == GssapiAuthenticator.MechanismName)
                 {
                     return new GssapiAuthenticator(connectionString.Username, connectionString.AuthMechanismProperties);
+                }
+                else if (connectionString.AuthMechanism == MongoAWSAuthenticator.MechanismName)
+                {
+                    return new MongoAWSAuthenticator(connectionString.Username, connectionString.AuthMechanismProperties);
                 }
             }
 

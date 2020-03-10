@@ -110,4 +110,8 @@
     <None Include="..\..\License.txt" Pack="true" PackagePath="$(PackageLicenseFile)" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="System.Net.Http" />
+  </ItemGroup>
+
 </Project>

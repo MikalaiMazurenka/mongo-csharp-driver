@@ -451,6 +451,12 @@ namespace MongoDB.Driver
                         credential,
                         _mechanismProperties.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString())));
                 }
+                else if (_mechanism == MongoAWSAuthenticator.MechanismName)
+                {
+                    return new MongoAWSAuthenticator(
+                        credential,
+                        _mechanismProperties.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString())));
+                }
             }
             else if (_identity.Source == "$external" && _evidence is ExternalEvidence)
             {
@@ -461,6 +467,12 @@ namespace MongoDB.Driver
                 else if (_mechanism == GssapiAuthenticator.MechanismName)
                 {
                     return new GssapiAuthenticator(
+                        _identity.Username,
+                        _mechanismProperties.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString())));
+                }
+                else if (_mechanism == MongoAWSAuthenticator.MechanismName)
+                {
+                    return new MongoAWSAuthenticator(
                         _identity.Username,
                         _mechanismProperties.Select(x => new KeyValuePair<string, string>(x.Key, x.Value.ToString())));
                 }
@@ -523,6 +535,30 @@ namespace MongoDB.Driver
                     return new MongoCredential(
                         mechanism,
                         new MongoInternalIdentity(source, username),
+                        evidence);
+                case "MONGODB-AWS":
+                    // MUST be "$external". Defaults to $external.
+                    EnsureNullOrExternalSource(mechanism, source);
+                    if (username == null)
+                    {
+                        if (evidence != null && evidence is PasswordEvidence)
+                        {
+                            throw new ArgumentException("A MONGODB-AWS must have access key id.");
+                        }
+
+                        return new MongoCredential(
+                            mechanism,
+                            new MongoExternalAwsIdentity(),
+                            evidence);
+                    }
+                    if (evidence == null || evidence is ExternalEvidence)
+                    {
+                        throw new ArgumentException("A MONGODB-AWS must have secret access key.");
+                    }
+
+                    return new MongoCredential(
+                        mechanism,
+                        new MongoExternalIdentity(username),
                         evidence);
                 case "MONGODB-X509":
                     // MUST be "$external". Defaults to $external.
