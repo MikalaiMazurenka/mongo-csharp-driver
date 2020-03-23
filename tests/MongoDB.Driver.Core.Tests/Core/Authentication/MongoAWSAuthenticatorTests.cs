@@ -68,7 +68,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             AwsSignatureVersion4.CreateAuthorizationRequest(
                 dateTime,
                 credential.Username,
-                credential.GetInsecurePassword(),
+                credential.Password,
                 null,
                 serverNonce,
                 host,
@@ -216,7 +216,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             AwsSignatureVersion4.CreateAuthorizationRequest(
                 dateTime,
                 credential.Username,
-                credential.GetInsecurePassword(),
+                credential.Password,
                 sessionToken,
                 serverNonce,
                 host,

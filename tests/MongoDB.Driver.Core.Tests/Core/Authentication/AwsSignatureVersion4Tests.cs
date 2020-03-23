@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Security;
 using FluentAssertions;
 using MongoDB.Bson.TestHelpers;
 using MongoDB.Driver.Core.Authentication;
@@ -28,8 +29,8 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
         public void CreateAuthorizationRequest_should_have_expected_result()
         {
             var date = new DateTime(2020, 03, 12, 14, 23, 46);
-            var accessKey = "permanentuser";
-            var secretKey = "FAKEFAKEFAKEFAKEFAKEfakefakefakefakefake";
+            var accessKeyId = "permanentuser";
+            var secretAccessKey = "FAKEFAKEFAKEFAKEFAKEfakefakefakefakefake";
             var salt = new byte[] { 64, 230, 20, 164, 223, 96, 92, 144, 3, 240, 27, 110, 97, 65, 200, 11, 157, 162, 141, 4, 149, 86, 91, 108, 189, 194, 100, 90, 249, 219, 155, 235, };
             var host = "sts.amazonaws.com";
             var expectedAuthorizationHeader = "AWS4-HMAC-SHA256 " +
@@ -40,9 +41,9 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
 
             AwsSignatureVersion4.CreateAuthorizationRequest(
                 date,
-                accessKey,
-                secretKey,
-                securityToken: null,
+                accessKeyId,
+                ToSecureString(secretAccessKey),
+                sessionToken: null,
                 salt,
                 host,
                 out var actualAuthorizationHeader,
@@ -56,8 +57,8 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
         public void CreateAuthorizationRequest_with_session_token_should_have_expected_result()
         {
             var date = new DateTime(2020, 03, 12, 14, 23, 46);
-            var accessKey = "permanentuser";
-            var secretKey = "FAKEFAKEFAKEFAKEFAKEfakefakefakefakefake";
+            var accessKeyId = "permanentuser";
+            var secretAccessKey = "FAKEFAKEFAKEFAKEFAKEfakefakefakefakefake";
             var sessionToken = "MXUpbuzwzPo67WKCNYtdBq47taFtIpt+SVx58hNx1/jSz37h9d67dtUOg0ejKrv83u8ai+VFZxMx=";
             var salt = new byte[] { 64, 230, 20, 164, 223, 96, 92, 144, 3, 240, 27, 110, 97, 65, 200, 11, 157, 162, 141, 4, 149, 86, 91, 108, 189, 194, 100, 90, 249, 219, 155, 235, };
             var host = "sts.amazonaws.com";
@@ -69,8 +70,8 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
 
             AwsSignatureVersion4.CreateAuthorizationRequest(
                 date,
-                accessKey,
-                secretKey,
+                accessKeyId,
+                ToSecureString(secretAccessKey),
                 sessionToken,
                 salt,
                 host,
@@ -139,6 +140,24 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             var actual = AwsSignatureVersion4Reflector.GetSignedHeaders(requestHeaders);
 
             actual.Should().Be(expected);
+        }
+
+        // private methods
+        private static SecureString ToSecureString(string str)
+        {
+            if (str == null)
+            {
+                return null;
+            }
+
+            var secureString = new SecureString();
+            foreach (var c in str)
+            {
+                secureString.AppendChar(c);
+            }
+            secureString.MakeReadOnly();
+
+            return secureString;
         }
     }
 

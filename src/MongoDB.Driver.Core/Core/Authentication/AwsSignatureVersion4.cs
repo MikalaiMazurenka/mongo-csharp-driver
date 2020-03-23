@@ -16,9 +16,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security;
 using System.Security.Cryptography;
 using System.Text;
 using MongoDB.Bson;
+using MongoDB.Driver.Core.Misc;
 
 namespace MongoDB.Driver.Core.Authentication
 {
@@ -31,18 +33,18 @@ namespace MongoDB.Driver.Core.Authentication
         /// Creates authorization request.
         /// </summary>
         /// <param name="dateTime">The date time.</param>
-        /// <param name="accessKey">The access key.</param>
-        /// <param name="secretKey">The secret key.</param>
-        /// <param name="securityToken">The security token.</param>
+        /// <param name="accessKeyId">The access key id.</param>
+        /// <param name="secretAccessKey">The secret access key.</param>
+        /// <param name="sessionToken">The session token.</param>
         /// <param name="salt">The salt.</param>
         /// <param name="host">The host.</param>
         /// <param name="authorizationHeader">The authorization header.</param>
         /// <param name="timestamp">The timestamp.</param>
         public static void CreateAuthorizationRequest(
             DateTime dateTime,
-            string accessKey,
-            string secretKey,
-            string securityToken,
+            string accessKeyId,
+            SecureString secretAccessKey,
+            string sessionToken,
             byte[] salt,
             string host,
             out string authorizationHeader,
@@ -61,7 +63,7 @@ namespace MongoDB.Driver.Core.Authentication
                 contentType: "application/x-www-form-urlencoded",
                 host: host,
                 timestamp: timestamp,
-                sessionToken: securityToken,
+                sessionToken: sessionToken,
                 nonce: salt);
 
             var canonicalHeaders = GetCanonicalHeaders(requestHeaders);
@@ -71,9 +73,9 @@ namespace MongoDB.Driver.Core.Authentication
             var algorithm = "AWS4-HMAC-SHA256";
             var credentialScope = $"{datestamp}/{region}/{service}/aws4_request";
             var stringToSign = string.Join("\n", algorithm, timestamp, credentialScope, Hash(canonicalRequest));
-            var signature = GetSignature(stringToSign, secretKey, datestamp, region, service);
+            var signature = GetSignature(stringToSign, secretAccessKey, datestamp, region, service);
 
-            authorizationHeader = $"{algorithm} Credential={accessKey}/{credentialScope}, SignedHeaders={signedHeaders}, Signature={signature}";
+            authorizationHeader = $"{algorithm} Credential={accessKeyId}/{credentialScope}, SignedHeaders={signedHeaders}, Signature={signature}";
         }
 
         //private static methods
@@ -123,14 +125,21 @@ namespace MongoDB.Driver.Core.Authentication
             return requestHeaders;
         }
 
-        private static string GetSignature(string stringToSign, string secret, string date, string region, string service)
+        private static string GetSignature(string stringToSign, SecureString secretAccessKey, string date, string region, string service)
         {
-            byte[] kDateBlock = Hmac256(Encoding.ASCII.GetBytes("AWS4" + secret), Encoding.ASCII.GetBytes(date));
-            byte[] kRegionBlock = Hmac256(kDateBlock, Encoding.ASCII.GetBytes(region));
-            byte[] kServiceBlock = Hmac256(kRegionBlock, Encoding.ASCII.GetBytes(service));
-            byte[] kSigningBlock = Hmac256(kServiceBlock, Encoding.ASCII.GetBytes("aws4_request"));
+            using (var decryptedSecureString = new DecryptedSecureString(secretAccessKey))
+            {
+                var aws4SecretAccessKeyChars = "AWS4".Concat(decryptedSecureString.GetChars()).ToArray();
+                var aws4SecretAccessKeyBytes = Encoding.ASCII.GetBytes(aws4SecretAccessKeyChars);
+                var kDateBlock = Hmac256(aws4SecretAccessKeyBytes, Encoding.ASCII.GetBytes(date));
+                Array.Clear(aws4SecretAccessKeyChars, 0, aws4SecretAccessKeyChars.Length);
+                Array.Clear(aws4SecretAccessKeyBytes, 0, aws4SecretAccessKeyBytes.Length);
+                var kRegionBlock = Hmac256(kDateBlock, Encoding.ASCII.GetBytes(region));
+                var kServiceBlock = Hmac256(kRegionBlock, Encoding.ASCII.GetBytes(service));
+                var kSigningBlock = Hmac256(kServiceBlock, Encoding.ASCII.GetBytes("aws4_request"));
 
-            return BsonUtils.ToHexString(Hmac256(kSigningBlock, Encoding.ASCII.GetBytes(stringToSign)));
+                return BsonUtils.ToHexString(Hmac256(kSigningBlock, Encoding.ASCII.GetBytes(stringToSign)));
+            }
         }
 
         private static string GetSignedHeaders(SortedDictionary<string, string> requestHeaders)
