@@ -23,6 +23,7 @@ using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver.Core.Connections;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Shared;
 
 namespace MongoDB.Driver.Core.Authentication
 {
@@ -131,7 +132,7 @@ namespace MongoDB.Driver.Core.Authentication
                 throw new InvalidOperationException("When using MONGODB-AWS authentication if a session token is provided via environment variables then an access key ID and a secret access key must be provided also.");
             }
 
-            return new AwsCredentials(accessKeyId, ToSecureString(secretAccessKey), sessionToken);
+            return new AwsCredentials(accessKeyId, SecureStringHelper.ToSecureString(secretAccessKey), sessionToken);
         }
 
         private static AwsCredentials CreateAwsCredentialsFromEcsResponse()
@@ -148,7 +149,7 @@ namespace MongoDB.Driver.Core.Authentication
             var secretAccessKey = parsedResponse.GetValue("SecretAccessKey", null)?.AsString;
             var sessionToken = parsedResponse.GetValue("Token", null)?.AsString;
 
-            return new AwsCredentials(accessKeyId, ToSecureString(secretAccessKey), sessionToken);
+            return new AwsCredentials(accessKeyId, SecureStringHelper.ToSecureString(secretAccessKey), sessionToken);
         }
 
         private static AwsCredentials CreateAwsCredentialsFromEc2Response()
@@ -159,7 +160,7 @@ namespace MongoDB.Driver.Core.Authentication
             var secretAccessKey = parsedResponse.GetValue("SecretAccessKey", null)?.AsString;
             var sessionToken = parsedResponse.GetValue("Token", null)?.AsString;
 
-            return new AwsCredentials(accessKeyId, ToSecureString(secretAccessKey), sessionToken);
+            return new AwsCredentials(accessKeyId, SecureStringHelper.ToSecureString(secretAccessKey), sessionToken);
         }
 
         private static string ExtractSessionTokenFromMechanismProperties(IEnumerable<KeyValuePair<string, string>> properties)
@@ -176,23 +177,6 @@ namespace MongoDB.Driver.Core.Authentication
             }
 
             return null;
-        }
-
-        private static SecureString ToSecureString(string str)
-        {
-            if (str == null)
-            {
-                return null;
-            }
-
-            var secureString = new SecureString();
-            foreach (var c in str)
-            {
-                secureString.AppendChar(c);
-            }
-            secureString.MakeReadOnly();
-
-            return secureString;
         }
 
         private static void ValidateMechanismProperties(IEnumerable<KeyValuePair<string, string>> properties)
@@ -366,8 +350,8 @@ namespace MongoDB.Driver.Core.Authentication
 
         private class MongoAWSMechanism : ISaslMechanism
         {
-            private readonly IClock _clock;
             private readonly AwsCredentials _awsCredentials;
+            private readonly IClock _clock;
             private readonly IRandomByteGenerator _randomByteGenerator;
 
             public MongoAWSMechanism(
@@ -411,9 +395,9 @@ namespace MongoDB.Driver.Core.Authentication
 
         private class ClientFirst : ISaslStep
         {
+            private readonly AwsCredentials _awsCredentials;
             private readonly byte[] _bytesToSendToServer;
             private readonly IClock _clock;
-            private readonly AwsCredentials _awsCredentials;
             private readonly byte[] _nonce;
 
             public ClientFirst(
@@ -423,9 +407,9 @@ namespace MongoDB.Driver.Core.Authentication
                 IClock clock)
             {
                 _bytesToSendToServer = bytesToSendToServer;
-                _clock = clock;
-                _awsCredentials = awsCredentials;
                 _nonce = nonce;
+                _awsCredentials = awsCredentials;
+                _clock = clock;
             }
 
             public byte[] BytesToSendToServer

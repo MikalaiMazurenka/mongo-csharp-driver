@@ -15,10 +15,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Security;
 using FluentAssertions;
 using MongoDB.Bson.TestHelpers;
 using MongoDB.Driver.Core.Authentication;
+using MongoDB.Shared;
 using Xunit;
 
 namespace MongoDB.Driver.Core.Tests.Core.Authentication
@@ -42,7 +42,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             AwsSignatureVersion4.CreateAuthorizationRequest(
                 date,
                 accessKeyId,
-                ToSecureString(secretAccessKey),
+                SecureStringHelper.ToSecureString(secretAccessKey),
                 sessionToken: null,
                 salt,
                 host,
@@ -71,7 +71,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             AwsSignatureVersion4.CreateAuthorizationRequest(
                 date,
                 accessKeyId,
-                ToSecureString(secretAccessKey),
+                SecureStringHelper.ToSecureString(secretAccessKey),
                 sessionToken,
                 salt,
                 host,
@@ -140,24 +140,6 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             var actual = AwsSignatureVersion4Reflector.GetSignedHeaders(requestHeaders);
 
             actual.Should().Be(expected);
-        }
-
-        // private methods
-        private static SecureString ToSecureString(string str)
-        {
-            if (str == null)
-            {
-                return null;
-            }
-
-            var secureString = new SecureString();
-            foreach (var c in str)
-            {
-                secureString.AppendChar(c);
-            }
-            secureString.MakeReadOnly();
-
-            return secureString;
         }
     }
 
