@@ -163,6 +163,50 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
 
         [Theory]
         [ParameterAttributeData]
+        public void Authenticate_should_throw_when_server_provides_invalid_host(
+            [Values("", "abc..def")] string host,
+            [Values(false, true)] bool async)
+        {
+            var clientNonce = __randomByteGenerator.Generate(ClientNonceLength);
+            var serverNonce = Combine(clientNonce, __randomByteGenerator.Generate(ClientNonceLength));
+            var credential = new UsernamePasswordCredential("$external", "permanentuser", "FAKEFAKEFAKEFAKEFAKEfakefakefakefakefake");
+
+            var mockRandomByteGenerator = new Mock<IRandomByteGenerator>();
+            mockRandomByteGenerator.Setup(x => x.Generate(It.IsAny<int>())).Returns(clientNonce);
+
+            var serverFirstMessage = new BsonDocument
+            {
+                { "s", serverNonce },
+                { "h", host },
+            };
+
+            var saslStartReply = MessageHelper.BuildReply<RawBsonDocument>(RawBsonDocumentHelper.FromJson(
+                $"{{ conversationId : 1, done : false, payload : BinData(0,\"{ToBase64(serverFirstMessage.ToBson())}\"), ok : 1 }}"));
+            var saslContinueReply = MessageHelper.BuildReply<RawBsonDocument>(RawBsonDocumentHelper.FromJson(
+                "{ conversationId : 1, done : true, payload : BinData(0,\"\"), ok : 1}"));
+
+            var subject = new MongoAWSAuthenticator(credential, null, mockRandomByteGenerator.Object, SystemClock.Instance);
+
+            var connection = new MockConnection(__serverId);
+            connection.EnqueueReplyMessage(saslStartReply);
+            connection.EnqueueReplyMessage(saslContinueReply);
+
+            Exception exception;
+            if (async)
+            {
+                exception = Record.Exception(() => subject.AuthenticateAsync(connection, __connectionDescription, CancellationToken.None).GetAwaiter().GetResult());
+            }
+            else
+            {
+                exception = Record.Exception(() => subject.Authenticate(connection, __connectionDescription, CancellationToken.None));
+            }
+
+            exception.Should().BeOfType<MongoAuthenticationException>();
+            exception.Message.Should().Be("Server returned an invalid sts host.");
+        }
+
+        [Theory]
+        [ParameterAttributeData]
         public void Authenticate_should_throw_when_server_provides_invalid_nonce(
             [Values(false, true)] bool async)
         {
@@ -199,6 +243,52 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             }
 
             exception.Should().BeOfType<MongoAuthenticationException>();
+            exception.Message.Should().Be("Server sent an invalid nonce.");
+        }
+
+        [Theory]
+        [ParameterAttributeData]
+        public void Authenticate_should_throw_when_server_provides_unexpected_field(
+            [Values(false, true)] bool async)
+        {
+            var clientNonce = __randomByteGenerator.Generate(ClientNonceLength);
+            var serverNonce = Combine(clientNonce, __randomByteGenerator.Generate(ClientNonceLength));
+            var host = "sts.amazonaws.com";
+            var credential = new UsernamePasswordCredential("$external", "permanentuser", "FAKEFAKEFAKEFAKEFAKEfakefakefakefakefake");
+
+            var mockRandomByteGenerator = new Mock<IRandomByteGenerator>();
+            mockRandomByteGenerator.Setup(x => x.Generate(It.IsAny<int>())).Returns(clientNonce);
+
+            var serverFirstMessage = new BsonDocument
+            {
+                { "s", serverNonce },
+                { "h", host },
+                { "u", "unexpected" }
+            };
+
+            var saslStartReply = MessageHelper.BuildReply<RawBsonDocument>(RawBsonDocumentHelper.FromJson(
+                $"{{ conversationId : 1, done : false, payload : BinData(0,\"{ToBase64(serverFirstMessage.ToBson())}\"), ok : 1 }}"));
+            var saslContinueReply = MessageHelper.BuildReply<RawBsonDocument>(RawBsonDocumentHelper.FromJson(
+                "{ conversationId : 1, done : true, payload : BinData(0,\"\"), ok : 1}"));
+
+            var subject = new MongoAWSAuthenticator(credential, null, mockRandomByteGenerator.Object, SystemClock.Instance);
+
+            var connection = new MockConnection(__serverId);
+            connection.EnqueueReplyMessage(saslStartReply);
+            connection.EnqueueReplyMessage(saslContinueReply);
+
+            Exception exception;
+            if (async)
+            {
+                exception = Record.Exception(() => subject.AuthenticateAsync(connection, __connectionDescription, CancellationToken.None).GetAwaiter().GetResult());
+            }
+            else
+            {
+                exception = Record.Exception(() => subject.Authenticate(connection, __connectionDescription, CancellationToken.None));
+            }
+
+            exception.Should().BeOfType<MongoAuthenticationException>();
+            exception.Message.Should().Be("Server returned unexpected fields: u.");
         }
 
         [Theory]

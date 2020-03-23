@@ -628,6 +628,7 @@ tasks:
         - func: run-aws-auth-test-with-aws-credentials-as-environment-variables
         - func: run-aws-auth-test-with-aws-credentials-and-session-token-as-environment-variables
         - func: run-aws-auth-test-with-aws-EC2-credentials
+        # ECS test is skipped untill testing on Linux becomes possible
 
     - name: publish-snapshot
       depends_on:
