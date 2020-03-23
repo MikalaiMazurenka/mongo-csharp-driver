@@ -28,7 +28,6 @@ namespace MongoDB.Shared
         /// <returns>The CLR string.</returns>
         public static string ToInsecureString(SecureString secureString)
         {
-            
             if (secureString == null || secureString.Length == 0)
             {
                 return "";
