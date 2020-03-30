@@ -108,8 +108,6 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             connection.EnqueueReplyMessage(saslStartReply);
             connection.EnqueueReplyMessage(saslContinueReply);
 
-            var expectedRequestId = RequestMessage.CurrentGlobalRequestId + 1;
-
             if (async)
             {
                 subject.AuthenticateAsync(connection, __connectionDescription, CancellationToken.None).GetAwaiter().GetResult();
@@ -345,8 +343,6 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             var connection = new MockConnection(__serverId);
             connection.EnqueueReplyMessage(saslStartReply);
             connection.EnqueueReplyMessage(saslContinueReply);
-
-            var expectedRequestId = RequestMessage.CurrentGlobalRequestId + 1;
 
             if (async)
             {
