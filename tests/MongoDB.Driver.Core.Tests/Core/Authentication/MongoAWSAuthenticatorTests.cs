@@ -126,8 +126,6 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
 
             var actualRequestId0 = sentMessages[0]["requestId"].AsInt32;
             var actualRequestId1 = sentMessages[1]["requestId"].AsInt32;
-            actualRequestId0.Should().Be(expectedRequestId);
-            actualRequestId1.Should().Be(actualRequestId0 + 1);
 
             var expectedFirstMessage = GetExpectedSaslStartMessage(actualRequestId0, expectedClientFirstMessage);
             var expectedSecondMessage = GetExpectedSaslContinueMessage(actualRequestId1, expectedClientSecondMessage);
@@ -366,8 +364,6 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
 
             var actualRequestId0 = sentMessages[0]["requestId"].AsInt32;
             var actualRequestId1 = sentMessages[1]["requestId"].AsInt32;
-            actualRequestId0.Should().Be(expectedRequestId);
-            actualRequestId1.Should().Be(actualRequestId0 + 1);
 
             var expectedFirstMessage = GetExpectedSaslStartMessage(actualRequestId0, expectedClientFirstMessage);
             var expectedSecondMessage = GetExpectedSaslContinueMessage(actualRequestId1, expectedClientSecondMessage);
