@@ -21,58 +21,48 @@ using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 
 namespace MongoDB.Driver.Tests.JsonDrivenTests
 {
-    public sealed class JsonDrivenCreateIndexTest : JsonDrivenCollectionTest
+    public sealed class JsonDrivenCreateCollectionTest : JsonDrivenDatabaseTest
     {
         // private fields
-        private IndexKeysDefinition<BsonDocument> _indexKeys;
-        private string _indexName;
+        private string _collectionName;
         private IClientSessionHandle _session;
 
-        // properties
-        private CreateIndexModel<BsonDocument> CreateIndexModel
-        {
-            get { return new CreateIndexModel<BsonDocument>(_indexKeys, new CreateIndexOptions { Name = _indexName }); }
-        }
-
         // public constructors
-        public JsonDrivenCreateIndexTest(IMongoCollection<BsonDocument> collection, Dictionary<string, object> objectMap)
-            : base(collection, objectMap)
+        public JsonDrivenCreateCollectionTest(IMongoDatabase database, Dictionary<string, object> objectMap)
+            : base(database, objectMap)
         {
         }
 
         // public methods
         public override void Arrange(BsonDocument document)
         {
-            JsonDrivenHelper.EnsureAllFieldsAreValid(document, "name", "object", "collectionOptions", "arguments");
+            JsonDrivenHelper.EnsureAllFieldsAreValid(document, "name", "object", "arguments");
             base.Arrange(document);
         }
 
         // protected methods
-        protected override void AssertResult()
-        {
-        }
-
         protected override void CallMethod(CancellationToken cancellationToken)
         {
             if (_session == null)
             {
-                _collection.Indexes.CreateOne(CreateIndexModel, new CreateOneIndexOptions(), cancellationToken);
+                _database.CreateCollection(_collectionName, cancellationToken: cancellationToken);
             }
             else
             {
-                _collection.Indexes.CreateOne(_session, CreateIndexModel, new CreateOneIndexOptions(), cancellationToken);
+                _database.CreateCollection(_session, _collectionName, cancellationToken: cancellationToken);
             }
         }
 
         protected override async Task CallMethodAsync(CancellationToken cancellationToken)
         {
+            
             if (_session == null)
             {
-                await _collection.Indexes.CreateOneAsync(CreateIndexModel, new CreateOneIndexOptions(), cancellationToken).ConfigureAwait(false);
+                await _database.CreateCollectionAsync(_collectionName, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await _collection.Indexes.CreateOneAsync(_session, CreateIndexModel, new CreateOneIndexOptions(), cancellationToken).ConfigureAwait(false);
+                await _database.CreateCollectionAsync(_session, _collectionName, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -80,11 +70,8 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
         {
             switch (name)
             {
-                case "keys":
-                    _indexKeys = value.AsBsonDocument;
-                    return;
-                case "name":
-                    _indexName = value.AsString;
+                case "collection":
+                    _collectionName = value.AsString;
                     return;
                 case "session":
                     _session = (IClientSessionHandle)_objectMap[value.AsString];
