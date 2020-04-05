@@ -137,17 +137,17 @@ namespace MongoDB.Driver.Core.Operations
                 writer.WriteStartDocument();
                 writer.WriteName("q");
                 BsonDocumentSerializer.Instance.Serialize(context, value.Filter);
-                if (value.Hint != null)
-                {
-                    writer.WriteName("hint");
-                    BsonValueSerializer.Instance.Serialize(context, value.Hint);
-                }
                 writer.WriteName("limit");
                 writer.WriteInt32(value.Limit);
                 if (value.Collation != null)
                 {
                     writer.WriteName("collation");
                     BsonDocumentSerializer.Instance.Serialize(context, value.Collation.ToBsonDocument());
+                }
+                if (value.Hint != null)
+                {
+                    writer.WriteName("hint");
+                    BsonValueSerializer.Instance.Serialize(context, value.Hint);
                 }
                 writer.WriteEndDocument();
             }
