@@ -24,15 +24,9 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
     public sealed class JsonDrivenCreateIndexTest : JsonDrivenCollectionTest
     {
         // private fields
-        private IndexKeysDefinition<BsonDocument> _indexKeys;
-        private string _indexName;
+        private BsonDocument _keys;
+        private string _name;
         private IClientSessionHandle _session;
-
-        // properties
-        private CreateIndexModel<BsonDocument> CreateIndexModel
-        {
-            get { return new CreateIndexModel<BsonDocument>(_indexKeys, new CreateIndexOptions { Name = _indexName }); }
-        }
 
         // public constructors
         public JsonDrivenCreateIndexTest(IMongoCollection<BsonDocument> collection, Dictionary<string, object> objectMap)
@@ -54,25 +48,27 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
 
         protected override void CallMethod(CancellationToken cancellationToken)
         {
+            var model = CreateCreateIndexModel();
             if (_session == null)
             {
-                _collection.Indexes.CreateOne(CreateIndexModel, new CreateOneIndexOptions(), cancellationToken);
+                _collection.Indexes.CreateOne(model, new CreateOneIndexOptions(), cancellationToken);
             }
             else
             {
-                _collection.Indexes.CreateOne(_session, CreateIndexModel, new CreateOneIndexOptions(), cancellationToken);
+                _collection.Indexes.CreateOne(_session, model, new CreateOneIndexOptions(), cancellationToken);
             }
         }
 
         protected override async Task CallMethodAsync(CancellationToken cancellationToken)
         {
+            var model = CreateCreateIndexModel();
             if (_session == null)
             {
-                await _collection.Indexes.CreateOneAsync(CreateIndexModel, new CreateOneIndexOptions(), cancellationToken).ConfigureAwait(false);
+                await _collection.Indexes.CreateOneAsync(model, new CreateOneIndexOptions(), cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                await _collection.Indexes.CreateOneAsync(_session, CreateIndexModel, new CreateOneIndexOptions(), cancellationToken).ConfigureAwait(false);
+                await _collection.Indexes.CreateOneAsync(_session, model, new CreateOneIndexOptions(), cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -81,10 +77,10 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
             switch (name)
             {
                 case "keys":
-                    _indexKeys = value.AsBsonDocument;
+                    _keys = value.AsBsonDocument;
                     return;
                 case "name":
-                    _indexName = value.AsString;
+                    _name = value.AsString;
                     return;
                 case "session":
                     _session = (IClientSessionHandle)_objectMap[value.AsString];
@@ -92,6 +88,14 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
             }
 
             base.SetArgument(name, value);
+        }
+
+        // private methods
+        private CreateIndexModel<BsonDocument> CreateCreateIndexModel()
+        {
+            var keysDefinition = new BsonDocumentIndexKeysDefinition<BsonDocument>(_keys);
+            var options = new CreateIndexOptions { Name = _name };
+            return new CreateIndexModel<BsonDocument>(keysDefinition, options);
         }
     }
 }

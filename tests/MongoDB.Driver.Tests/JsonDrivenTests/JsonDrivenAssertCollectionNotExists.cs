@@ -18,6 +18,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
 using MongoDB.Bson;
+using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 
 namespace MongoDB.Driver.Tests.JsonDrivenTests
 {
@@ -45,16 +46,17 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
             return Task.FromResult(true);
         }
 
+        public override void Arrange(BsonDocument document)
+        {
+            JsonDrivenHelper.EnsureAllFieldsAreValid(document, "name", "object", "arguments");
+            base.Arrange(document);
+        }
+
         public override void Assert()
         {
-            var filter = new BsonDocument("name", _collectionName);
-            var options = new ListCollectionNamesOptions { Filter = filter };
-
-            using (var client = DriverTestConfiguration.CreateDisposableClient())
-            {
-                var collectionFound = client.GetDatabase(_databaseName).ListCollectionNames(options).Any();
-                collectionFound.Should().BeFalse();
-            }
+            var client = DriverTestConfiguration.Client;
+            var collectionNames = client.GetDatabase(_databaseName).ListCollectionNames().ToList();
+            collectionNames.Should().NotContain(_collectionName);
         }
 
         // protected methods
