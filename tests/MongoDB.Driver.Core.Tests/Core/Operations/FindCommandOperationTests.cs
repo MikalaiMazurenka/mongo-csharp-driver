@@ -16,7 +16,9 @@
 using System;
 using FluentAssertions;
 using MongoDB.Bson;
+using MongoDB.Bson.IO;
 using MongoDB.Bson.Serialization.Serializers;
+using MongoDB.Bson.TestHelpers;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.Clusters;
@@ -24,6 +26,7 @@ using MongoDB.Driver.Core.Misc;
 using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.TestHelpers;
 using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
+using Moq;
 using Xunit;
 
 namespace MongoDB.Driver.Core.Operations
@@ -818,6 +821,34 @@ namespace MongoDB.Driver.Core.Operations
             result.Should().Be(expectedResult);
         }
 
+        [SkippableFact]
+        public void CreateCursor_should_use_ns_field_instead_of_namespace_passed_in_constructor()
+        {
+            var subject = new FindCommandOperation<BsonDocument>(_collectionNamespace, BsonDocumentSerializer.Instance, _messageEncoderSettings);
+            var expectedCollectionNamespace = "cursors.lkajlkasdf-3980238d908sdf";
+            var nextBatchSlice = new ByteArrayBuffer(new byte[] { 5, 0, 0, 0, 0 }, isReadOnly: true);
+            var cursorDocument = new BsonDocument
+            {
+                { "id", 0 },
+                { "firstBatch", new RawBsonArray(nextBatchSlice) },
+                { "ns", expectedCollectionNamespace }
+            };
+            var mockExecuteResponse = new BsonDocument
+            {
+                { "cursor", cursorDocument }
+            };
+            var mockServer = new Mock<IServer>();
+            var mockSession = new Mock<ICoreSessionHandle>();
+            mockSession.Setup(x => x.Fork()).Returns(mockSession.Object);
+            var mockChannelSource = new Mock<IChannelSourceHandle>();
+            mockChannelSource.Setup(x => x.Server).Returns(mockServer.Object);
+            mockChannelSource.Setup(x => x.Session).Returns(mockSession.Object);
+
+            var cursor = subject.CreateCursor(mockChannelSource.Object, mockExecuteResponse);
+
+            cursor._collectionNamespace().Should().Be(CollectionNamespace.FromFullName(expectedCollectionNamespace));
+        }
+
         [Theory]
         [ParameterAttributeData]
         public void CursorType_get_and_set_should_work(
@@ -1351,6 +1382,17 @@ namespace MongoDB.Driver.Core.Operations
                     new BsonDocument { { "_id", 4 }, { "x", "d" }, { "y", 2 } },
                     new BsonDocument { { "_id", 5 }, { "x", "D" }, { "y", 3 } });
             });
+        }
+    }
+
+    public static class FindCommandOperationReflector
+    {
+        public static AsyncCursor<BsonDocument> CreateCursor(
+            this FindCommandOperation<BsonDocument> obj,
+            IChannelSourceHandle channelSource,
+            BsonDocument commandResult)
+        {
+            return (AsyncCursor<BsonDocument>)Reflector.Invoke(obj, nameof(CreateCursor), channelSource, commandResult);
         }
     }
 }
