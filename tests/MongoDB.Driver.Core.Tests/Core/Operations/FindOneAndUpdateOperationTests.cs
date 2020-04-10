@@ -747,19 +747,26 @@ namespace MongoDB.Driver.Core.Operations
         [SkippableTheory]
         [ParameterAttributeData]
         public void Execute_with_hint_should_throw_when_hint_is_not_supported(
+            [Values(0, 1)] int w,
             [Values(false, true)] bool async)
         {
+            var writeConcern = new WriteConcern(w);
             var serverVersion = CoreTestConfiguration.ServerVersion;
             var subject = new FindOneAndUpdateOperation<BsonDocument>(_collectionNamespace, _filter, _update, _findAndModifyValueDeserializer, _messageEncoderSettings)
             {
-                Hint = new BsonDocument("_id", 1)
+                Hint = new BsonDocument("_id", 1),
+                WriteConcern = writeConcern
             };
 
-            var exception = Record.Exception(() => ExecuteOperation(subject, async));
+            var exception = Record.Exception(() => ExecuteOperation(subject, async, useImplicitSession: true));
 
             if (Feature.HintForFindAndModifyFeature.IsSupported(serverVersion))
             {
                 exception.Should().BeNull();
+            }
+            else if (!writeConcern.IsAcknowledged)
+            {
+                exception.Should().BeOfType<NotSupportedException>();
             }
             else if (Feature.HintForFindAndModifyFeature.DriverMustThrowIfNotSupported(serverVersion))
             {

@@ -7,14 +7,16 @@ data:
   - {_id: 3, x: 33}
   - {_id: 4, x: 44}
 
-collection_name: &collection_name 'test_bulkwrite_update_hint'
+collection_name: &collection_name 'BulkWrite_update_hint'
 
 tests:
   -
-    description: "BulkWrite updateOne with update hints"
+    description: "Unacknowledged bulkWrite updateOne with update hint succeeds on server >= 4.2"
     operations:
       -
         name: "bulkWrite"
+        collectionOptions: &collection_options
+          writeConcern: { w: 0 }
         arguments:
           requests:
             -
@@ -30,14 +32,7 @@ tests:
                 update: *updateOne_update
                 hint: &hint_doc { _id: 1 }
           options: { ordered: true }
-        result:
-          deletedCount: 0
-          insertedCount: 0
-          insertedIds: {}
-          matchedCount: 2
-          modifiedCount: 2
-          upsertedCount: 0
-          upsertedIds: {}
+        # Don't check result because different drivers return different responses to unacknowledged bulk writes
     expectations:
       -
         command_started_event:
@@ -53,18 +48,14 @@ tests:
                 u: *updateOne_update
                 hint: *hint_doc
             ordered: true
-    outcome:
-      collection:
-        data:
-          - {_id: 1, x: 13 }
-          - {_id: 2, x: 22 }
-          - {_id: 3, x: 33 }
-          - {_id: 4, x: 44 }
+    # Do not verify the contents of the collection to avoid race conditions
+    outcome: {}
   -
-    description: "BulkWrite updateMany with update hints"
+    description: "Unacknowledged bulkWrite updateMany with update hint succeeds on server >= 4.2"
     operations:
       -
         name: "bulkWrite"
+        collectionOptions: *collection_options
         arguments:
           requests:
             -
@@ -80,14 +71,7 @@ tests:
                 update: *updateMany_update
                 hint: *hint_doc
           options: { ordered: true }
-        result:
-          deletedCount: 0
-          insertedCount: 0
-          insertedIds: {}
-          matchedCount: 4
-          modifiedCount: 4
-          upsertedCount: 0
-          upsertedIds: {}
+        # Don't check result because different drivers return different responses to unacknowledged bulk writes
     expectations:
       -
         command_started_event:
@@ -105,18 +89,14 @@ tests:
                 multi: true
                 hint: *hint_doc
             ordered: true
-    outcome:
-      collection:
-        data:
-          - {_id: 1, x: 13 }
-          - {_id: 2, x: 24 }
-          - {_id: 3, x: 33 }
-          - {_id: 4, x: 44 }
+    # Do not verify the contents of the collection to avoid race conditions
+    outcome: {}
   -
-    description: "BulkWrite replaceOne with update hints"
+    description: "Unacknowledged bulkWrite replaceOne with update hints"
     operations:
       -
         name: "bulkWrite"
+        collectionOptions: *collection_options
         arguments:
           requests:
             -
@@ -132,14 +112,7 @@ tests:
                 replacement: { x: 444 }
                 hint: *hint_doc
           options: { ordered: true }
-        result:
-          deletedCount: 0
-          insertedCount: 0
-          insertedIds: {}
-          matchedCount: 2
-          modifiedCount: 2
-          upsertedCount: 0
-          upsertedIds: {}
+        # Don't check result because different drivers return different responses to unacknowledged bulk writes
     expectations:
       -
         command_started_event:
@@ -155,10 +128,5 @@ tests:
                 u: { x: 444 }
                 hint: *hint_doc
             ordered: true
-    outcome:
-      collection:
-        data:
-          - {_id: 1, x: 11 }
-          - {_id: 2, x: 22 }
-          - {_id: 3, x: 333 }
-          - {_id: 4, x: 444 }
+    # Do not verify the contents of the collection to avoid race conditions
+    outcome: {}
