@@ -250,14 +250,14 @@ namespace MongoDB.Driver.Core.Operations
         {
             if (request is DeleteRequest &&
                 (Feature.HintForDeleteOperations.DriverMustThrowIfNotSupported(serverVersion) ||
-                (!_writeConcern.IsAcknowledged && !Feature.HintForDeleteOperations.IsSupported(serverVersion))))
+                 (!_writeConcern.IsAcknowledged && !Feature.HintForDeleteOperations.IsSupported(serverVersion))))
             {
                 return false;
             }
 
             if (request is UpdateRequest &&
                 (Feature.HintForUpdateAndReplaceOperations.DriverMustThrowIfNotSupported(serverVersion) ||
-                (!_writeConcern.IsAcknowledged && !Feature.HintForUpdateAndReplaceOperations.IsSupported(serverVersion))))
+                 (!_writeConcern.IsAcknowledged && !Feature.HintForUpdateAndReplaceOperations.IsSupported(serverVersion))))
             {
                 return false;
             }

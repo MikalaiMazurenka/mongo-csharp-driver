@@ -109,7 +109,7 @@ namespace MongoDB.Driver.Core.Operations
                 }
             }
             if (Feature.HintForUpdateAndReplaceOperations.DriverMustThrowIfNotSupported(serverVersion) ||
-                (!WriteConcern.IsAcknowledged && !Feature.HintForUpdateAndReplaceOperations.IsSupported(serverVersion)))
+                (WriteConcern != null && !WriteConcern.IsAcknowledged && !Feature.HintForUpdateAndReplaceOperations.IsSupported(serverVersion)))
             {
                 if (_updates.Items.Skip(_updates.Offset).Take(_updates.Count).Any(u => u.Hint != null))
                 {
