@@ -825,28 +825,30 @@ namespace MongoDB.Driver.Core.Operations
         public void CreateCursor_should_use_ns_field_instead_of_namespace_passed_in_constructor()
         {
             var subject = new FindCommandOperation<BsonDocument>(_collectionNamespace, BsonDocumentSerializer.Instance, _messageEncoderSettings);
-            var expectedCollectionNamespace = "cursors.lkajlkasdf-3980238d908sdf";
-            var nextBatchSlice = new ByteArrayBuffer(new byte[] { 5, 0, 0, 0, 0 }, isReadOnly: true);
+            var firstBatchSlice = new ByteArrayBuffer(new byte[] { 5, 0, 0, 0, 0 }, isReadOnly: true);
+            var cursorCollectionNamespace = CollectionNamespace.FromFullName("cursors.lkajlkasdf-3980238d908sdf");
             var cursorDocument = new BsonDocument
             {
                 { "id", 0 },
-                { "firstBatch", new RawBsonArray(nextBatchSlice) },
-                { "ns", expectedCollectionNamespace }
+                { "firstBatch", new RawBsonArray(firstBatchSlice) },
+                { "ns", cursorCollectionNamespace.FullName }
             };
-            var mockExecuteResponse = new BsonDocument
+            var commandResult = new BsonDocument
             {
+                { "ok", 1 },
                 { "cursor", cursorDocument }
             };
             var mockServer = new Mock<IServer>();
             var mockSession = new Mock<ICoreSessionHandle>();
-            mockSession.Setup(x => x.Fork()).Returns(mockSession.Object);
+            var mockSessionFork = new Mock<ICoreSessionHandle>();
+            mockSession.Setup(x => x.Fork()).Returns(mockSessionFork.Object);
             var mockChannelSource = new Mock<IChannelSourceHandle>();
             mockChannelSource.Setup(x => x.Server).Returns(mockServer.Object);
             mockChannelSource.Setup(x => x.Session).Returns(mockSession.Object);
 
-            var cursor = subject.CreateCursor(mockChannelSource.Object, mockExecuteResponse);
+            var cursor = subject.CreateCursor(mockChannelSource.Object, commandResult);
 
-            cursor._collectionNamespace().Should().Be(CollectionNamespace.FromFullName(expectedCollectionNamespace));
+            cursor._collectionNamespace().Should().Be(cursorCollectionNamespace);
         }
 
         [Theory]
