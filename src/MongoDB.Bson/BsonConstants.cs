@@ -46,6 +46,14 @@ namespace MongoDB.Bson
         }
 
         /// <summary>
+        /// Gets the number of milliseconds since the Unix epoch for DateTime.MaxValue.
+        /// </summary>
+        public static long DateTimeMillisecondsStartEpoch
+        {
+            get { return 0; }
+        }
+
+        /// <summary>
         /// Gets the number of milliseconds since the Unix epoch for DateTime.MinValue.
         /// </summary>
         public static long DateTimeMinValueMillisecondsSinceEpoch

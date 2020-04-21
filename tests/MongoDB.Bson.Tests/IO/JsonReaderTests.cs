@@ -1280,13 +1280,13 @@ namespace MongoDB.Bson.Tests.IO
         [Fact]
         public void TestRegularExpressionShell()
         {
-            var json = "/pattern/imxs";
+            var json = "/pattern/imsx";
             using (_bsonReader = new JsonReader(json))
             {
                 Assert.Equal(BsonType.RegularExpression, _bsonReader.ReadBsonType());
                 var regex = _bsonReader.ReadRegularExpression();
                 Assert.Equal("pattern", regex.Pattern);
-                Assert.Equal("imxs", regex.Options);
+                Assert.Equal("imsx", regex.Options);
                 Assert.Equal(BsonReaderState.Initial, _bsonReader.State);
                 Assert.True(_bsonReader.IsAtEndOfFile());
             }
@@ -1296,13 +1296,13 @@ namespace MongoDB.Bson.Tests.IO
         [Fact]
         public void TestRegularExpressionStrict()
         {
-            var json = "{ \"$regex\" : \"pattern\", \"$options\" : \"imxs\" }";
+            var json = "{ \"$regex\" : \"pattern\", \"$options\" : \"imsx\" }";
             using (_bsonReader = new JsonReader(json))
             {
                 Assert.Equal(BsonType.RegularExpression, _bsonReader.ReadBsonType());
                 var regex = _bsonReader.ReadRegularExpression();
                 Assert.Equal("pattern", regex.Pattern);
-                Assert.Equal("imxs", regex.Options);
+                Assert.Equal("imsx", regex.Options);
                 Assert.Equal(BsonReaderState.Initial, _bsonReader.State);
                 Assert.True(_bsonReader.IsAtEndOfFile());
             }

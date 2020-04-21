@@ -575,7 +575,7 @@ namespace MongoDB.Bson.Tests.IO
                 new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "m"), "/a/m"),
                 new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "x"), "/a/x"),
                 new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "s"), "/a/s"),
-                new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "imxs"), "/a/imxs"),
+                new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "imxs"), "/a/imsx"),
             };
             foreach (var test in tests)
             {
@@ -598,7 +598,7 @@ namespace MongoDB.Bson.Tests.IO
                 new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "m"), "{ \"$regex\" : \"a\", \"$options\" : \"m\" }"),
                 new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "x"), "{ \"$regex\" : \"a\", \"$options\" : \"x\" }"),
                 new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "s"), "{ \"$regex\" : \"a\", \"$options\" : \"s\" }"),
-                new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "imxs"), "{ \"$regex\" : \"a\", \"$options\" : \"imxs\" }"),
+                new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "imxs"), "{ \"$regex\" : \"a\", \"$options\" : \"imsx\" }"),
             };
             var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
             foreach (var test in tests)

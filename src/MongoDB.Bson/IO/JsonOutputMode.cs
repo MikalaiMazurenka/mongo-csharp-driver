@@ -23,7 +23,7 @@ namespace MongoDB.Bson.IO
     public enum JsonOutputMode
     {
         /// <summary>
-        /// Output strict JSON.
+        /// Output strict JSON (a backward compatible subset of extended JSON which will eventually be obsoleted).
         /// </summary>
         Strict,
 
@@ -31,6 +31,16 @@ namespace MongoDB.Bson.IO
         /// Use a format that can be pasted in to the MongoDB shell.
         /// </summary>
         Shell,
+
+        /// <summary>
+        /// Output canonical extended JSON.
+        /// </summary>
+        CanonicalExtendedJson,
+
+        /// <summary>
+        /// Output relaxed extended JSON.
+        /// </summary>
+        RelaxedExtendedJson,
 
         /// <summary>
         /// Use JavaScript data types for some values.

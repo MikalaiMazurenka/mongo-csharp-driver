@@ -139,6 +139,11 @@ namespace MongoDB.Bson.IO
                     _textWriter.Write("{{ \"$binary\" : \"{0}\", \"$type\" : \"{1}\" }}", Convert.ToBase64String(bytes), ((int)subType).ToString("x2"));
                     break;
 
+                case JsonOutputMode.CanonicalExtendedJson:
+                case JsonOutputMode.RelaxedExtendedJson:
+                    _textWriter.Write("{{ \"$binary\" : {{ \"base64\" : \"{0}\", \"subType\" : \"{1}\" }} }}", Convert.ToBase64String(bytes), ((int)subType).ToString("x2"));
+                    break;
+
                 case JsonOutputMode.Shell:
                 default:
                     switch (subType)
@@ -204,6 +209,23 @@ namespace MongoDB.Bson.IO
                     _textWriter.Write("{{ \"$date\" : {0} }}", value);
                     break;
 
+                case JsonOutputMode.RelaxedExtendedJson:
+                    if (value >= BsonConstants.DateTimeMillisecondsStartEpoch &&
+                        value <= BsonConstants.DateTimeMaxValueMillisecondsSinceEpoch)
+                    {
+                        var utcDateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(value);
+                        _textWriter.Write("{{ \"$date\" : \"{0}\" }}", utcDateTime.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ"));
+                    }
+                    else
+                    {
+                        _textWriter.Write("{{ \"$date\" : {{ \"$numberLong\" : \"{0}\" }} }}", value);
+                    }
+                    break;
+
+                case JsonOutputMode.CanonicalExtendedJson:
+                    _textWriter.Write("{{ \"$date\" : {{ \"$numberLong\" : \"{0}\" }} }}", value);
+                    break;
+
                 case JsonOutputMode.Shell:
                 default:
                     // use ISODate for values that fall within .NET's DateTime range, and "new Date" for all others
@@ -267,7 +289,27 @@ namespace MongoDB.Bson.IO
             }
 
             WriteNameHelper(Name);
-            _textWriter.Write(stringRepresentation);
+            switch (Settings.OutputMode)
+            {
+                case JsonOutputMode.CanonicalExtendedJson:
+                    _textWriter.Write("{{ \"$numberDouble\" : \"{0}\" }}", stringRepresentation);
+                    break;
+                case JsonOutputMode.RelaxedExtendedJson:
+                    if (double.IsNaN(value) || double.IsInfinity(value))
+                    {
+                        _textWriter.Write("{{ \"$numberDouble\" : \"{0}\" }}", stringRepresentation);
+                    }
+                    else
+                    {
+                        _textWriter.Write(stringRepresentation);
+                    }
+                    break;
+                case JsonOutputMode.Strict:
+                case JsonOutputMode.Shell:
+                default:
+                    _textWriter.Write(stringRepresentation);
+                    break;
+            }
 
             State = GetNextState();
         }
@@ -349,7 +391,18 @@ namespace MongoDB.Bson.IO
             }
 
             WriteNameHelper(Name);
-            _textWriter.Write(value);
+            switch (Settings.OutputMode)
+            {
+                case JsonOutputMode.CanonicalExtendedJson:
+                    _textWriter.Write("{{ \"$numberInt\" : \"{0}\" }}", value);
+                    break;
+                case JsonOutputMode.Strict:
+                case JsonOutputMode.RelaxedExtendedJson:
+                case JsonOutputMode.Shell:
+                default:
+                    _textWriter.Write(value);
+                    break;
+            }
 
             State = GetNextState();
         }
@@ -370,7 +423,12 @@ namespace MongoDB.Bson.IO
             switch (Settings.OutputMode)
             {
                 case JsonOutputMode.Strict:
+                case JsonOutputMode.RelaxedExtendedJson:
                     _textWriter.Write(value);
+                    break;
+
+                case JsonOutputMode.CanonicalExtendedJson:
+                    _textWriter.Write("{{ \"$numberLong\" : \"{0}\" }}", value);
                     break;
 
                 case JsonOutputMode.Shell:
@@ -442,6 +500,8 @@ namespace MongoDB.Bson.IO
             switch (Settings.OutputMode)
             {
                 case JsonOutputMode.Strict:
+                case JsonOutputMode.CanonicalExtendedJson:
+                case JsonOutputMode.RelaxedExtendedJson:
                     _textWriter.Write("{ \"$maxKey\" : 1 }");
                     break;
 
@@ -469,6 +529,8 @@ namespace MongoDB.Bson.IO
             switch (Settings.OutputMode)
             {
                 case JsonOutputMode.Strict:
+                case JsonOutputMode.CanonicalExtendedJson:
+                case JsonOutputMode.RelaxedExtendedJson:
                     _textWriter.Write("{ \"$minKey\" : 1 }");
                     break;
 
@@ -514,6 +576,8 @@ namespace MongoDB.Bson.IO
             switch (Settings.OutputMode)
             {
                 case JsonOutputMode.Strict:
+                case JsonOutputMode.CanonicalExtendedJson:
+                case JsonOutputMode.RelaxedExtendedJson:
                     _textWriter.Write("{{ \"$oid\" : \"{0}\" }}", objectId.ToString());
                     break;
 
@@ -546,6 +610,11 @@ namespace MongoDB.Bson.IO
             {
                 case JsonOutputMode.Strict:
                     _textWriter.Write("{{ \"$regex\" : \"{0}\", \"$options\" : \"{1}\" }}", EscapedString(pattern), EscapedString(options));
+                    break;
+
+                case JsonOutputMode.CanonicalExtendedJson:
+                case JsonOutputMode.RelaxedExtendedJson:
+                    _textWriter.Write("{{ \"$regularExpression\" : {{ \"pattern\" : \"{0}\", \"options\" : \"{1}\" }} }}", EscapedString(pattern), EscapedString(options));
                     break;
 
                 case JsonOutputMode.Shell:
@@ -648,13 +717,15 @@ namespace MongoDB.Bson.IO
                 ThrowInvalidState("WriteTimestamp", BsonWriterState.Value, BsonWriterState.Initial);
             }
 
-            var secondsSinceEpoch = (int)((value >> 32) & 0xffffffff);
-            var increment = (int)(value & 0xffffffff);
+            var secondsSinceEpoch = (uint)((value >> 32) & 0xffffffff);
+            var increment = (uint)(value & 0xffffffff);
 
             WriteNameHelper(Name);
             switch (Settings.OutputMode)
             {
                 case JsonOutputMode.Strict:
+                case JsonOutputMode.CanonicalExtendedJson:
+                case JsonOutputMode.RelaxedExtendedJson:
                     _textWriter.Write("{{ \"$timestamp\" : {{ \"t\" : {0}, \"i\" : {1} }} }}", secondsSinceEpoch, increment);
                     break;
 
@@ -682,6 +753,8 @@ namespace MongoDB.Bson.IO
             switch (Settings.OutputMode)
             {
                 case JsonOutputMode.Strict:
+                case JsonOutputMode.CanonicalExtendedJson:
+                case JsonOutputMode.RelaxedExtendedJson:
                     _textWriter.Write("{ \"$undefined\" : true }");
                     break;
 
