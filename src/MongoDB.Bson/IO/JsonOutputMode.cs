@@ -23,8 +23,9 @@ namespace MongoDB.Bson.IO
     public enum JsonOutputMode
     {
         /// <summary>
-        /// Output strict JSON (a backward compatible subset of extended JSON which will eventually be obsoleted).
+        /// Output strict JSON (an obsolete output mode that is similar to canonical extended JSON).
         /// </summary>
+        [Obsolete("Use CanonicalExtendedJson instead.")]
         Strict,
 
         /// <summary>

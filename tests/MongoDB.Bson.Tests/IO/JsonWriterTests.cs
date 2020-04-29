@@ -167,7 +167,9 @@ namespace MongoDB.Bson.Tests.IO
             };
             foreach (var test in tests)
             {
+#pragma warning disable 618
                 var json = new BsonDecimal128(test.Value).ToJson(new JsonWriterSettings { OutputMode = JsonOutputMode.Strict });
+#pragma warning restore 618
                 Assert.Equal(test.Expected, json);
                 Assert.Equal(test.Value, BsonSerializer.Deserialize<Decimal128>(json));
             }
@@ -257,7 +259,9 @@ namespace MongoDB.Bson.Tests.IO
                 new TestData<long>(int.MaxValue + 1L, "2147483648"),
                 new TestData<long>(long.MaxValue, "9223372036854775807")
             };
+#pragma warning disable 618
             var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+#pragma warning restore 618
             foreach (var test in tests)
             {
                 var json = test.Value.ToJson(jsonSettings);
@@ -434,7 +438,9 @@ namespace MongoDB.Bson.Tests.IO
                 new TestData<BsonDateTime>(new BsonDateTime(utcNowTruncated), strictDate),
                 new TestData<BsonDateTime>(new BsonDateTime(DateTime.MaxValue), "{ \"$date\" : 253402300799999 }"),
             };
+#pragma warning disable 618
             var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+#pragma warning restore 618
             foreach (var test in tests)
             {
                 var json = test.Value.ToJson(jsonSettings);
@@ -555,7 +561,9 @@ namespace MongoDB.Bson.Tests.IO
         public void TestObjectIdStrict()
         {
             var objectId = new ObjectId("4d0ce088e447ad08b4721a37");
+#pragma warning disable 618
             var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+#pragma warning restore 618
             var json = objectId.ToJson(jsonSettings);
             var expected = "{ \"$oid\" : \"4d0ce088e447ad08b4721a37\" }";
             Assert.Equal(expected, json);
@@ -600,7 +608,9 @@ namespace MongoDB.Bson.Tests.IO
                 new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "s"), "{ \"$regex\" : \"a\", \"$options\" : \"s\" }"),
                 new TestData<BsonRegularExpression>(new BsonRegularExpression("a", "imxs"), "{ \"$regex\" : \"a\", \"$options\" : \"imsx\" }"),
             };
+#pragma warning disable 618
             var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+#pragma warning restore 618
             foreach (var test in tests)
             {
                 var json = test.Value.ToJson(jsonSettings);

@@ -40,8 +40,8 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             switch (testType)
             {
                 case "valid": RunValidTest(test); break;
-                case "decodeErrors": RunDecodeErrorTest(test); break;
-                case "parseErrors": RunParseErrorTest(test); break;
+                case "decodeErrors": RunDecodeErrorsTest(test); break;
+                case "parseErrors": RunParseErrorsTest(test); break;
                 default: throw new Exception($"Invalid test type: {testType}.");
             }
         }
@@ -68,9 +68,9 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             }
         }
 
-        private BsonDocument DecodeExtjson(string extjson)
+        private BsonDocument DecodeExtendedJson(string extendedJson)
         {
-            return BsonDocument.Parse(extjson);
+            return BsonDocument.Parse(extendedJson);
         }
 
         private byte[] EncodeBson(BsonDocument document)
@@ -94,7 +94,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             }
         }
 
-        private string EncodeCanonicalExtjson(BsonDocument document)
+        private string EncodeCanonicalExtendedJson(BsonDocument document)
         {
 #pragma warning disable 618
             var writerSettings = new JsonWriterSettings
@@ -110,7 +110,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             return json.Replace(" ", "");
         }
 
-        private string EncodeRelaxedExtjson(BsonDocument document)
+        private string EncodeRelaxedExtendedJson(BsonDocument document)
         {
 #pragma warning disable 618
             var writerSettings = new JsonWriterSettings
@@ -126,7 +126,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             return json.Replace(" ", "");
         }
 
-        private void RunDecodeErrorTest(BsonDocument test)
+        private void RunDecodeErrorsTest(BsonDocument test)
         {
             JsonDrivenHelper.EnsureAllFieldsAreValid(test, "type", "description", "bson");
 
@@ -147,7 +147,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             exception.Should().NotBeNull();
         }
 
-        private void RunParseErrorTest(BsonDocument test)
+        private void RunParseErrorsTest(BsonDocument test)
         {
             JsonDrivenHelper.EnsureAllFieldsAreValid(test, "type", "description", "string");
 
@@ -209,19 +209,19 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             if (cB != null)
             {
                 EncodeBson(DecodeBson(cB)).Should().Equal(cB, "native_to_bson( bson_to_native(cB) ) = cB");
-                EncodeCanonicalExtjson(DecodeBson(cB)).Should().Be(cEJ, "native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ");
+                EncodeCanonicalExtendedJson(DecodeBson(cB)).Should().Be(cEJ, "native_to_canonical_extended_json( bson_to_native(cB) ) = cEJ");
                 if (rEJ != null)
                 {
-                    EncodeRelaxedExtjson(DecodeBson(cB)).Should().Be(rEJ, "native_to_relaxed_extended_json( bson_to_native(cB) ) = rEJ");
+                    EncodeRelaxedExtendedJson(DecodeBson(cB)).Should().Be(rEJ, "native_to_relaxed_extended_json( bson_to_native(cB) ) = rEJ");
                 }
             }
 
             if (cEJ != null)
             {
-                EncodeCanonicalExtjson(DecodeExtjson(cEJ)).Should().Be(cEJ, "native_to_canonical_extended_json( json_to_native(cEJ) ) = cEJ");
+                EncodeCanonicalExtendedJson(DecodeExtendedJson(cEJ)).Should().Be(cEJ, "native_to_canonical_extended_json( json_to_native(cEJ) ) = cEJ");
                 if (!test.GetValue("lossy", false).ToBoolean())
                 {
-                    EncodeBson(DecodeExtjson(cEJ)).Should().Equal(cB, "native_to_bson( json_to_native(cEJ) ) = cB");
+                    EncodeBson(DecodeExtendedJson(cEJ)).Should().Equal(cB, "native_to_bson( json_to_native(cEJ) ) = cB");
                 }
             }
 
@@ -232,16 +232,16 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
 
             if (dEJ != null)
             {
-                EncodeCanonicalExtjson(DecodeExtjson(dEJ)).Should().Be(cEJ, "native_to_canonical_extended_json( json_to_native(dEJ) ) = cEJ");
+                EncodeCanonicalExtendedJson(DecodeExtendedJson(dEJ)).Should().Be(cEJ, "native_to_canonical_extended_json( json_to_native(dEJ) ) = cEJ");
                 if (!test.GetValue("lossy", false).ToBoolean())
                 {
-                    EncodeBson(DecodeExtjson(dEJ)).Should().Equal(cB, "native_to_bson( json_to_native(dEJ) ) = cB");
+                    EncodeBson(DecodeExtendedJson(dEJ)).Should().Equal(cB, "native_to_bson( json_to_native(dEJ) ) = cB");
                 }
             }
 
             if (rEJ != null)
             {
-                EncodeRelaxedExtjson(DecodeExtjson(rEJ)).Should().Be(rEJ, "native_to_relaxed_extended_json( json_to_native(rEJ) ) = rEJ");
+                EncodeRelaxedExtendedJson(DecodeExtendedJson(rEJ)).Should().Be(rEJ, "native_to_relaxed_extended_json( json_to_native(rEJ) ) = rEJ");
             }
         }
 

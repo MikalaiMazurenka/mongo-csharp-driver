@@ -108,7 +108,7 @@ namespace MongoDB.Bson.IO
                 case 1:
                     return true;
                 default:
-                    throw new FormatException($"Invalid boolean value: {b}");
+                    throw new FormatException($"Invalid BsonBoolean value: {b}.");
             }
         }
 

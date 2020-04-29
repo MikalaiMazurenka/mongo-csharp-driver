@@ -47,7 +47,7 @@ namespace MongoDB.Bson
                 var escaped = pattern.Substring(1, index - 1);
                 var unescaped = (escaped == "(?:)") ? "" : escaped.Replace("\\/", "/");
                 _pattern = unescaped;
-                _options = SortOptions(pattern.Substring(index + 1));
+                _options = SortOptionsIfNecessary(pattern.Substring(index + 1));
             }
             else
             {
@@ -68,7 +68,7 @@ namespace MongoDB.Bson
                 throw new ArgumentNullException("pattern");
             }
             _pattern = pattern;
-            _options = SortOptions(options ?? "");
+            _options = SortOptionsIfNecessary(options ?? "");
         }
 
         /// <summary>
@@ -283,16 +283,36 @@ namespace MongoDB.Bson
         /// <returns>A string representation of the value.</returns>
         public override string ToString()
         {
-            var escaped = (_pattern == "") ? "(?:)" :_pattern.Replace("/", @"\/");
+            var escaped = (_pattern == "") ? "(?:)" : _pattern.Replace("/", @"\/");
             return string.Format("/{0}/{1}", escaped, _options);
         }
 
         // private methods
-        private string SortOptions(string options)
+        private string SortOptionsIfNecessary(string options)
         {
-            var sorted = options.ToCharArray();
-            Array.Sort(sorted);
-            return new string(sorted);
+            if (IsAlreadySorted(options))
+            {
+                return options;
+            }
+            else
+            {
+                var sorted = options.ToCharArray();
+                Array.Sort(sorted);
+                return new string(sorted);
+            }
+
+            bool IsAlreadySorted(string value)
+            {
+                for (var i = 0; i < value.Length - 1; i++)
+                {
+                    if (value[i] > value[i + 1])
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
         }
     }
 }

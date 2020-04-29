@@ -453,7 +453,9 @@ namespace MongoDB.Bson.Tests.IO
                 Assert.Equal(BsonReaderState.Initial, _bsonReader.State);
                 Assert.True(_bsonReader.IsAtEndOfFile());
             }
+#pragma warning disable 618
             var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+#pragma warning restore 618
             Assert.Equal(json, BsonSerializer.Deserialize<DateTime>(json).ToJson(jsonSettings));
         }
 
@@ -469,7 +471,9 @@ namespace MongoDB.Bson.Tests.IO
                 Assert.True(_bsonReader.IsAtEndOfFile());
             }
             var expected = "{ \"$date\" : 0 }"; // it's still not ISO8601 on the way out
+#pragma warning disable 618
             var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+#pragma warning restore 618
             Assert.Equal(expected, BsonSerializer.Deserialize<DateTime>(json).ToJson(jsonSettings));
         }
 
@@ -1162,7 +1166,9 @@ namespace MongoDB.Bson.Tests.IO
                 Assert.Equal(BsonReaderState.Initial, _bsonReader.State);
                 Assert.True(_bsonReader.IsAtEndOfFile());
             }
+#pragma warning disable 618
             var jsonSettings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+#pragma warning restore 618
             Assert.Equal(json, BsonSerializer.Deserialize<ObjectId>(json).ToJson(jsonSettings));
         }
 
@@ -1306,7 +1312,9 @@ namespace MongoDB.Bson.Tests.IO
                 Assert.Equal(BsonReaderState.Initial, _bsonReader.State);
                 Assert.True(_bsonReader.IsAtEndOfFile());
             }
+#pragma warning disable 618
             var settings = new JsonWriterSettings { OutputMode = JsonOutputMode.Strict };
+#pragma warning restore 618
             Assert.Equal(json, BsonSerializer.Deserialize<BsonRegularExpression>(json).ToJson(settings));
         }
 

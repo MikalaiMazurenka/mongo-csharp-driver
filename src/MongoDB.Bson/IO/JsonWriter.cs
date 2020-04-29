@@ -210,8 +210,7 @@ namespace MongoDB.Bson.IO
                     break;
 
                 case JsonOutputMode.RelaxedExtendedJson:
-                    if (value >= BsonConstants.DateTimeMillisecondsStartEpoch &&
-                        value <= BsonConstants.DateTimeMaxValueMillisecondsSinceEpoch)
+                    if (value >= 0 && value <= BsonConstants.DateTimeMaxValueMillisecondsSinceEpoch)
                     {
                         var utcDateTime = BsonUtils.ToDateTimeFromMillisecondsSinceEpoch(value);
                         _textWriter.Write("{{ \"$date\" : \"{0}\" }}", utcDateTime.ToString("yyyy-MM-ddTHH:mm:ss.FFFZ"));

@@ -1347,7 +1347,12 @@ namespace MongoDB.Bson.IO
                     case "$numberInt": _currentValue = ParseNumberIntExtendedJson(); return BsonType.Int32;
                     case "$numberLong": _currentValue = ParseNumberLongExtendedJson(); return BsonType.Int64;
                     case "$oid": _currentValue = ParseObjectIdExtendedJson(); return BsonType.ObjectId;
-                    case "$regex": if (TryParseRegularExpressionExtendedJsonLegacy(out _currentValue)) return BsonType.RegularExpression; else break;
+                    case "$regex":
+                        if (TryParseRegularExpressionExtendedJsonLegacy(out _currentValue))
+                        {
+                            return BsonType.RegularExpression;
+                        }
+                        break;
                     case "$regularExpression": _currentValue = ParseRegularExpressionExtendedJsonCanonical(); return BsonType.RegularExpression;
                     case "$symbol": _currentValue = ParseSymbolExtendedJson(); return BsonType.Symbol;
                     case "$timestamp": _currentValue = ParseTimestampExtendedJson(); return BsonType.Timestamp;
@@ -1880,23 +1885,19 @@ namespace MongoDB.Bson.IO
         {
             VerifyToken(":");
             var patternToken = PopToken();
-            if (patternToken.Type != JsonTokenType.String)
-            {
-                PushToken(patternToken);
-                VerifyToken("{");
-                var nameToken = PopToken();
-                if (nameToken.Type != JsonTokenType.String)
-                {
-                    throw new FormatException($"JSON reader expected a string but found '{nameToken.Lexeme}'.");
-                }
-                if (nameToken.StringValue != "$regularExpression")
-                {
-                    throw new FormatException($"JSON reader expected a \"$regularExpression\" but found '{nameToken.StringValue}'.");
-                }
-                value = null;
 
+            if (patternToken.Type == JsonTokenType.BeginObject)
+            {
+                value = null;
                 return false;
             }
+
+            if (patternToken.Type != JsonTokenType.String)
+            {
+                var message = string.Format("JSON reader expected a string but found '{0}'.", patternToken.Lexeme);
+                throw new FormatException(message);
+            }
+
             var options = "";
             var commaToken = PopToken();
             if (commaToken.Lexeme == ",")
@@ -2165,8 +2166,7 @@ namespace MongoDB.Bson.IO
         private void VerifyToken(string expectedLexeme)
         {
             var token = PopToken();
-            var lexeme = token.Type == JsonTokenType.String ? token.StringValue : token.Lexeme;
-            if (lexeme != expectedLexeme)
+            if (token.Lexeme != expectedLexeme)
             {
                 var message = string.Format("JSON reader expected '{0}' but found '{1}'.", expectedLexeme, token.Lexeme);
                 throw new FormatException(message);
