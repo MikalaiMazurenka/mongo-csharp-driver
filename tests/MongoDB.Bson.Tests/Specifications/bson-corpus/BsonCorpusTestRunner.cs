@@ -33,9 +33,8 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
         [ClassData(typeof(TestCaseFactory))]
         public void RunTestDefinition(JsonDrivenTestCase testCase)
         {
-            var definition = testCase.Test;
-            var testType = definition["type"].AsString;
             var test = testCase.Test;
+            var testType = test["type"].AsString;
 
             switch (testType)
             {
@@ -47,6 +46,19 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
         }
 
         // private methods
+        private void AsserException(Exception exception)
+        {
+            exception
+                .Should()
+                .Match<Exception>(
+                    e =>
+                        e is FormatException ||
+                        e is IOException ||
+                        e is ArgumentException ||
+                        e is IndexOutOfRangeException ||
+                        e is OverflowException);
+        }
+
         private BsonDocument DecodeBson(byte[] bytes)
         {
 #pragma warning disable 618
@@ -144,7 +156,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
                 }
             });
 
-            exception.Should().NotBeNull();
+            AsserException(exception);
         }
 
         private void RunParseErrorsTest(BsonDocument test)
@@ -155,7 +167,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
 
             var exception = Record.Exception(() => BsonDocument.Parse(json));
 
-            exception.Should().NotBeNull();
+            AsserException(exception);
         }
 
         private void RunValidTest(BsonDocument test)
@@ -174,36 +186,33 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
                 "lossy");
 
             byte[] cB = null;
-            if (test.Contains("canonical_bson"))
+            if (test.TryGetValue("canonical_bson", out var canonicalBson))
             {
-                cB = BsonUtils.ParseHexString(test["canonical_bson"].AsString);
+                cB = BsonUtils.ParseHexString(canonicalBson.AsString);
             }
 
             byte[] dB = null;
-            if (test.Contains("degenerate_bson"))
+            if (test.TryGetValue("degenerate_bson", out var degenerateBson))
             {
-                dB = BsonUtils.ParseHexString(test["degenerate_bson"].AsString);
+                dB = BsonUtils.ParseHexString(degenerateBson.AsString);
             }
 
             string cEJ = null;
-            if (test.Contains("canonical_extjson"))
+            if (test.TryGetValue("canonical_extjson", out var canonicalExtendedJson))
             {
-                cEJ = test["canonical_extjson"].AsString.Replace(" ", "");
-                cEJ = UnescapeUnicodeCharacters(cEJ);
+                cEJ = UnescapeUnicodeCharacters(canonicalExtendedJson.AsString.Replace(" ", ""));
             }
 
             string dEJ = null;
-            if (test.Contains("degenerate_extjson"))
+            if (test.TryGetValue("degenerate_extjson", out var degenerateExtendedJson))
             {
-                dEJ = test["degenerate_extjson"].AsString.Replace(" ", "");
-                dEJ = UnescapeUnicodeCharacters(dEJ);
+                dEJ = UnescapeUnicodeCharacters(degenerateExtendedJson.AsString.Replace(" ", ""));
             }
 
             string rEJ = null;
-            if (test.Contains("relaxed_extjson"))
+            if (test.TryGetValue("relaxed_extjson", out var relaxedExtendedJson))
             {
-                rEJ = test["relaxed_extjson"].AsString.Replace(" ", "");
-                rEJ = UnescapeUnicodeCharacters(rEJ);
+                rEJ = UnescapeUnicodeCharacters(relaxedExtendedJson.AsString.Replace(" ", ""));
             }
 
             if (cB != null)
@@ -286,30 +295,36 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             {
                 var shared = document;
 
-                var tests = CreateTestCase(shared, "valid")
-                    .Concat(CreateTestCase(shared, "decodeErrors"))
-                    .Concat(CreateTestCase(shared, "parseErrors"));
+                foreach (var testType in new[] { "valid", "decodeErrors", "parseErrors" })
+                {
+                    if (shared.TryGetElement(testType, out var testSection))
+                    {
+                        foreach (var test in CreateTestCases(shared, testSection))
+                        {
+                            if (__ignoredTestNames.Any(ignoredTestName => test.Name.Contains(ignoredTestName)))
+                            {
+                                continue;
+                            }
 
-                return tests.Where(t => !__ignoredTestNames.Any(ignoredName => t.Name.Contains(ignoredName)));
+                            yield return test;
+                        }
+                    }
+                }
             }
 
             // private methods
-            private IEnumerable<JsonDrivenTestCase> CreateTestCase(BsonDocument shared, string testType)
+            private IEnumerable<JsonDrivenTestCase> CreateTestCases(BsonDocument shared, BsonElement testSection)
             {
-                if (shared.Contains(testType))
-                {
-                    var tests = shared[testType].AsBsonArray.Select(item => item.AsBsonDocument).ToList();
-                    for (var i = 0; i < tests.Count; i++)
-                    {
-                        var test = tests[i];
-                        var name = GetTestCaseName(shared, test, i);
-                        var enrichedName = $"{name}:type={testType}";
-                        var enrichedTest = test.DeepClone().AsBsonDocument.Add("type", testType);
-                        yield return new JsonDrivenTestCase(enrichedName, shared, enrichedTest);
-                    }
-                }
+                var tests = testSection.Value.AsBsonArray.Cast<BsonDocument>().ToList();
 
-                yield break;
+                return tests
+                    .Select((test, i) =>
+                    {
+                        var name = GetTestCaseName(shared, test, i);
+                        var enrichedName = $"{name}:type={testSection.Name}";
+                        var enrichedTest = test.DeepClone().AsBsonDocument.Add("type", testSection.Name);
+                        return new JsonDrivenTestCase(enrichedName, shared, enrichedTest);
+                    });
             }
         }
     }
