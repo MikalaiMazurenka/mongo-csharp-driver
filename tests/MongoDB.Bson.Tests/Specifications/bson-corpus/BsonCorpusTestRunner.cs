@@ -35,6 +35,33 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
         {
             var test = testCase.Test;
             var testType = test["type"].AsString;
+            var shared = testCase.Shared;
+
+            JsonDrivenHelper.EnsureAllFieldsAreValid(
+                shared,
+                "_path",
+                "description",
+                "bson_type",
+                "test_key",
+                "deprecated",
+                "valid",
+                "decodeErrors",
+                "parseErrors");
+
+            if (shared.Contains("bson_type"))
+            {
+                // This field is ignored
+            }
+
+            if (shared.Contains("test_key"))
+            {
+                // This field is ignored
+            }
+
+            if (shared.Contains("deprecated"))
+            {
+                // This field is ignored
+            }
 
             switch (testType)
             {
@@ -140,7 +167,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
 
         private void RunDecodeErrorsTest(BsonDocument test)
         {
-            JsonDrivenHelper.EnsureAllFieldsAreValid(test, "type", "bson_type", "test_key","description", "bson");
+            JsonDrivenHelper.EnsureAllFieldsAreValid(test, "type", "description", "bson");
 
             var bson = BsonUtils.ParseHexString(test["bson"].AsString);
 
@@ -161,7 +188,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
 
         private void RunParseErrorsTest(BsonDocument test)
         {
-            JsonDrivenHelper.EnsureAllFieldsAreValid(test, "type", "bson_type", "test_key", "description", "string");
+            JsonDrivenHelper.EnsureAllFieldsAreValid(test, "type", "description", "string");
 
             var json = test["string"].AsString;
 
@@ -175,8 +202,6 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             JsonDrivenHelper.EnsureAllFieldsAreValid(
                 test,
                 "type",
-                "bson_type",
-                "test_key",
                 "description",
                 "canonical_bson",
                 "canonical_extjson",
@@ -324,21 +349,9 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
                     {
                         var name = GetTestCaseName(shared, test, i);
                         var enrichedName = $"{name}:type={testSection.Name}";
-                        var enrichedTest = EnrichTestCase(test.DeepClone().AsBsonDocument, shared, testSection.Name);
+                        var enrichedTest = test.DeepClone().AsBsonDocument.Add("type", testSection.Name);
                         return new JsonDrivenTestCase(enrichedName, shared, enrichedTest);
                     });
-            }
-
-            private BsonDocument EnrichTestCase(BsonDocument test, BsonDocument shared, string testSectionName)
-            {
-                test.Add("type", testSectionName);
-                test.Add("bson_type", shared["bson_type"]);
-                if (shared.TryGetValue("test_key", out var testKey))
-                {
-                    test.Add("test_key", testKey);
-                }
-
-                return test;
             }
         }
     }
