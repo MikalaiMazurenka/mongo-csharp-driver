@@ -46,7 +46,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
         }
 
         // private methods
-        private void AsserException(Exception exception)
+        private void AssertException(Exception exception)
         {
             exception
                 .Should()
@@ -156,7 +156,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
                 }
             });
 
-            AsserException(exception);
+            AssertException(exception);
         }
 
         private void RunParseErrorsTest(BsonDocument test)
@@ -167,7 +167,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
 
             var exception = Record.Exception(() => BsonDocument.Parse(json));
 
-            AsserException(exception);
+            AssertException(exception);
         }
 
         private void RunValidTest(BsonDocument test)
