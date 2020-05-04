@@ -33,36 +33,21 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
         [ClassData(typeof(TestCaseFactory))]
         public void RunTestDefinition(JsonDrivenTestCase testCase)
         {
-            var test = testCase.Test;
-            var testType = test["type"].AsString;
             var shared = testCase.Shared;
+            var test = testCase.Test;
 
             JsonDrivenHelper.EnsureAllFieldsAreValid(
                 shared,
                 "_path",
                 "description",
-                "bson_type",
-                "test_key",
-                "deprecated",
+                "bson_type", // ignored
+                "test_key", // ignored
+                "deprecated", // ignored
                 "valid",
                 "decodeErrors",
                 "parseErrors");
 
-            if (shared.Contains("bson_type"))
-            {
-                // This field is ignored
-            }
-
-            if (shared.Contains("test_key"))
-            {
-                // This field is ignored
-            }
-
-            if (shared.Contains("deprecated"))
-            {
-                // This field is ignored
-            }
-
+            var testType = test["type"].AsString;
             switch (testType)
             {
                 case "valid": RunValidTest(test); break;
@@ -299,7 +284,7 @@ namespace MongoDB.Bson.Tests.Specifications.bson_corpus
             #region static
             private static readonly string[] __ignoredTestNames =
             {
-                "dbpointer.json", // dbpointer not supported
+                "dbpointer.json:", // dbpointer not supported
                 "Bad DBpointer (extra field)", // dbpointer not supported
                 "double.json:-0.0", // minus zero equals zero in .NET
                 "All BSON types", // dbpointer not supported
