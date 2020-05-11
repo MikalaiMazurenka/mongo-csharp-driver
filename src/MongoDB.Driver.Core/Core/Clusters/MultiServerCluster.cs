@@ -361,7 +361,7 @@ namespace MongoDB.Driver.Core.Clusters
                 !EndPointHelper.Equals(args.NewServerDescription.CanonicalEndPoint, args.NewServerDescription.EndPoint) &&
                 args.NewServerDescription.Type != ServerType.ReplicaSetPrimary)
             {
-                return RemoveServer(clusterDescription, args.NewServerDescription.EndPoint, "CanonicalEndPoint is different than seed list EndPoint.");
+                return RemoveServer(clusterDescription, args.NewServerDescription.EndPoint, "CanonicalEndPoint is different than seed list EndPoint and server is not Primary.");
             }
 
             if (args.NewServerDescription.Type == ServerType.ReplicaSetPrimary)
