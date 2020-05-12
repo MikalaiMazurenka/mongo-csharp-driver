@@ -272,7 +272,7 @@ namespace MongoDB.Driver
                     _username != null ||
                     _password != null ||
                     _authenticationMechanism != null ||
-                    _authenticationSource != null;
+                    _authenticationMechanismProperties.Count() > 0;
             }
         }
 
