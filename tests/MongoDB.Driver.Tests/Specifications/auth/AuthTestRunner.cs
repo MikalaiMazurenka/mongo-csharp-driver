@@ -14,6 +14,8 @@
 */
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers;
@@ -111,7 +113,19 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 }
                 else
                 {
-                    // Other authenticators do not contain mechanism properties
+                    if (expectedCredential.TryGetValue("mechanism_properties", out var expectedMechanismProperties))
+                    {
+                        var actualMechanismProperties = mongoCredential._mechanismProperties();
+                        if (expectedMechanismProperties.IsBsonNull)
+                        {
+                            actualMechanismProperties.Should().BeEmpty();
+                        }
+                        else
+                        {
+                            var authMechanismProperties = new BsonDocument(actualMechanismProperties.Select(kv => new BsonElement(kv.Key, BsonValue.Create(kv.Value))));
+                            authMechanismProperties.Should().BeEquivalentTo(expectedMechanismProperties.AsBsonDocument);
+                        }
+                    }
                 }
             }
         }
@@ -153,6 +167,14 @@ namespace MongoDB.Driver.Tests.Specifications.auth
         private static object _mechanism(GssapiAuthenticator obj)
         {
             return Reflector.GetFieldValue(obj, nameof(_mechanism));
+        }
+    }
+
+    internal static class MongoCredentialReflector
+    {
+        public static Dictionary<string, object> _mechanismProperties(this MongoCredential obj)
+        {
+            return (Dictionary<string, object>)Reflector.GetFieldValue(obj, nameof(_mechanismProperties));
         }
     }
 }
