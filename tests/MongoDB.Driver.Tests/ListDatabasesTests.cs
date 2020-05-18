@@ -25,27 +25,12 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests
 {
-    public class ListDatabasesTests : IDisposable
+    public class ListDatabasesTests
     {
         private string _databaseName = $"authorizedDatabases{Guid.NewGuid()}";
-        private string _userName = $"authorizedDatabases{Guid.NewGuid()}";
         private string _password = "authorizedDatabases";
-
-        public ListDatabasesTests()
-        {
-            var client = DriverTestConfiguration.Client;
-            CreateListDatabasesRole(client);
-            client.GetDatabase(_databaseName).GetCollection<BsonDocument>("test").InsertOne(new BsonDocument());
-            CreateListDatabasesUser(client, _userName, _password, _databaseName);
-        }
-
-        public void Dispose()
-        {
-            var client = DriverTestConfiguration.Client;
-            DropListDatabasesUser(client, _userName);
-            client.DropDatabase(_databaseName);
-            DropListDatabasesRole(client);
-        }
+        private string _roleName = $"listDatabases{Guid.NewGuid()}";
+        private string _userName = $"authorizedDatabases{Guid.NewGuid()}";
 
         [SkippableTheory]
         [ParameterAttributeData]
@@ -54,10 +39,15 @@ namespace MongoDB.Driver.Tests
         {
             RequireServer.Check().Supports(Feature.ListDatabasesAuthorizedDatabases).Authentication(true);
 
+            var client = DriverTestConfiguration.Client;
+            CreateListDatabasesRole(client, _roleName);
+            client.GetDatabase(_databaseName).GetCollection<BsonDocument>("test").InsertOne(new BsonDocument());
+            CreateListDatabasesUser(client, _userName, _password, _databaseName, _roleName);
+
             var settings = DriverTestConfiguration.Client.Settings.Clone();
             settings.Credential = MongoCredential.FromComponents(mechanism: null, source: null, username: _userName, password: _password);
 
-            var client = new MongoClient(settings);
+            var userClient = new MongoClient(settings);
 
             var options = new ListDatabasesOptions
             {
@@ -65,7 +55,7 @@ namespace MongoDB.Driver.Tests
                 NameOnly = true,
             };
 
-            var result = client.ListDatabases(options);
+            var result = userClient.ListDatabases(options);
 
             var databases = ReadCursorToEnd(result);
             if (authorizedDatabases)
@@ -78,7 +68,7 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        private void CreateListDatabasesRole(MongoClient mongoClient)
+        private void CreateListDatabasesRole(MongoClient mongoClient, string roleName)
         {
             var priviliges = new BsonArray
             {
@@ -86,7 +76,7 @@ namespace MongoDB.Driver.Tests
             };
             var command = new BsonDocument
             {
-                { "createRole", "listDatabases" },
+                { "createRole", roleName },
                 { "privileges", priviliges },
                 { "roles", new BsonArray() },
             };
@@ -94,12 +84,12 @@ namespace MongoDB.Driver.Tests
             mongoClient.GetDatabase("admin").RunCommand<BsonDocument>(command);
         }
 
-        private void CreateListDatabasesUser(MongoClient mongoClient, string username, string password, string databaseName)
+        private void CreateListDatabasesUser(MongoClient mongoClient, string username, string password, string databaseName, string roleName)
         {
             var roles = new BsonArray
             {
                 new BsonDocument { { "role", "read" }, { "db", databaseName } },
-                new BsonDocument { { "role", "listDatabases" }, { "db", "admin" } },
+                new BsonDocument { { "role", roleName }, { "db", "admin" } },
             };
             var command = new BsonDocument
             {
@@ -107,23 +97,6 @@ namespace MongoDB.Driver.Tests
                 { "pwd", password },
                 { "roles", roles },
             };
-
-            mongoClient.GetDatabase("admin").RunCommand<BsonDocument>(command);
-        }
-
-        private void DropListDatabasesRole(MongoClient mongoClient)
-        {
-            var command = new BsonDocument
-            {
-                { "dropRole", "listDatabases" }
-            };
-
-            mongoClient.GetDatabase("admin").RunCommand<BsonDocument>(command);
-        }
-
-        private void DropListDatabasesUser(MongoClient mongoClient, string username)
-        {
-            var command = new BsonDocument { { "dropUser", username } };
 
             mongoClient.GetDatabase("admin").RunCommand<BsonDocument>(command);
         }
