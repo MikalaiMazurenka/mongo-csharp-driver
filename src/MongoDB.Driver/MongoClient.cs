@@ -475,6 +475,7 @@ namespace MongoDB.Driver
         {
             return new ListDatabasesOperation(messageEncoderSettings)
             {
+                AuthorizedDatabases = options.AuthorizedDatabases,
                 Filter = options.Filter?.Render(BsonDocumentSerializer.Instance, BsonSerializer.SerializerRegistry),
                 NameOnly = options.NameOnly,
                 RetryRequested = _settings.RetryReads
