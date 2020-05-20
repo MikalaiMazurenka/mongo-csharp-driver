@@ -79,10 +79,10 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 mongoCredential.Source.Should().Be(ValueToString(expectedCredential["source"]));
                 mongoCredential.Mechanism.Should().Be(ValueToString(expectedCredential["mechanism"]));
 
+                var expectedMechanismProperties = expectedCredential["mechanism_properties"];
                 if (mongoCredential.Mechanism == GssapiAuthenticator.MechanismName)
                 {
-                    var gssapiAuthenticator = mongoCredential.ToAuthenticator() as GssapiAuthenticator;
-                    expectedCredential.TryGetValue("mechanism_properties", out var expectedMechanismProperties);
+                    var gssapiAuthenticator = (GssapiAuthenticator)mongoCredential.ToAuthenticator();
                     if (expectedMechanismProperties.IsBsonNull)
                     {
                         var serviceName = gssapiAuthenticator._mechanism_serviceName();
@@ -113,18 +113,15 @@ namespace MongoDB.Driver.Tests.Specifications.auth
                 }
                 else
                 {
-                    if (expectedCredential.TryGetValue("mechanism_properties", out var expectedMechanismProperties))
+                    var actualMechanismProperties = mongoCredential._mechanismProperties();
+                    if (expectedMechanismProperties.IsBsonNull)
                     {
-                        var actualMechanismProperties = mongoCredential._mechanismProperties();
-                        if (expectedMechanismProperties.IsBsonNull)
-                        {
-                            actualMechanismProperties.Should().BeEmpty();
-                        }
-                        else
-                        {
-                            var authMechanismProperties = new BsonDocument(actualMechanismProperties.Select(kv => new BsonElement(kv.Key, BsonValue.Create(kv.Value))));
-                            authMechanismProperties.Should().BeEquivalentTo(expectedMechanismProperties.AsBsonDocument);
-                        }
+                        actualMechanismProperties.Should().BeEmpty();
+                    }
+                    else
+                    {
+                        var authMechanismProperties = new BsonDocument(actualMechanismProperties.Select(kv => new BsonElement(kv.Key, BsonValue.Create(kv.Value))));
+                        authMechanismProperties.Should().BeEquivalentTo(expectedMechanismProperties.AsBsonDocument);
                     }
                 }
             }
