@@ -215,11 +215,35 @@ namespace MongoDB.Driver
 
         /// <inheritdoc />
         public sealed override IAsyncCursor<string> ListDatabaseNames(
+            ListDatabaseNamesOptions options,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return UsingImplicitSession(session => ListDatabaseNames(session, options, cancellationToken), cancellationToken);
+        }
+
+        /// <inheritdoc />
+        public sealed override IAsyncCursor<string> ListDatabaseNames(
             IClientSessionHandle session,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var options = new ListDatabasesOptions { NameOnly = true };
             var databases = ListDatabases(session, options, cancellationToken);
+            return CreateDatabaseNamesCursor(databases);
+        }
+
+        /// <inheritdoc />
+        public sealed override IAsyncCursor<string> ListDatabaseNames(
+            IClientSessionHandle session,
+            ListDatabaseNamesOptions options,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var listDatabasesOptions = new ListDatabasesOptions { NameOnly = true };
+            if (options != null)
+            {
+                listDatabasesOptions.AuthorizedDatabases = options.AuthorizedDatabases;
+                listDatabasesOptions.Filter = options.Filter;
+            }
+            var databases = ListDatabases(session, listDatabasesOptions, cancellationToken);
             return CreateDatabaseNamesCursor(databases);
         }
 
@@ -231,12 +255,36 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
+        public sealed override Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
+            ListDatabaseNamesOptions options,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return UsingImplicitSessionAsync(session => ListDatabaseNamesAsync(session, options, cancellationToken), cancellationToken);
+        }
+
+        /// <inheritdoc />
         public sealed override async Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
             IClientSessionHandle session,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var options = new ListDatabasesOptions { NameOnly = true };
             var databases = await ListDatabasesAsync(session, options, cancellationToken).ConfigureAwait(false);
+            return CreateDatabaseNamesCursor(databases);
+        }
+
+        /// <inheritdoc />
+        public sealed override async Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
+            IClientSessionHandle session,
+            ListDatabaseNamesOptions options,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var listDatabasesOptions = new ListDatabasesOptions { NameOnly = true };
+            if (options != null)
+            {
+                listDatabasesOptions.AuthorizedDatabases = options.AuthorizedDatabases;
+                listDatabasesOptions.Filter = options.Filter;
+            }
+            var databases = await ListDatabasesAsync(session, listDatabasesOptions, cancellationToken).ConfigureAwait(false);
             return CreateDatabaseNamesCursor(databases);
         }
 

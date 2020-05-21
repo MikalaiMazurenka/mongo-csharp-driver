@@ -39,32 +39,29 @@ namespace MongoDB.Driver.Tests
         {
             RequireServer.Check().Supports(Feature.ListDatabasesAuthorizedDatabases).Authentication(true);
 
-            var client = DriverTestConfiguration.Client;
-            CreateListDatabasesRole(client, _roleName);
-            client.GetDatabase(_databaseName).GetCollection<BsonDocument>("test").InsertOne(new BsonDocument());
-            CreateListDatabasesUser(client, _userName, _password, _databaseName, _roleName);
+            var setupClient = DriverTestConfiguration.Client;
+            CreateListDatabasesRole(setupClient, _roleName);
+            CreateListDatabasesUser(setupClient, _userName, _password, _databaseName, _roleName);
+            setupClient.GetDatabase(_databaseName).GetCollection<BsonDocument>("test").InsertOne(new BsonDocument());
 
             var settings = DriverTestConfiguration.Client.Settings.Clone();
             settings.Credential = MongoCredential.FromComponents(mechanism: null, source: null, username: _userName, password: _password);
-
-            var userClient = new MongoClient(settings);
+            var testClient = new MongoClient(settings);
 
             var options = new ListDatabasesOptions
             {
                 AuthorizedDatabases = authorizedDatabases,
                 NameOnly = true,
             };
+            var result = testClient.ListDatabases(options).ToList();
 
-            var result = userClient.ListDatabases(options);
-
-            var databases = ReadCursorToEnd(result);
             if (authorizedDatabases)
             {
-                databases.Should().BeEquivalentTo(new BsonArray { new BsonDocument { { "name", _databaseName } } });
+                result.Should().BeEquivalentTo(new BsonArray { new BsonDocument { { "name", _databaseName } } });
             }
             else
             {
-                databases.Count.Should().BeGreaterThan(1);
+                result.Count.Should().BeGreaterThan(1);
             }
         }
 
@@ -84,7 +81,7 @@ namespace MongoDB.Driver.Tests
             mongoClient.GetDatabase("admin").RunCommand<BsonDocument>(command);
         }
 
-        private void CreateListDatabasesUser(MongoClient mongoClient, string username, string password, string databaseName, string roleName)
+        private void CreateListDatabasesUser(MongoClient client, string username, string password, string databaseName, string roleName)
         {
             var roles = new BsonArray
             {
@@ -98,20 +95,7 @@ namespace MongoDB.Driver.Tests
                 { "roles", roles },
             };
 
-            mongoClient.GetDatabase("admin").RunCommand<BsonDocument>(command);
-        }
-
-        private List<T> ReadCursorToEnd<T>(IAsyncCursor<T> cursor)
-        {
-            var documents = new List<T>();
-            while (cursor.MoveNext(CancellationToken.None))
-            {
-                foreach (var document in cursor.Current)
-                {
-                    documents.Add(document);
-                }
-            }
-            return documents;
+            client.GetDatabase("admin").RunCommand<BsonDocument>(command);
         }
     }
 }
