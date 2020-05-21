@@ -14,8 +14,6 @@
 */
 
 using System;
-using System.Collections.Generic;
-using System.Threading;
 using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
@@ -65,7 +63,7 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        private void CreateListDatabasesRole(MongoClient mongoClient, string roleName)
+        private void CreateListDatabasesRole(MongoClient client, string roleName)
         {
             var priviliges = new BsonArray
             {
@@ -78,7 +76,7 @@ namespace MongoDB.Driver.Tests
                 { "roles", new BsonArray() },
             };
 
-            mongoClient.GetDatabase("admin").RunCommand<BsonDocument>(command);
+            client.GetDatabase("admin").RunCommand<BsonDocument>(command);
         }
 
         private void CreateListDatabasesUser(MongoClient client, string username, string password, string databaseName, string roleName)

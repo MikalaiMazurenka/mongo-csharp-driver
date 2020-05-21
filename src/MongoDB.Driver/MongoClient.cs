@@ -210,7 +210,7 @@ namespace MongoDB.Driver
         public sealed override IAsyncCursor<string> ListDatabaseNames(
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return UsingImplicitSession(session => ListDatabaseNames(session, cancellationToken), cancellationToken);
+            return ListDatabaseNames(options: null, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -226,9 +226,7 @@ namespace MongoDB.Driver
             IClientSessionHandle session,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var options = new ListDatabasesOptions { NameOnly = true };
-            var databases = ListDatabases(session, options, cancellationToken);
-            return CreateDatabaseNamesCursor(databases);
+            return ListDatabaseNames(session, options: null, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -237,13 +235,9 @@ namespace MongoDB.Driver
             ListDatabaseNamesOptions options,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var listDatabasesOptions = new ListDatabasesOptions { NameOnly = true };
-            if (options != null)
-            {
-                listDatabasesOptions.AuthorizedDatabases = options.AuthorizedDatabases;
-                listDatabasesOptions.Filter = options.Filter;
-            }
+            var listDatabasesOptions = CreateListDatabasesOptionsFromListDatabaseNamesOptions(options);
             var databases = ListDatabases(session, listDatabasesOptions, cancellationToken);
+
             return CreateDatabaseNamesCursor(databases);
         }
 
@@ -251,7 +245,7 @@ namespace MongoDB.Driver
         public sealed override Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return UsingImplicitSessionAsync(session => ListDatabaseNamesAsync(session, cancellationToken), cancellationToken);
+            return ListDatabaseNamesAsync(options: null, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -263,13 +257,11 @@ namespace MongoDB.Driver
         }
 
         /// <inheritdoc />
-        public sealed override async Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
+        public sealed override Task<IAsyncCursor<string>> ListDatabaseNamesAsync(
             IClientSessionHandle session,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var options = new ListDatabasesOptions { NameOnly = true };
-            var databases = await ListDatabasesAsync(session, options, cancellationToken).ConfigureAwait(false);
-            return CreateDatabaseNamesCursor(databases);
+            return ListDatabaseNamesAsync(session, options: null, cancellationToken);
         }
 
         /// <inheritdoc />
@@ -278,13 +270,9 @@ namespace MongoDB.Driver
             ListDatabaseNamesOptions options,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var listDatabasesOptions = new ListDatabasesOptions { NameOnly = true };
-            if (options != null)
-            {
-                listDatabasesOptions.AuthorizedDatabases = options.AuthorizedDatabases;
-                listDatabasesOptions.Filter = options.Filter;
-            }
+            var listDatabasesOptions = CreateListDatabasesOptionsFromListDatabaseNamesOptions(options);
             var databases = await ListDatabasesAsync(session, listDatabasesOptions, cancellationToken).ConfigureAwait(false);
+
             return CreateDatabaseNamesCursor(databases);
         }
 
@@ -528,6 +516,18 @@ namespace MongoDB.Driver
                 NameOnly = options.NameOnly,
                 RetryRequested = _settings.RetryReads
             };
+        }
+
+        private ListDatabasesOptions CreateListDatabasesOptionsFromListDatabaseNamesOptions(ListDatabaseNamesOptions options)
+        {
+            var listDatabasesOptions = new ListDatabasesOptions { NameOnly = true };
+            if (options != null)
+            {
+                listDatabasesOptions.AuthorizedDatabases = options.AuthorizedDatabases;
+                listDatabasesOptions.Filter = options.Filter;
+            }
+
+            return listDatabasesOptions;
         }
 
         private IReadBindingHandle CreateReadBinding(IClientSessionHandle session)
