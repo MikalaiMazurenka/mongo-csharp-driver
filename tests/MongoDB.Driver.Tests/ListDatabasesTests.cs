@@ -33,7 +33,7 @@ namespace MongoDB.Driver.Tests
         [SkippableTheory]
         [ParameterAttributeData]
         public void Execute_should_return_the_expected_result_when_AuthorizedDatabases_is_used(
-            [Values(false, true)] bool authorizedDatabases)
+            [Values(null, false, true)] bool? authorizedDatabases)
         {
             RequireServer.Check().Supports(Feature.ListDatabasesAuthorizedDatabases).Authentication(true);
 
@@ -53,7 +53,7 @@ namespace MongoDB.Driver.Tests
             };
             var result = testClient.ListDatabases(options).ToList();
 
-            if (authorizedDatabases)
+            if (authorizedDatabases.HasValue && authorizedDatabases.Value)
             {
                 result.Should().BeEquivalentTo(new BsonArray { new BsonDocument { { "name", _databaseName } } });
             }
@@ -65,14 +65,14 @@ namespace MongoDB.Driver.Tests
 
         private void CreateListDatabasesRole(MongoClient client, string roleName)
         {
-            var priviliges = new BsonArray
+            var privileges = new BsonArray
             {
                 new BsonDocument { { "resource", new BsonDocument { { "cluster", true } } }, { "actions", new BsonArray { "listDatabases" } } },
             };
             var command = new BsonDocument
             {
                 { "createRole", roleName },
-                { "privileges", priviliges },
+                { "privileges", privileges },
                 { "roles", new BsonArray() },
             };
 
