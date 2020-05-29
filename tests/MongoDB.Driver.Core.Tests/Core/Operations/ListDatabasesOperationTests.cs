@@ -48,7 +48,7 @@ namespace MongoDB.Driver.Core.Operations
         [Theory]
         [ParameterAttributeData]
         public void AuthorizedDatabases_get_and_set_should_work(
-            [Values(false, true)] bool authorizedDatabases)
+            [Values(null, false, true)] bool? authorizedDatabases)
         {
             var subject = new ListDatabasesOperation(_messageEncoderSettings);
 
