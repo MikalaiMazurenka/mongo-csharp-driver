@@ -125,6 +125,60 @@ namespace MongoDB.Driver.Tests
         }
 
         [SkippableFact]
+        public void GraphLookup_with_regular_parameters_should_return_expected_result()
+        {
+            RequireServer.Check().Supports(Feature.AggregateGraphLookupStage);
+
+            var client = new MongoClient(CoreTestConfiguration.ConnectionString.ToString());
+            var employeesCollection = client.GetDatabase("test").GetCollection<BsonDocument>("employees");
+
+            var connectFromField = (FieldDefinition<BsonDocument, List<string>>)"reportsTo";
+            var connectToField = (FieldDefinition<BsonDocument, string>)"name";
+            var startWith = (AggregateExpressionDefinition<BsonDocument, List<string>>)"$reportsTo";
+            var @as = (FieldDefinition<BsonDocument, IEnumerable<BsonDocument>>)"reportingHierarchy";
+
+            var result = PipelineStageDefinitionBuilder.GraphLookup(employeesCollection, connectFromField, connectToField, startWith, @as);
+
+            RenderStage(result).Document.Should().Be(
+                @"{
+                    $graphLookup : {
+                        from : 'employees',
+                        connectFromField : 'reportsTo',
+                        connectToField : 'name',
+                        startWith : '$reportsTo',
+                        as : 'reportingHierarchy'
+                    }
+                }");
+        }
+
+        [SkippableFact]
+        public void GraphLookup_with_reversed_parameters_should_return_expected_result()
+        {
+            RequireServer.Check().Supports(Feature.AggregateGraphLookupStage);
+
+            var client = new MongoClient(CoreTestConfiguration.ConnectionString.ToString());
+            var employeesCollection = client.GetDatabase("test").GetCollection<BsonDocument>("employees");
+
+            var connectFromField = (FieldDefinition<BsonDocument, string>)"name";
+            var connectToField = (FieldDefinition<BsonDocument, List<string>>)"reportsTo";
+            var startWith = (AggregateExpressionDefinition<BsonDocument, string>)"$name";
+            var @as = (FieldDefinition<BsonDocument, IEnumerable<BsonDocument>>)"reportingHierarchy";
+
+            var result = PipelineStageDefinitionBuilder.GraphLookup(employeesCollection, connectFromField, connectToField, startWith, @as);
+
+            RenderStage(result).Document.Should().Be(
+                @"{
+                    $graphLookup : {
+                        from : 'employees',
+                        connectFromField : 'name',
+                        connectToField : 'reportsTo',
+                        startWith : '$name',
+                        as : 'reportingHierarchy'
+                    }
+                }");
+        }
+
+        [SkippableFact]
         public void Lookup_with_let_should_return_the_expected_result()
         {
             RequireServer.Check().Supports(Feature.AggregateLet);
