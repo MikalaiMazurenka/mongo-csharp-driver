@@ -42,6 +42,7 @@ namespace MongoDB.Driver.Core.Misc
         private static readonly Feature __aggregateOutToDifferentDatabase = new Feature("AggregateOutToDifferentDatabase", new SemanticVersion(4, 3, 0));
         private static readonly Feature __aggregateToString = new Feature("AggregateToString", new SemanticVersion(4, 0, 0));
         private static readonly Feature __aggregateUnionWith = new Feature("AggregateUnionWith", new SemanticVersion(4, 3, 4));
+        private static readonly AllowDiskUseFeature __allowDiskUse = new AllowDiskUseFeature("AllowDiskUse", new SemanticVersion(4, 4, 0));
         private static readonly ArrayFiltersFeature __arrayFilters = new ArrayFiltersFeature("ArrayFilters", new SemanticVersion(3, 5, 11));
         private static readonly Feature __bypassDocumentValidation = new Feature("BypassDocumentValidation", new SemanticVersion(3, 2, 0));
         private static readonly Feature __changeStreamStage = new Feature("ChangeStreamStage", new SemanticVersion(3, 5, 11));
@@ -192,6 +193,11 @@ namespace MongoDB.Driver.Core.Misc
         /// Gets the aggregate unionWith feature.
         /// </summary>
         public static Feature AggregateUnionWith => __aggregateUnionWith;
+
+        /// <summary>
+        /// Gets the allowDiskUse feature.
+        /// </summary>
+        public static AllowDiskUseFeature AllowDiskUse => __allowDiskUse;
 
         /// <summary>
         /// Gets the arrayFilters feature.
