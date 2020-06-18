@@ -42,7 +42,7 @@ namespace MongoDB.Driver.Core.Misc
         private static readonly Feature __aggregateOutToDifferentDatabase = new Feature("AggregateOutToDifferentDatabase", new SemanticVersion(4, 3, 0));
         private static readonly Feature __aggregateToString = new Feature("AggregateToString", new SemanticVersion(4, 0, 0));
         private static readonly Feature __aggregateUnionWith = new Feature("AggregateUnionWith", new SemanticVersion(4, 3, 4));
-        private static readonly AllowDiskUseFeature __allowDiskUse = new AllowDiskUseFeature("AllowDiskUse", new SemanticVersion(4, 4, 0));
+        private static readonly AllowDiskUseFeature __allowDiskUse = new AllowDiskUseFeature("AllowDiskUse", new SemanticVersion(4, 4, 0, ""));
         private static readonly ArrayFiltersFeature __arrayFilters = new ArrayFiltersFeature("ArrayFilters", new SemanticVersion(3, 5, 11));
         private static readonly Feature __bypassDocumentValidation = new Feature("BypassDocumentValidation", new SemanticVersion(3, 2, 0));
         private static readonly Feature __changeStreamStage = new Feature("ChangeStreamStage", new SemanticVersion(3, 5, 11));
