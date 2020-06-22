@@ -42,7 +42,6 @@ namespace MongoDB.Driver.Core.Misc
         private static readonly Feature __aggregateOutToDifferentDatabase = new Feature("AggregateOutToDifferentDatabase", new SemanticVersion(4, 3, 0));
         private static readonly Feature __aggregateToString = new Feature("AggregateToString", new SemanticVersion(4, 0, 0));
         private static readonly Feature __aggregateUnionWith = new Feature("AggregateUnionWith", new SemanticVersion(4, 3, 4));
-        private static readonly AllowDiskUseFeature __allowDiskUse = new AllowDiskUseFeature("AllowDiskUse", new SemanticVersion(4, 4, 0, ""));
         private static readonly ArrayFiltersFeature __arrayFilters = new ArrayFiltersFeature("ArrayFilters", new SemanticVersion(3, 5, 11));
         private static readonly Feature __bypassDocumentValidation = new Feature("BypassDocumentValidation", new SemanticVersion(3, 2, 0));
         private static readonly Feature __changeStreamStage = new Feature("ChangeStreamStage", new SemanticVersion(3, 5, 11));
@@ -61,6 +60,7 @@ namespace MongoDB.Driver.Core.Misc
         private static readonly Feature __failPoints = new Feature("FailPoints", new SemanticVersion(2, 4, 0));
         private static readonly Feature __failPointsFailCommand = new Feature("FailPointsFailCommand", new SemanticVersion(4, 0, 0));
         private static readonly Feature __failPointsFailCommandForSharded = new Feature("FailPointsFailCommandForSharded", new SemanticVersion(4, 1, 5));
+        private static readonly FindAllowDiskUseFeature __findAllowDiskUse = new FindAllowDiskUseFeature("FindAllowDiskUse", new SemanticVersion(4, 4, 0, ""));
         private static readonly Feature __findAndModifyWriteConcern = new Feature("FindAndModifyWriteConcern", new SemanticVersion(3, 2, 0));
         private static readonly Feature __findCommand = new Feature("FindCommand", new SemanticVersion(3, 2, 0));
         private static readonly Feature __geoNearCommand = new Feature("GeoNearCommand", new SemanticVersion(1, 0, 0), new SemanticVersion(4, 1, 0, ""));
@@ -195,11 +195,6 @@ namespace MongoDB.Driver.Core.Misc
         public static Feature AggregateUnionWith => __aggregateUnionWith;
 
         /// <summary>
-        /// Gets the allowDiskUse feature.
-        /// </summary>
-        public static AllowDiskUseFeature AllowDiskUse => __allowDiskUse;
-
-        /// <summary>
         /// Gets the arrayFilters feature.
         /// </summary>
         public static ArrayFiltersFeature ArrayFilters => __arrayFilters;
@@ -288,6 +283,11 @@ namespace MongoDB.Driver.Core.Misc
         /// Gets the fail points fail command for sharded feature.
         /// </summary>
         public static Feature FailPointsFailCommandForSharded => __failPointsFailCommandForSharded;
+
+        /// <summary>
+        /// Gets the find allowDiskUse feature.
+        /// </summary>
+        public static FindAllowDiskUseFeature FindAllowDiskUse => __findAllowDiskUse;
 
         /// <summary>
         /// Gets the find and modify write concern feature.

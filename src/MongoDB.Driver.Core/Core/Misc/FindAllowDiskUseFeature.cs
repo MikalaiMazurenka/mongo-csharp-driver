@@ -16,19 +16,19 @@
 namespace MongoDB.Driver.Core.Misc
 {
     /// <summary>
-    /// Represents the allowDiskUse feature.
+    /// Represents the find allowDiskUse feature.
     /// </summary>
     /// <seealso cref="MongoDB.Driver.Core.Misc.Feature" />
-    public class AllowDiskUseFeature : Feature
+    public class FindAllowDiskUseFeature : Feature
     {
         private readonly SemanticVersion _firstServerVersionWhereWeRelyOnServerToReturnError = new SemanticVersion(3, 2, 0);
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="AllowDiskUseFeature"/> class.
+        /// Initializes a new instance of the <see cref="FindAllowDiskUseFeature"/> class.
         /// </summary>
         /// <param name="name">The name of the feature.</param>
         /// <param name="firstSupportedVersion">The first server version that supports the feature.</param>
-        public AllowDiskUseFeature(string name, SemanticVersion firstSupportedVersion)
+        public FindAllowDiskUseFeature(string name, SemanticVersion firstSupportedVersion)
             : base(name, firstSupportedVersion)
         {
         }

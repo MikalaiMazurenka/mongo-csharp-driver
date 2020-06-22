@@ -663,11 +663,11 @@ namespace MongoDB.Driver.Core.Operations
             {
                 exception.Should().BeNull();
             }
-            else if (Feature.AllowDiskUse.DriverMustThrowIfNotSupported(serverVersion))
+            else if (Feature.FindAllowDiskUse.DriverMustThrowIfNotSupported(serverVersion))
             {
                 exception.Should().BeOfType<NotSupportedException>();
             }
-            else if (Feature.AllowDiskUse.IsSupported(serverVersion))
+            else if (Feature.FindAllowDiskUse.IsSupported(serverVersion))
             {
                 exception.Should().BeNull();
             }
