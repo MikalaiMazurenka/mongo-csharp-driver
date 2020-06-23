@@ -489,8 +489,8 @@ namespace MongoDB.Driver
             Ensure.IsNotNull(connectToField, nameof(connectToField));
             Ensure.IsNotNull(startWith, nameof(startWith));
             Ensure.IsNotNull(@as, nameof(@as));
-            Ensure.That(AreGraphLookupTypesCompatible<TConnectFrom, TConnectTo>(), "TConnectFrom and TConnectTo are not compatible", nameof(TConnectFrom));
-            Ensure.That(AreGraphLookupTypesCompatible<TStartWith, TConnectTo>(), "TStartWith and TConnectTo are not compatible", nameof(TStartWith));
+            Ensure.That(AreGroupLookupFromAndToTypesCompatible<TConnectFrom, TConnectTo>(nameof(connectFromField)), "TConnectFrom and TConnectTo are not compatible", nameof(TConnectFrom));
+            Ensure.That(AreGroupLookupFromAndToTypesCompatible<TStartWith, TConnectTo>(nameof(startWith)), "TStartWith and TConnectTo are not compatible", nameof(TStartWith));
 
             const string operatorName = "$graphLookup";
             var stage = new DelegatedPipelineStageDefinition<TInput, TOutput>(
@@ -1429,41 +1429,63 @@ namespace MongoDB.Driver
         }
 
         // private methods
-        private static bool AreGraphLookupTypesCompatible<TConnectFrom, TConnectTo>()
+        private static bool AreGroupLookupFromAndToTypesCompatible<TConnectFrom, TConnectTo>(string fromGenericTypeParamName)
         {
-            if (typeof(TConnectFrom) == typeof(TConnectTo))
+            var connectFromType = typeof(TConnectFrom);
+            var connectToType = typeof(TConnectTo);
+
+            if (IsAssignableFrom(connectFromType, connectToType) || IsAssignableFrom(connectToType, connectFromType))
             {
                 return true;
             }
 
-            var connectFromInterfaces = typeof(TConnectFrom).GetTypeInfo().GetInterfaces().Where(i => i.GetTypeInfo().IsGenericType);
-            var connectToInterfaces = typeof(TConnectTo).GetTypeInfo().GetInterfaces().Where(i => i.GetTypeInfo().IsGenericType);
-            if (connectFromInterfaces.Any(i => connectToInterfaces.Contains(i)))
-            {
-                return true;
-            }
-            if (connectFromInterfaces.Contains(typeof(TConnectTo)))
-            {
-                return true;
-            }
-            if (connectToInterfaces.Contains(typeof(TConnectFrom)))
+            var enumerableConnectFromType = typeof(IEnumerable<>).MakeGenericType(connectFromType);
+            if (IsAssignableFrom(enumerableConnectFromType, connectToType))
             {
                 return true;
             }
 
-            var ienumerableTConnectTo = typeof(IEnumerable<>).MakeGenericType(typeof(TConnectTo));
-            if (connectFromInterfaces.Contains(ienumerableTConnectTo))
+            var enumerableConnectToType = typeof(IEnumerable<>).MakeGenericType(connectToType);
+            if (IsAssignableFrom(enumerableConnectToType, connectFromType))
             {
                 return true;
             }
 
-            var ienumerableTConnectFrom = typeof(IEnumerable<>).MakeGenericType(typeof(TConnectFrom));
-            if (connectToInterfaces.Contains(ienumerableTConnectFrom))
+            var connectFromItemType = GetItemTypeIfEnumerable(connectFromType, fromGenericTypeParamName);
+            var connectToItemType = GetItemTypeIfEnumerable(connectToType, "TConnectTo");
+            if (connectFromItemType != null && connectToItemType != null)
             {
-                return true;
+                if (IsAssignableFrom(connectFromItemType, connectToItemType) || IsAssignableFrom(connectToItemType, connectFromItemType))
+                {
+                    return true;
+                }
             }
 
             return false;
+
+            bool IsAssignableFrom(Type type1, Type type2)
+            {
+                return type1.GetTypeInfo().IsAssignableFrom(type2);
+            }
+
+            Type GetItemTypeIfEnumerable(Type type, string genericTypeParameterName)
+            {
+                var iEnumerablenterfaces = type.GetTypeInfo()
+                    .GetInterfaces()
+                    .Where(i => i.IsConstructedGenericType && i.GetGenericTypeDefinition() == typeof(IEnumerable<>) && i.GenericTypeArguments.Length == 1)
+                    .ToList();
+                switch (iEnumerablenterfaces.Count)
+                {
+                    case 0:
+                        return null;
+                    case 1:
+                        var ienumerableType = iEnumerablenterfaces.Single();
+                        return ienumerableType.GenericTypeArguments.Single();
+                    default:
+                        var message = $"{genericTypeParameterName} must not implement more than one IEnumerable<T> interface.";
+                        throw new ArgumentException(message, genericTypeParameterName);
+                }
+            }
         }
     }
 
