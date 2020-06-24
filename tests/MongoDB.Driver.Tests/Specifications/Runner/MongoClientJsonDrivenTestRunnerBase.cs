@@ -59,16 +59,14 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
 
         private readonly string[] _expectedSharedColumns = { "_path", "runOn", "database_name", "collection_name", "data", "tests" };
 
-        private string DatabaseName { get; set; }
-        private string CollectionName { get; set; }
-
-        private IDictionary<string, object> _objectMap = null;
-
-        // Protected
         // Virtual properties
         protected virtual HashSet<string> DefaultCommandsToNotCapture => _defaultCommandsToNotCapture;
 
         protected virtual string[] ExpectedSharedColumns => _expectedSharedColumns;
+
+        // Protected
+        protected string CollectionName { get; set; }
+        protected string DatabaseName { get; set; }
 
         protected virtual string DatabaseNameKey => _databaseNameKey;
 
@@ -77,6 +75,8 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
         protected virtual string ExpectationsKey => _expectationsKey;
 
         protected abstract string[] ExpectedTestColumns { get; }
+
+        protected IDictionary<string, object> _objectMap = null;
 
         protected virtual string OutcomeKey => _outcomeKey;
 
