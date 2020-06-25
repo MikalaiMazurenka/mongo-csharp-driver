@@ -128,25 +128,24 @@ namespace MongoDB.Driver.Tests
         public void GraphLookup_with_many_to_one_parameters_should_return_expected_result()
         {
             RequireServer.Check().Supports(Feature.AggregateGraphLookupStage);
-
-            var client = new MongoClient(CoreTestConfiguration.ConnectionString.ToString());
-            var collection = client.GetDatabase("test").GetCollection<C>("collectionC");
+            var database = GetDatabase();
+            var collection = database.GetCollection<ManyToOne>("collectionManyToOne");
 
             var result = PipelineStageDefinitionBuilder.GraphLookup(
                 from: collection,
                 connectFromField: x => x.From,
                 connectToField: x => x.To,
-                startWith: (C x) => x.From,
-                @as: (CMap x) => x.Map);
+                startWith: (ManyToOne x) => x.From,
+                @as: (ManyToOneResult x) => x.Matches);
 
             RenderStage(result).Document.Should().Be(
                 @"{
                     $graphLookup : {
-                        from : 'collectionC',
+                        from : 'collectionManyToOne',
                         connectFromField : 'From',
                         connectToField : 'To',
                         startWith : '$From',
-                        as : 'Map'
+                        as : 'Matches'
                     }
                 }");
         }
@@ -155,25 +154,24 @@ namespace MongoDB.Driver.Tests
         public void GraphLookup_with_one_to_many_parameters_should_return_expected_result()
         {
             RequireServer.Check().Supports(Feature.AggregateGraphLookupStage);
-
-            var client = new MongoClient(CoreTestConfiguration.ConnectionString.ToString());
-            var collection = client.GetDatabase("test").GetCollection<B>("collectionB");
+            var database = GetDatabase();
+            var collection = database.GetCollection<OneToMany>("collectionOneToMany");
 
             var result = PipelineStageDefinitionBuilder.GraphLookup(
                 from: collection,
                 connectFromField: x => x.From,
                 connectToField: x => x.To,
-                startWith: (B x) => x.From,
-                @as: (BMap x) => x.Map);
+                startWith: (OneToMany x) => x.From,
+                @as: (OneToManyResult x) => x.Matches);
 
             RenderStage(result).Document.Should().Be(
                 @"{
                     $graphLookup : {
-                        from : 'collectionB',
+                        from : 'collectionOneToMany',
                         connectFromField : 'From',
                         connectToField : 'To',
                         startWith : '$From',
-                        as : 'Map'
+                        as : 'Matches'
                     }
                 }");
         }
@@ -182,25 +180,24 @@ namespace MongoDB.Driver.Tests
         public void GraphLookup_with_one_to_one_parameters_should_return_expected_result()
         {
             RequireServer.Check().Supports(Feature.AggregateGraphLookupStage);
-
-            var client = new MongoClient(CoreTestConfiguration.ConnectionString.ToString());
-            var collection = client.GetDatabase("test").GetCollection<A>("collectionA");
+            var database = GetDatabase();
+            var collection = database.GetCollection<OneToOne>("collectionOneToOne");
 
             var result = PipelineStageDefinitionBuilder.GraphLookup(
                 from: collection,
                 connectFromField: x => x.From,
                 connectToField: x => x.To,
-                startWith: (A x) => x.From,
-                @as: (AMap x) => x.Map);
+                startWith: (OneToOne x) => x.From,
+                @as: (OneToOneResult x) => x.Matches);
 
             RenderStage(result).Document.Should().Be(
                 @"{
                     $graphLookup : {
-                        from : 'collectionA',
+                        from : 'collectionOneToOne',
                         connectFromField : 'From',
                         connectToField : 'To',
                         startWith : '$From',
-                        as : 'Map'
+                        as : 'Matches'
                     }
                 }");
         }
@@ -507,6 +504,13 @@ namespace MongoDB.Driver.Tests
         }
 
         // private methods
+        private IMongoDatabase GetDatabase()
+        {
+            var client = DriverTestConfiguration.Client;
+            var databaseName = CoreTestConfiguration.DatabaseNamespace.DatabaseName;
+            return client.GetDatabase(databaseName);
+        }
+
         private RenderedPipelineStageDefinition<ChangeStreamDocument<BsonDocument>> RenderStage(PipelineStageDefinition<BsonDocument, ChangeStreamDocument<BsonDocument>> stage)
         {
             return stage.Render(BsonDocumentSerializer.Instance, BsonSerializer.SerializerRegistry);
@@ -520,47 +524,49 @@ namespace MongoDB.Driver.Tests
         }
 
         // nested types
-        private class A
+        private class ManyToOne
         {
-            public X From { get; set; }
-            public X To { get; set; }
+            public int Id { get; set; }
+            public IEnumerable<int> From { get; set; }
+            public int To { get; set; }
         }
 
-        private class AMap
+        private class ManyToOneResult
         {
-            public X From { get; set; }
-            public X To { get; set; }
-            public List<A> Map { get; set; }
+            public int Id { get; set; }
+            public IEnumerable<int> From { get; set; }
+            public int To { get; set; }
+            public List<ManyToOne> Matches { get; set; }
         }
 
-        private class B
+        private class OneToMany
         {
-            public X From { get; set; }
-            public IEnumerable<X> To { get; set; }
+            public int Id { get; set; }
+            public int From { get; set; }
+            public IEnumerable<int> To { get; set; }
         }
 
-        private class BMap
+        private class OneToManyResult
         {
-            public X From { get; set; }
-            public IEnumerable<X> To { get; set; }
-            public List<B> Map { get; set; }
+            public int Id { get; set; }
+            public int From { get; set; }
+            public IEnumerable<int> To { get; set; }
+            public List<OneToMany> Matches { get; set; }
         }
 
-        private class C
+        private class OneToOne
         {
-            public IEnumerable<X> From { get; set; }
-            public X To { get; set; }
+            public int Id { get; set; }
+            public int From { get; set; }
+            public int To { get; set; }
         }
 
-        private class CMap
+        private class OneToOneResult
         {
-            public IEnumerable<X> From { get; set; }
-            public X To { get; set; }
-            public List<C> Map { get; set; }
-        }
-
-        private class X
-        {
+            public int Id { get; set; }
+            public int From { get; set; }
+            public int To { get; set; }
+            public List<OneToOne> Matches { get; set; }
         }
     }
 }

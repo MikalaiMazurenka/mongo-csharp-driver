@@ -489,8 +489,8 @@ namespace MongoDB.Driver
             Ensure.IsNotNull(connectToField, nameof(connectToField));
             Ensure.IsNotNull(startWith, nameof(startWith));
             Ensure.IsNotNull(@as, nameof(@as));
-            Ensure.That(AreGraphLookupTypesCompatible<TConnectFrom, TConnectTo>(), "TConnectFrom and TConnectTo are not compatible", nameof(TConnectFrom));
-            Ensure.That(AreGraphLookupTypesCompatible<TStartWith, TConnectTo>(), "TStartWith and TConnectTo are not compatible", nameof(TStartWith));
+            Ensure.That(AreGraphLookupFromAndToTypesCompatible<TConnectFrom, TConnectTo>(), "TConnectFrom and TConnectTo are not compatible", nameof(TConnectFrom));
+            Ensure.That(AreGraphLookupFromAndToTypesCompatible<TStartWith, TConnectTo>(), "TStartWith and TConnectTo are not compatible", nameof(TStartWith));
 
             const string operatorName = "$graphLookup";
             var stage = new DelegatedPipelineStageDefinition<TInput, TOutput>(
@@ -1429,7 +1429,7 @@ namespace MongoDB.Driver
         }
 
         // private methods
-        private static bool AreGraphLookupTypesCompatible<TConnectFrom, TConnectTo>()
+        private static bool AreGraphLookupFromAndToTypesCompatible<TConnectFrom, TConnectTo>()
         {
             if (typeof(TConnectFrom) == typeof(TConnectTo))
             {
@@ -1437,15 +1437,13 @@ namespace MongoDB.Driver
             }
 
             var ienumerableTConnectTo = typeof(IEnumerable<>).MakeGenericType(typeof(TConnectTo));
-            if (typeof(TConnectFrom).GetTypeInfo().GetInterfaces().Contains(ienumerableTConnectTo) ||
-                typeof(TConnectFrom) == ienumerableTConnectTo)
+            if (ienumerableTConnectTo.GetTypeInfo().IsAssignableFrom(typeof(TConnectFrom)))
             {
                 return true;
             }
 
             var ienumerableTConnectFrom = typeof(IEnumerable<>).MakeGenericType(typeof(TConnectFrom));
-            if (typeof(TConnectTo).GetTypeInfo().GetInterfaces().Contains(ienumerableTConnectFrom) ||
-                typeof(TConnectTo) == ienumerableTConnectFrom)
+            if (ienumerableTConnectFrom.GetTypeInfo().IsAssignableFrom(typeof(TConnectTo)))
             {
                 return true;
             }
