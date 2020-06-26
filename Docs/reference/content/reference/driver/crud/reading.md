@@ -313,3 +313,121 @@ await OutAsync("myNewCollection");
 ```json
 { $out: 'myNewCollection' }
 ```
+
+### Text Search
+[Atlas Search](https://docs.atlas.mongodb.com/atlas-search) makes it easy to build fast, relevance-based search capabilities on top of your MongoDB data. Try it today on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas), our fully managed database as a service.
+
+The following example can be used alongside the [Atlas Search Tutorial](https://docs.atlas.mongodb.com/reference/atlas-search/tutorial/)
+
+```csharp
+var client = new MongoClient(connectionString);
+var collection = client.GetDatabase("sample_mflix").GetCollection<BsonDocument>("movies");
+var searchStage = BsonDocument.Parse(@"
+{
+	$search: {
+    	'text': {
+    	    'query': 'baseball',
+            'path': 'plot'
+        }
+    }
+}");
+PipelineDefinition<BsonDocument, BsonDocument> pipeline = new []
+{
+    searchStage,
+    new BsonDocument("$limit", 5),
+    new BsonDocument
+    {
+        {"$project", new BsonDocument{ {"_id", 0}, {"title", 1}, {"plot", 1} }}
+    }
+};
+var moviesAboutBaseball = collection.Aggregate(pipeline).ToList();
+Console.WriteLine("Movies about baseball:");
+foreach (var movie in moviesAboutBaseball)
+{
+    Console.WriteLine($"  {movie}");
+}
+
+string complexQuery = @"
+[
+  {
+    $search: {
+      'compound': {
+        'must': [ {
+          'text': {
+             'query': ['Hawaii', 'Alaska'],
+             'path': 'plot'
+        },
+        {
+          'regex': {
+             'query': '([0-9]{4})',
+             'path': 'plot',
+             'allowAnalyzedField': true
+          }
+        } ],
+        'mustNot': [ {
+          'text': {
+            'query': ['Comedy', 'Romance'],
+            'path': 'genres'
+          }
+        },
+        {
+          'term': {
+            'query': ['Beach', 'Snow'],
+            'path': 'title'
+          }
+        } ]
+      }
+    }
+  },
+  {
+    $project: {
+      'title': 1,
+      'plot': 1,
+      'genres': 1,
+      '_id': 0
+    }
+  }
+]";
+
+var complexPipeline = Bson.Serialization.BsonSerializer
+	.Deserialize<BsonArray>(complexQuery)
+	.Select(v => v.AsBsonDocument)
+	.ToList();
+var complexQueryResults = collection.Aggregate<BsonDocument>(complexPipeline).ToList();
+Console.WriteLine("Complex query results: ");
+foreach (var movie in complexQueryResults)
+{
+    Console.WriteLine($"  {movie}");
+}
+
+var queryUsingKeywordAnalyzer = @"
+[
+  {
+    $search: {
+      'text': {
+        'query': 'The Count of Monte Cristo',
+        'path': { 'value': 'title', 'multi': 'keywordAnalyzer' }
+      }
+    }
+  },
+  {
+    $project: {
+      'title': 1,
+      'year': 1,
+      '_id': 0
+    }
+  }
+]";
+var pipelineUsingKeywordAnalyzer = Bson.Serialization.BsonSerializer
+    .Deserialize<BsonArray>(queryUsingKeywordAnalyzer)
+    .Select(v => v.AsBsonDocument)
+    .ToList();
+
+var moviesNamedTheCountOfMonteCristo = collection.Aggregate<BsonDocument>(pipelineUsingKeywordAnalyzer).ToList();
+Console.WriteLine(@"Movies named ""The Count of Monte Cristo"":");
+foreach (var movie in moviesNamedTheCountOfMonteCristo)
+{
+    Console.WriteLine($"  {movie}");
+}
+
+```
