@@ -22,7 +22,7 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests
 {
-    public class AggregateGraphLookupTests
+    public class AggregateGraphLookupEnumerableFromOrToTests
     {
         // public methods
         [SkippableFact]

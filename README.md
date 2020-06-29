@@ -150,8 +150,8 @@ Please see our [guidelines](CONTRIBUTING.md) for contributing to the driver.
 * staywellandy              https://github.com/staywellandy
 * Vyacheslav Stroy          https://github.com/kreig
 * Testo                     test1@doramail.com
+* TimTim                    https://github.com/wegylexy
 * Zhmayev Yaroslav          https://github.com/salaros
 * Aristarkh Zagorodnikov    https://github.com/onyxmaster
-* TimTim                    https://github.com/wegylexy
 
 If you have contributed and we have neglected to add you to this list please contact one of the maintainers to be added to the list (with apologies).
