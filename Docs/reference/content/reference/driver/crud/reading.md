@@ -137,7 +137,7 @@ var cursor = collection.Find(filter)
 	.ToCursor();
 foreach (var doc in cursor.ToEnumerable())
 {
-	Console.WriteLine(doc);	
+	Console.WriteLine(doc);
 }
 ```
 
@@ -287,7 +287,7 @@ As in project, it is required that the result of the grouping be a new type, eit
 
 #### $sort
 
-A `$sort` stage is defined using the [`Sort`]({{< apiref "M_MongoDB_Driver_IAggregateFluent_1_Sort" >}}) method. However, `SortBy`, `SortByDescending`, `ThenBy`, and `ThenByDescending` are also available. 
+A `$sort` stage is defined using the [`Sort`]({{< apiref "M_MongoDB_Driver_IAggregateFluent_1_Sort" >}}) method. However, `SortBy`, `SortByDescending`, `ThenBy`, and `ThenByDescending` are also available.
 
 ```csharp
 SortBy(x => x.LastName).ThenByDescending(x => x.Age);
@@ -317,12 +317,11 @@ await OutAsync("myNewCollection");
 ### Text Search
 [Atlas Search](https://docs.atlas.mongodb.com/atlas-search) makes it easy to build fast, relevance-based search capabilities on top of your MongoDB data. Try it today on [MongoDB Atlas](https://www.mongodb.com/cloud/atlas), our fully managed database as a service.
 
-The following example can be used alongside the [Atlas Search Tutorial](https://docs.atlas.mongodb.com/reference/atlas-search/tutorial/)
+The following examples can be used alongside the [Atlas Search Tutorial](https://docs.atlas.mongodb.com/reference/atlas-search/tutorial/)
 
 ```csharp
-var client = new MongoClient(connectionString);
 var collection = client.GetDatabase("sample_mflix").GetCollection<BsonDocument>("movies");
-var searchStage = BsonDocument.Parse(@"
+var searchStage = @"
 {
 	$search: {
     	'text': {
@@ -330,99 +329,202 @@ var searchStage = BsonDocument.Parse(@"
             'path': 'plot'
         }
     }
-}");
-PipelineDefinition<BsonDocument, BsonDocument> pipeline = new []
+}";
+var projection = @"
 {
-    searchStage,
-    new BsonDocument("$limit", 5),
-    new BsonDocument
-    {
-        {"$project", new BsonDocument{ {"_id", 0}, {"title", 1}, {"plot", 1} }}
-    }
-};
+    _id : 0,
+    title: 1,
+    plot: 1
+}";
+
+var pipeline = new EmptyPipelineDefinition<BsonDocument>()
+    .AppendStage<BsonDocument, BsonDocument, BsonDocument>(searchStage)
+    .Limit(5)
+    .Project(projection);
+
 var moviesAboutBaseball = collection.Aggregate(pipeline).ToList();
 Console.WriteLine("Movies about baseball:");
 foreach (var movie in moviesAboutBaseball)
 {
     Console.WriteLine($"  {movie}");
 }
-
-string complexQuery = @"
-[
-  {
-    $search: {
-      'compound': {
-        'must': [ {
-          'text': {
-             'query': ['Hawaii', 'Alaska'],
-             'path': 'plot'
+string complexSearch = @"
+{
+  $search: {
+    'compound': {
+      'must': [ {
+        'text': {
+           'query': ['Hawaii', 'Alaska'],
+           'path': 'plot'
         },
-        {
-          'regex': {
-             'query': '([0-9]{4})',
-             'path': 'plot',
-             'allowAnalyzedField': true
-          }
-        } ],
-        'mustNot': [ {
-          'text': {
-            'query': ['Comedy', 'Romance'],
-            'path': 'genres'
-          }
-        },
-        {
-          'term': {
-            'query': ['Beach', 'Snow'],
-            'path': 'title'
-          }
-        } ]
-      }
-    }
-  },
-  {
-    $project: {
-      'title': 1,
-      'plot': 1,
-      'genres': 1,
-      '_id': 0
+      },
+      {
+        'regex': {
+           'query': '([0-9]{4})',
+           'path': 'plot',
+           'allowAnalyzedField': true
+        }
+      } ],
+      'mustNot': [ {
+        'text': {
+          'query': ['Comedy', 'Romance'],
+          'path': 'genres'
+        }
+      },
+      {
+        'term': {
+          'query': ['Beach', 'Snow'],
+          'path': 'title'
+        }
+      } ]
     }
   }
-]";
+}";
 
-var complexPipeline = Bson.Serialization.BsonSerializer
-	.Deserialize<BsonArray>(complexQuery)
-	.Select(v => v.AsBsonDocument)
-	.ToList();
+var projectionWithGenre = @"
+{
+    'title': 1,
+    'plot': 1,
+    'genres': 1,
+    '_id': 0
+}";
+
+
+var complexPipeline = new EmptyPipelineDefinition<BsonDocument>()
+    .AppendStage<BsonDocument, BsonDocument, BsonDocument>(complexSearch)
+    .Project(projectionWithGenre);
+
 var complexQueryResults = collection.Aggregate<BsonDocument>(complexPipeline).ToList();
 Console.WriteLine("Complex query results: ");
 foreach (var movie in complexQueryResults)
 {
     Console.WriteLine($"  {movie}");
 }
-
 var queryUsingKeywordAnalyzer = @"
-[
-  {
-    $search: {
-      'text': {
-        'query': 'The Count of Monte Cristo',
-        'path': { 'value': 'title', 'multi': 'keywordAnalyzer' }
-      }
-    }
-  },
-  {
-    $project: {
-      'title': 1,
-      'year': 1,
-      '_id': 0
+{
+  $search: {
+    'text': {
+      'query': 'The Count of Monte Cristo',
+      'path': { 'value': 'title', 'multi': 'keywordAnalyzer' }
     }
   }
-]";
-var pipelineUsingKeywordAnalyzer = Bson.Serialization.BsonSerializer
-    .Deserialize<BsonArray>(queryUsingKeywordAnalyzer)
-    .Select(v => v.AsBsonDocument)
-    .ToList();
+}";
 
+var pipelineUsingKeywordAnalyzer = new EmptyPipelineDefinition<BsonDocument>()
+    .AppendStage<BsonDocument, BsonDocument, BsonDocument>(queryUsingKeywordAnalyzer)
+    .Project(projection);
+var moviesNamedTheCountOfMonteCristo = collection.Aggregate<BsonDocument>(pipelineUsingKeywordAnalyzer).ToList();
+Console.WriteLine(@"Movies named ""The Count of Monte Cristo"":");
+foreach (var movie in moviesNamedTheCountOfMonteCristo)
+{
+    Console.WriteLine($"  {movie}");
+}
+```
+
+The version below is mildly more performant.
+```csharp
+var collection = client.GetDatabase("sample_mflix").GetCollection<BsonDocument>("movies");
+var searchStage = new BsonDocument(
+    "$search", new BsonDocument("text", new BsonDocument { {"query", "baseball"} , {"path", "plot"} } ));
+var projection = new BsonDocument
+{
+    {"_id", 0},
+    {"title", 1},
+    {"plot", 1}
+};
+
+var pipeline = new EmptyPipelineDefinition<BsonDocument>()
+    .AppendStage<BsonDocument, BsonDocument, BsonDocument>(searchStage)
+    .Limit(5)
+    .Project(projection);
+
+var moviesAboutBaseball = collection.Aggregate(pipeline).ToList();
+Console.WriteLine("Movies about baseball:");
+foreach (var movie in moviesAboutBaseball)
+{
+    Console.WriteLine($"  {movie}");
+}
+var complexSearch = new BsonDocument
+{
+    {
+        "$search", new BsonDocument
+        {
+            {
+                "compound", new BsonDocument
+                {
+                    {
+                        "must", new BsonArray
+                        {
+                           new BsonDocument("text", new BsonDocument
+                           {
+                               { "query", new BsonArray { "Hawaii", "Alaska" } },
+                               { "path", "plot" }
+                           }),
+                           new BsonDocument("regex", new BsonDocument
+                           {
+                               { "query",  "([0-9]{4})" },
+                               { "path", "plot" },
+                               { "allowAnalyzedField", true }
+                           })
+                        }
+                    },
+                    {
+                        "mustNot", new BsonArray
+                        {
+                           new BsonDocument("text", new BsonDocument
+                           {
+                               { "query", new BsonArray {"Comedy", "Romance"} },
+                               { "path", "genres"}
+                           }),
+                           new BsonDocument("term", new BsonDocument
+                           {
+                               { "query", new BsonArray {"Beach", "Snow"} },
+                               { "path", "title" }
+                           })
+                        }
+                    }
+                }
+            }
+        }
+    }
+};
+var projectionWithGenre = new BsonDocument
+{
+      { "title", 1},
+      { "plot", 1},
+      { "genres", 1},
+      { "_id", 0}
+};
+
+
+var complexPipeline = new EmptyPipelineDefinition<BsonDocument>()
+    .AppendStage<BsonDocument, BsonDocument, BsonDocument>(complexSearch)
+    .Project(projectionWithGenre);
+
+var complexQueryResults = collection.Aggregate<BsonDocument>(complexPipeline).ToList();
+Console.WriteLine("Complex query results: ");
+foreach (var movie in complexQueryResults)
+{
+    Console.WriteLine($"  {movie}");
+}
+var queryUsingKeywordAnalyzer = new BsonDocument
+{
+    {
+        "$search", new BsonDocument
+        {
+            {
+                "text", new BsonDocument
+                {
+                    { "query", "The Count of Monte Cristo" },
+                    { "path", new BsonDocument { { "value", "title" }, { "multi", "keywordAnalyzer" } }}
+                }
+            }
+        }
+    }
+};
+var pipelineUsingKeywordAnalyzer = new EmptyPipelineDefinition<BsonDocument>()
+    .AppendStage<BsonDocument, BsonDocument, BsonDocument>(queryUsingKeywordAnalyzer)
+    .Project(projection);
 var moviesNamedTheCountOfMonteCristo = collection.Aggregate<BsonDocument>(pipelineUsingKeywordAnalyzer).ToList();
 Console.WriteLine(@"Movies named ""The Count of Monte Cristo"":");
 foreach (var movie in moviesNamedTheCountOfMonteCristo)
