@@ -109,7 +109,7 @@ namespace MongoDB.Driver.Core.Operations
             {
                 return true;
             }
-            if (exception is MongoCommandException mongoCommandException && (ServerErrorCode)mongoCommandException.Code == ServerErrorCode.CursorNotFound)
+            if (exception is MongoCursorNotFoundException)
             {
                 return true;
             }
