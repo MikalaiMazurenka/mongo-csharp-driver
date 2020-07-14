@@ -325,10 +325,10 @@ var collection = client.GetDatabase("sample_mflix").GetCollection<BsonDocument>(
 // Simple search example
 var searchStage = @"
 {
-    $search: {
-        'text' : {
-            'query' : 'baseball',
-            'path' : 'plot'
+    $search : {
+        text : {
+            query : 'baseball',
+            path : 'plot'
         }
     }
 }";
@@ -354,31 +354,31 @@ Console.WriteLine();
 // Complex search example
 string complexSearch = @"
 {
-    $search: {
-        'compound' : {
-            'must' : [ {
-                'text' : {
-                     'query' : ['Hawaii', 'Alaska'],
-                     'path' : 'plot'
+    $search : {
+        compound : {
+            must : [ {
+                text : {
+                    query : ['Hawaii', 'Alaska'],
+                    path : 'plot'
                 },
             },
             {
-                'regex' : {
-                     'query' : '([0-9]{4})',
-                     'path' : 'plot',
-                     'allowAnalyzedField' : true
+                regex : {
+                    query : '([0-9]{4})',
+                    path : 'plot',
+                    allowAnalyzedField : true
                 }
             } ],
-            'mustNot' : [ {
-                'text' : {
-                    'query' : ['Comedy', 'Romance'],
-                    'path' : 'genres'
+            mustNot : [ {
+                text : {
+                    query : ['Comedy', 'Romance'],
+                    path : 'genres'
                 }
             },
             {
-                'term' : {
-                    'query' : ['Beach', 'Snow'],
-                    'path' : 'title'
+                term : {
+                    query : ['Beach', 'Snow'],
+                    path : 'title'
                 }
             } ]
         }
@@ -386,10 +386,10 @@ string complexSearch = @"
 }";
 var projectionWithGenre = @"
 {
-    'title' : 1,
-    'plot' : 1,
-    'genres' : 1,
-    '_id' : 0
+    title : 1,
+    plot : 1,
+    genres : 1,
+    _id : 0
 }";
 var complexPipeline = new EmptyPipelineDefinition<BsonDocument>()
     .AppendStage<BsonDocument, BsonDocument, BsonDocument>(complexSearch)
@@ -406,10 +406,10 @@ Console.WriteLine();
 // Search using a multi analyzer
 var queryUsingKeywordAnalyzer = @"
 {
-    $search: {
-        'text' : {
-            'query' : 'The Count of Monte Cristo',
-            'path' : { 'value' : 'title', 'multi' : 'keywordAnalyzer' }
+    $search : {
+        text : {
+            query : 'The Count of Monte Cristo',
+            path : { 'value' : 'title', 'multi' : 'keywordAnalyzer' }
         }
     }
 }";
@@ -480,32 +480,32 @@ var complexSearch = new BsonDocument
                     {
                         "must", new BsonArray
                         {
-                           new BsonDocument("text", new BsonDocument
-                           {
-                               { "query", new BsonArray { "Hawaii", "Alaska" } },
-                               { "path", "plot" }
-                           }),
-                           new BsonDocument("regex", new BsonDocument
-                           {
-                               { "query",  "([0-9]{4})" },
-                               { "path", "plot" },
-                               { "allowAnalyzedField", true }
-                           })
+                            new BsonDocument("text", new BsonDocument
+                            {
+                                { "query", new BsonArray { "Hawaii", "Alaska" } },
+                                { "path", "plot" }
+                            }),
+                            new BsonDocument("regex", new BsonDocument
+                            {
+                                { "query", "([0-9]{4})" },
+                                { "path", "plot" },
+                                { "allowAnalyzedField", true }
+                            })
                         }
                     },
                     {
                         "mustNot", new BsonArray
                         {
-                           new BsonDocument("text", new BsonDocument
-                           {
-                               { "query", new BsonArray { "Comedy", "Romance" } },
-                               { "path", "genres" }
-                           }),
-                           new BsonDocument("term", new BsonDocument
-                           {
-                               { "query", new BsonArray { "Beach", "Snow" } },
-                               { "path", "title" }
-                           })
+                            new BsonDocument("text", new BsonDocument
+                            {
+                                { "query", new BsonArray { "Comedy", "Romance" } },
+                                { "path", "genres" }
+                            }),
+                            new BsonDocument("term", new BsonDocument
+                            {
+                                { "query", new BsonArray { "Beach", "Snow" } },
+                                { "path", "title" }
+                            })
                         }
                     }
                 }
@@ -542,7 +542,7 @@ var queryUsingKeywordAnalyzer = new BsonDocument
                 "text", new BsonDocument
                 {
                     { "query", "The Count of Monte Cristo" },
-                    { "path", new BsonDocument { { "value", "title" }, { "multi", "keywordAnalyzer" } }}
+                    { "path", new BsonDocument { { "value", "title" }, { "multi", "keywordAnalyzer" } } }
                 }
             }
         }
