@@ -290,7 +290,7 @@ namespace MongoDB.Driver.Core.Operations
                     _messageEncoderSettings,
                     cancellationToken);
             }
-            catch (MongoCommandException ex) when (IsMongoCursorException(ex))
+            catch (MongoCommandException ex) when (IsMongoCursorNotFoundException(ex))
             {
                 throw new MongoCursorNotFoundException(channel.ConnectionDescription.ConnectionId, _cursorId, command);
             }
@@ -318,7 +318,7 @@ namespace MongoDB.Driver.Core.Operations
                     _messageEncoderSettings,
                     cancellationToken).ConfigureAwait(false);
             }
-            catch (MongoCommandException ex) when (IsMongoCursorException(ex))
+            catch (MongoCommandException ex) when (IsMongoCursorNotFoundException(ex))
             {
                 throw new MongoCursorNotFoundException(channel.ConnectionDescription.ConnectionId, _cursorId, command);
             }
@@ -531,7 +531,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private bool IsMongoCursorException(MongoCommandException exception)
+        private bool IsMongoCursorNotFoundException(MongoCommandException exception)
         {
             return exception.Code == (int)ServerErrorCode.CursorNotFound;
         }
