@@ -194,7 +194,7 @@ namespace MongoDB.Driver.Core.Operations
         [InlineData(typeof(MongoConnectionException), true)] // network exception
         [InlineData(typeof(MongoConnectionClosedException), false)]
         [InlineData(typeof(MongoCursorNotFoundException), true)]
-        public void IsResumableChangeStreamException_should_return_expected_result_for_servers_with_new_behavior_and_connection_errors(Type exceptionType, bool isResumable)
+        public void IsResumableChangeStreamException_should_return_expected_result_for_servers_with_new_behavior_and_errors(Type exceptionType, bool isResumable)
         {
             var exception = (MongoException)CoreExceptionHelper.CreateException(exceptionType);
 
