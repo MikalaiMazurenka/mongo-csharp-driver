@@ -15,8 +15,6 @@
 
 using System;
 using System.IO;
-using System.Threading;
-using MongoDB.Driver.Core.Clusters.ServerSelectors;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Events.Diagnostics;
 
@@ -26,15 +24,12 @@ namespace MongoDB.Driver.TestConsoleApplication
     {
         static void Main(string[] args)
         {
-            var client = new MongoClient("mongodb://localhost");
-            var server = client.Cluster.SelectServer(WritableServerSelector.Instance, CancellationToken.None);
-            var serverVersion = server.Description.Version;
             //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            //int numConcurrentWorkers = 50;
-            ////new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            //new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
+            int numConcurrentWorkers = 50;
+            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
+            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
 
-            //new Api().Run(numConcurrentWorkers, ConfigureCluster);
+            new Api().Run(numConcurrentWorkers, ConfigureCluster);
 
             //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
         }

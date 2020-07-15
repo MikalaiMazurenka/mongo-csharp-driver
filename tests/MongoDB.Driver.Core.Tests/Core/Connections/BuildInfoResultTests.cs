@@ -51,7 +51,7 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         [Fact]
-        public void ServerVersion_should_get_the_server_version()
+        public void ServerVersion_should_get_the_semantic_version()
         {
             var doc = new BsonDocument
             {
@@ -59,7 +59,7 @@ namespace MongoDB.Driver.Core.Connections
             };
             var subject = new BuildInfoResult(doc);
 
-            subject.ServerVersion.Should().Be(new ServerVersion(2, 6, 3));
+            subject.ServerVersion.Should().Be(new SemanticVersion(2, 6, 3));
         }
 
         [Fact]

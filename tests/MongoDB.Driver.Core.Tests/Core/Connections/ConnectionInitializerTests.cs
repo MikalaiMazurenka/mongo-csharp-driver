@@ -185,7 +185,7 @@ namespace MongoDB.Driver.Core.Connections
                 result = _subject.InitializeConnection(connection, CancellationToken.None);
             }
 
-            result.ServerVersion.Should().Be(new ServerVersion(2, 6, 3));
+            result.ServerVersion.Should().Be(new SemanticVersion(2, 6, 3));
             result.ConnectionId.ServerValue.Should().Be(10);
             result.AvailableCompressors.Count.Should().Be(1);
             result.AvailableCompressors.Should().Contain(CompressorType.Zlib);

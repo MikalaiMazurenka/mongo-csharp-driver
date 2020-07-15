@@ -21,14 +21,14 @@ namespace MongoDB.Driver.Core.Misc
     /// <seealso cref="MongoDB.Driver.Core.Misc.Feature" />
     public class FindAllowDiskUseFeature : Feature
     {
-        private readonly ServerVersion _firstServerVersionWhereWeRelyOnServerToReturnError = new ServerVersion(3, 2, 0);
+        private readonly SemanticVersion _firstServerVersionWhereWeRelyOnServerToReturnError = new SemanticVersion(3, 2, 0);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="FindAllowDiskUseFeature"/> class.
         /// </summary>
         /// <param name="name">The name of the feature.</param>
         /// <param name="firstSupportedVersion">The first server version that supports the feature.</param>
-        public FindAllowDiskUseFeature(string name, ServerVersion firstSupportedVersion)
+        public FindAllowDiskUseFeature(string name, SemanticVersion firstSupportedVersion)
             : base(name, firstSupportedVersion)
         {
         }
@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </summary>
         /// <param name="serverVersion">The server version.</param>
         /// <returns>Whether the driver must throw if feature is not supported.</returns>
-        public bool DriverMustThrowIfNotSupported(ServerVersion serverVersion)
+        public bool DriverMustThrowIfNotSupported(SemanticVersion serverVersion)
         {
             return serverVersion < _firstServerVersionWhereWeRelyOnServerToReturnError;
         }

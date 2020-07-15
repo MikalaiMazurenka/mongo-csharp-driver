@@ -49,7 +49,7 @@ namespace MongoDB.Driver.Core.Servers
         private readonly TagSet _tags;
         private readonly TopologyVersion _topologyVersion;
         private readonly ServerType _type;
-        private readonly ServerVersion _version;
+        private readonly SemanticVersion _version;
         private readonly Range<int> _wireVersionRange;
 
         // constructors
@@ -102,7 +102,7 @@ namespace MongoDB.Driver.Core.Servers
             Optional<TagSet> tags = default(Optional<TagSet>),
             Optional<TopologyVersion> topologyVersion = default(Optional<TopologyVersion>),
             Optional<ServerType> type = default(Optional<ServerType>),
-            Optional<ServerVersion> version = default(Optional<ServerVersion>),
+            Optional<SemanticVersion> version = default(Optional<SemanticVersion>),
             Optional<Range<int>> wireVersionRange = default(Optional<Range<int>>))
         {
             Ensure.IsNotNull(endPoint, nameof(endPoint));
@@ -401,7 +401,7 @@ namespace MongoDB.Driver.Core.Servers
         /// <value>
         /// The server version.
         /// </value>
-        public ServerVersion Version
+        public SemanticVersion Version
         {
             get { return _version; }
         }
@@ -577,7 +577,7 @@ namespace MongoDB.Driver.Core.Servers
             Optional<TagSet> tags = default(Optional<TagSet>),
             Optional<TopologyVersion> topologyVersion = default(Optional<TopologyVersion>),
             Optional<ServerType> type = default(Optional<ServerType>),
-            Optional<ServerVersion> version = default(Optional<ServerVersion>),
+            Optional<SemanticVersion> version = default(Optional<SemanticVersion>),
             Optional<Range<int>> wireVersionRange = default(Optional<Range<int>>))
         {
             return new ServerDescription(

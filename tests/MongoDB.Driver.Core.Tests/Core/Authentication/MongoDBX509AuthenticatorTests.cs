@@ -58,7 +58,7 @@ namespace MongoDB.Driver.Core.Authentication
 
             var reply = MessageHelper.BuildNoDocumentsReturnedReply<RawBsonDocument>();
             var connection = new MockConnection(__serverId);
-            connection.Description = CreateConnectionDescription(new ServerVersion(3, 2, 0));
+            connection.Description = CreateConnectionDescription(new SemanticVersion(3, 2, 0));
             connection.EnqueueReplyMessage(reply);
 
             Action act;
@@ -86,7 +86,7 @@ namespace MongoDB.Driver.Core.Authentication
                 RawBsonDocumentHelper.FromJson("{ok: 1}"));
 
             var connection = new MockConnection(__serverId);
-            connection.Description = CreateConnectionDescription(new ServerVersion(3, 2, 0));
+            connection.Description = CreateConnectionDescription(new SemanticVersion(3, 2, 0));
             connection.EnqueueReplyMessage(reply);
 
             Action act;
@@ -114,7 +114,7 @@ namespace MongoDB.Driver.Core.Authentication
                 RawBsonDocumentHelper.FromJson("{ok: 1}"));
 
             var connection = new MockConnection(__serverId);
-            connection.Description = CreateConnectionDescription(new ServerVersion(3, 2, 0));
+            connection.Description = CreateConnectionDescription(new SemanticVersion(3, 2, 0));
             connection.EnqueueReplyMessage(reply);
 
             Exception exception;
@@ -143,7 +143,7 @@ namespace MongoDB.Driver.Core.Authentication
 
             var connection = new MockConnection(__serverId);
             connection.EnqueueReplyMessage(reply);
-            var description = CreateConnectionDescription(new ServerVersion(3, 4, 0));
+            var description = CreateConnectionDescription(new SemanticVersion(3, 4, 0));
 
             Exception exception;
             if (async)
@@ -159,7 +159,7 @@ namespace MongoDB.Driver.Core.Authentication
         }
 
         // private methods
-        private ConnectionDescription CreateConnectionDescription(ServerVersion serverVersion)
+        private ConnectionDescription CreateConnectionDescription(SemanticVersion serverVersion)
         {
             var clusterId = new ClusterId(1);
             var serverId = new ServerId(clusterId, new DnsEndPoint("localhost", 27017));

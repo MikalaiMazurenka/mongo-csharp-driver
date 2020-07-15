@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Operations
         }
 
         // private methods
-        internal IReadOperation<BsonDocument> CreateOperation(ServerVersion serverVersion)
+        internal IReadOperation<BsonDocument> CreateOperation(SemanticVersion serverVersion)
         {
             if (Feature.CurrentOpCommand.IsSupported(serverVersion))
             {

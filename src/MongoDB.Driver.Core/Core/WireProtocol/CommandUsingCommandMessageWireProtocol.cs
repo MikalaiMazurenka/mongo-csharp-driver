@@ -170,7 +170,7 @@ namespace MongoDB.Driver.Core.WireProtocol
         }
 
         // private methods
-        private void AddErrorLabelIfRequired(Exception exception, ServerVersion serverVersion)
+        private void AddErrorLabelIfRequired(Exception exception, SemanticVersion serverVersion)
         {
             if (exception is MongoException mongoException)
             {

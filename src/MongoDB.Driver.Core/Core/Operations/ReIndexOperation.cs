@@ -115,7 +115,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         // private methods
-        internal BsonDocument CreateCommand(ServerVersion serverVersion)
+        internal BsonDocument CreateCommand(SemanticVersion serverVersion)
         {
             return new BsonDocument
             {
@@ -123,7 +123,7 @@ namespace MongoDB.Driver.Core.Operations
             };
         }
 
-        private WriteCommandOperation<BsonDocument> CreateOperation(ServerVersion serverVersion)
+        private WriteCommandOperation<BsonDocument> CreateOperation(SemanticVersion serverVersion)
         {
             var command = CreateCommand(serverVersion);
             return new WriteCommandOperation<BsonDocument>(_collectionNamespace.DatabaseNamespace, command, BsonDocumentSerializer.Instance, _messageEncoderSettings);

@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </summary>
         /// <param name="name">The name of the feature.</param>
         /// <param name="firstSupportedVersion">The first server version that supports the feature.</param>
-        public CommandsThatWriteAcceptWriteConcernFeature(string name, ServerVersion firstSupportedVersion)
+        public CommandsThatWriteAcceptWriteConcernFeature(string name, SemanticVersion firstSupportedVersion)
             : base(name, firstSupportedVersion)
         {
         }
@@ -37,7 +37,7 @@ namespace MongoDB.Driver.Core.Misc
         /// <param name="serverVersion">The server version.</param>
         /// <param name="value">The write concern value.</param>
         /// <returns>Whether the write concern should be sent to the server.</returns>
-        public bool ShouldSendWriteConcern(ServerVersion serverVersion, WriteConcern value)
+        public bool ShouldSendWriteConcern(SemanticVersion serverVersion, WriteConcern value)
         {
             return value != null && !value.IsServerDefault && base.IsSupported(serverVersion);
         }

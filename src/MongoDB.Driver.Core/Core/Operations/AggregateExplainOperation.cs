@@ -151,7 +151,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 
         // methods
-        internal BsonDocument CreateCommand(ServerVersion serverVersion)
+        internal BsonDocument CreateCommand(SemanticVersion serverVersion)
         {
             Feature.Collation.ThrowIfNotSupported(serverVersion, _collation);
 
@@ -192,7 +192,7 @@ namespace MongoDB.Driver.Core.Operations
             }
         }
 
-        private ReadCommandOperation<BsonDocument> CreateOperation(ServerVersion serverVersion)
+        private ReadCommandOperation<BsonDocument> CreateOperation(SemanticVersion serverVersion)
         {
             var command = CreateCommand(serverVersion);
             return new ReadCommandOperation<BsonDocument>(

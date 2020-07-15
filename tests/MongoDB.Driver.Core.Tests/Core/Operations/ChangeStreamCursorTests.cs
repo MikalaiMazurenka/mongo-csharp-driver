@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Operations
     public class ChangeStreamCursorTests : OperationTestBase
     {
         #region static
-        private static readonly ServerVersion __dummyServerVersion = new ServerVersion(0, 0, 0);
+        private static readonly SemanticVersion __dummyServerVersion = new SemanticVersion(0, 0, 0);
         #endregion
 
         [Theory]
@@ -759,9 +759,9 @@ namespace MongoDB.Driver.Core.Operations
             return (BsonTimestamp)Reflector.GetFieldValue(cursor, nameof(_initialStartAtOperationTime));
         }
 
-        public static ServerVersion _serverVersion<TDocument>(this IChangeStreamCursor<TDocument> cursor)
+        public static SemanticVersion _serverVersion<TDocument>(this IChangeStreamCursor<TDocument> cursor)
         {
-            return (ServerVersion)Reflector.GetFieldValue(cursor, nameof(_serverVersion));
+            return (SemanticVersion)Reflector.GetFieldValue(cursor, nameof(_serverVersion));
         }
     }
 }

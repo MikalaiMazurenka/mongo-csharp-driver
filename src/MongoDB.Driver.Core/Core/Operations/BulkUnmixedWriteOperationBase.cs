@@ -246,7 +246,7 @@ namespace MongoDB.Driver.Core.Operations
             return helper.CreateFinalResultOrThrow(context.Channel);
         }
 
-        private bool IsHintSupportedForRequestWithHint(WriteRequest request, ServerVersion serverVersion)
+        private bool IsHintSupportedForRequestWithHint(WriteRequest request, SemanticVersion serverVersion)
         {
             if (request is DeleteRequest && (Feature.HintForDeleteOperations.DriverMustThrowIfNotSupported(serverVersion) || !_writeConcern.IsAcknowledged))
             {

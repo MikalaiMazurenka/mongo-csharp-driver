@@ -107,7 +107,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             if (definition.TryGetValue("ignore_if_server_version_greater_than", out bsonValue))
             {
                 var serverVersion = GetServerVersion();
-                var maxServerVersion = ServerVersion.Parse(bsonValue.AsString);
+                var maxServerVersion = SemanticVersion.Parse(bsonValue.AsString);
                 if (serverVersion > maxServerVersion)
                 {
                     throw new SkipException($"Test ignored because server version {serverVersion} is greater than max server version {maxServerVersion}.");
@@ -116,7 +116,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             if (definition.TryGetValue("ignore_if_server_version_less_than", out bsonValue))
             {
                 var serverVersion = GetServerVersion();
-                var minServerVersion = ServerVersion.Parse(bsonValue.AsString);
+                var minServerVersion = SemanticVersion.Parse(bsonValue.AsString);
                 if (serverVersion < minServerVersion)
                 {
                     throw new SkipException($"Test ignored because server version {serverVersion} is less than min server version {minServerVersion}.");
@@ -124,7 +124,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             }
 
             // TODO: re-enable these tests once a decision has been made about how to deal with unexpected fields in the server response (see: CSHARP-2444)
-            if (CoreTestConfiguration.ServerVersion >= new ServerVersion(4, 1, 5, 0))
+            if (CoreTestConfiguration.ServerVersion >= new SemanticVersion(4, 1, 5, ""))
             {
                 switch (definition["description"].AsString)
                 {
@@ -208,7 +208,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
             return collection;
         }
 
-        private ServerVersion GetServerVersion()
+        private SemanticVersion GetServerVersion()
         {
             var server = __client.Cluster.SelectServer(WritableServerSelector.Instance, CancellationToken.None);
             return server.Description.Version;

@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </summary>
         /// <param name="name">The name of the feature.</param>
         /// <param name="firstSupportedVersion">The first server version that supports the feature.</param>
-        public CollationFeature(string name, ServerVersion firstSupportedVersion)
+        public CollationFeature(string name, SemanticVersion firstSupportedVersion)
             : base(name, firstSupportedVersion)
         {
         }
@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </summary>
         /// <param name="serverVersion">The server version.</param>
         /// <param name="value">The value.</param>
-        public void ThrowIfNotSupported(ServerVersion serverVersion, Collation value)
+        public void ThrowIfNotSupported(SemanticVersion serverVersion, Collation value)
         {
             if (value != null && !base.IsSupported(serverVersion))
             {

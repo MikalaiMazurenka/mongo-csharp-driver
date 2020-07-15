@@ -23,81 +23,81 @@ namespace MongoDB.Driver.Core.Misc
     public class Feature
     {
         #region static
-        private static readonly Feature __aggregate = new Feature("Aggregate", new ServerVersion(2, 2, 0));
-        private static readonly Feature __aggregateAccumulator = new Feature("AggregateAccumulator", new ServerVersion(4, 3, 4));
-        private static readonly Feature __aggregateAddFields = new Feature("AggregateAddFields", new ServerVersion(3, 4, 0));
-        private static readonly Feature __aggregateAllowDiskUse = new Feature("AggregateAllowDiskUse", new ServerVersion(2, 6, 0));
-        private static readonly Feature __aggregateBucketStage = new Feature("AggregateBucketStage", new ServerVersion(3, 3, 11));
-        private static readonly Feature __aggregateComment = new Feature("AggregateComment", new ServerVersion(3, 6, 0, 0));
-        private static readonly Feature __aggregateCountStage = new Feature("AggregateCountStage", new ServerVersion(3, 3, 11));
-        private static readonly Feature __aggregateCursorResult = new Feature("AggregateCursorResult", new ServerVersion(2, 6, 0));
-        private static readonly Feature __aggregateExplain = new Feature("AggregateExplain", new ServerVersion(2, 6, 0));
-        private static readonly Feature __aggregateFacetStage = new Feature("AggregateFacetStage", new ServerVersion(3, 4, 0, 0));
-        private static readonly Feature __aggregateFunction = new Feature("AggregateFunction", new ServerVersion(4, 3, 4));
-        private static readonly Feature __aggregateGraphLookupStage = new Feature("AggregateGraphLookupStage", new ServerVersion(3, 4, 0, 0));
-        private static readonly Feature __aggregateHint = new Feature("AggregateHint", new ServerVersion(3, 6, 0, 0));
-        private static readonly Feature __aggregateLet = new Feature("AggregateLet", new ServerVersion(3, 6, 0));
-        private static readonly Feature __aggregateMerge = new Feature("AggregateMerge", new ServerVersion(4, 2, 0));
-        private static readonly Feature __aggregateOut = new Feature("AggregateOut", new ServerVersion(2, 6, 0));
-        private static readonly Feature __aggregateOutToDifferentDatabase = new Feature("AggregateOutToDifferentDatabase", new ServerVersion(4, 3, 0));
-        private static readonly Feature __aggregateToString = new Feature("AggregateToString", new ServerVersion(4, 0, 0));
-        private static readonly Feature __aggregateUnionWith = new Feature("AggregateUnionWith", new ServerVersion(4, 3, 4));
-        private static readonly ArrayFiltersFeature __arrayFilters = new ArrayFiltersFeature("ArrayFilters", new ServerVersion(3, 5, 11));
-        private static readonly Feature __bypassDocumentValidation = new Feature("BypassDocumentValidation", new ServerVersion(3, 2, 0));
-        private static readonly Feature __changeStreamStage = new Feature("ChangeStreamStage", new ServerVersion(3, 5, 11));
-        private static readonly Feature __changeStreamPostBatchResumeToken = new Feature("ChangeStreamPostBatchResumeToken", new ServerVersion(4, 0, 7));
-        private static readonly Feature __clientSideEncryption = new Feature("ClientSideEncryption", new ServerVersion(4, 1, 9));
-        private static readonly CollationFeature __collation = new CollationFeature("Collation", new ServerVersion(3, 3, 11));
-        private static readonly Feature __commandMessage = new Feature("CommandMessage", new ServerVersion(3, 6, 0));
-        private static readonly CommandsThatWriteAcceptWriteConcernFeature __commandsThatWriteAcceptWriteConcern = new CommandsThatWriteAcceptWriteConcernFeature("CommandsThatWriteAcceptWriteConcern", new ServerVersion(3, 3, 11));
-        private static readonly Feature __createIndexCommitQuorum = new Feature("CreateIndexCommitQuorum", new ServerVersion(4, 4, 0, 0));
-        private static readonly Feature __createIndexesCommand = new Feature("CreateIndexesCommand", new ServerVersion(2, 6, 0));
-        private static readonly Feature __createIndexesUsingInsertOperations = new Feature("CreateIndexesUsingInsertOperations", new ServerVersion(1, 0, 0), new ServerVersion(4, 1, 1, 0));
-        private static readonly Feature __currentOpCommand = new Feature("CurrentOpCommand", new ServerVersion(3, 2, 0));
-        private static readonly Feature __documentValidation = new Feature("DocumentValidation", new ServerVersion(3, 2, 0));
-        private static readonly Feature __eval = new Feature("Eval", new ServerVersion(0, 0, 0), new ServerVersion(4, 1, 0, 0));
-        private static readonly Feature __explainCommand = new Feature("ExplainCommand", new ServerVersion(3, 0, 0));
-        private static readonly Feature __failPoints = new Feature("FailPoints", new ServerVersion(2, 4, 0));
-        private static readonly Feature __failPointsFailCommand = new Feature("FailPointsFailCommand", new ServerVersion(4, 0, 0));
-        private static readonly Feature __failPointsFailCommandForSharded = new Feature("FailPointsFailCommandForSharded", new ServerVersion(4, 1, 5));
-        private static readonly FindAllowDiskUseFeature __findAllowDiskUse = new FindAllowDiskUseFeature("FindAllowDiskUse", new ServerVersion(4, 4, 0, 0));
-        private static readonly Feature __findAndModifyWriteConcern = new Feature("FindAndModifyWriteConcern", new ServerVersion(3, 2, 0));
-        private static readonly Feature __findCommand = new Feature("FindCommand", new ServerVersion(3, 2, 0));
-        private static readonly Feature __geoNearCommand = new Feature("GeoNearCommand", new ServerVersion(1, 0, 0), new ServerVersion(4, 1, 0, 0));
-        private static readonly Feature __groupCommand = new Feature("GroupCommand", new ServerVersion(1, 0, 0), new ServerVersion(4, 1, 1, 0));
-        private static readonly Feature __hedgedReads = new Feature("HedgedReads", new ServerVersion(4, 3, 1, 0));
-        private static readonly HintForDeleteOperationsFeature __hintForDeleteOperations = new HintForDeleteOperationsFeature("HintForDeleteOperations", new ServerVersion(4, 3, 4));
-        private static readonly HintForFindAndModifyFeature __hintForFindAndModifyFeature = new HintForFindAndModifyFeature("HintForFindAndModify", new ServerVersion(4, 3, 4));
-        private static readonly HintForUpdateAndReplaceOperationsFeature __hintForUpdateAndReplaceOperations = new HintForUpdateAndReplaceOperationsFeature("HintForUpdateAndReplaceOperations", new ServerVersion(4, 2, 0));
-        private static readonly Feature __keepConnectionPoolWhenNotMasterConnectionException = new Feature("KeepConnectionPoolWhenNotMasterConnectionException", new ServerVersion(4, 1, 10));
-        private static readonly Feature __keepConnectionPoolWhenReplSetStepDown = new Feature("KeepConnectionPoolWhenReplSetStepDown", new ServerVersion(4, 1, 10));
-        private static readonly Feature __killCursorsCommand = new Feature("KillCursorsCommand", new ServerVersion(3, 2, 0));
-        private static readonly Feature __listCollectionsCommand = new Feature("ListCollectionsCommand", new ServerVersion(3, 0, 0));
-        private static readonly Feature __listDatabasesAuthorizedDatabases = new Feature("ListDatabasesAuthorizedDatabases", new ServerVersion(4, 0, 5));
-        private static readonly Feature __listDatabasesFilter = new Feature("ListDatabasesFilter", new ServerVersion(3, 4, 2));
-        private static readonly Feature __listDatabasesNameOnlyOption = new Feature("ListDatabasesNameOnlyOption", new ServerVersion(3, 4, 3));
-        private static readonly Feature __listIndexesCommand = new Feature("ListIndexesCommand", new ServerVersion(3, 0, 0));
-        private static readonly Feature __indexOptionsDefaults = new Feature("IndexOptionsDefaults", new ServerVersion(3, 2, 0));
-        private static readonly Feature __maxStaleness = new Feature("MaxStaleness", new ServerVersion(3, 3, 12));
-        private static readonly Feature __maxTime = new Feature("MaxTime", new ServerVersion(2, 6, 0));
-        private static readonly Feature __mmapV1StorageEngine = new Feature("MmapV1StorageEngine", new ServerVersion(0, 0, 0), new ServerVersion(4, 1, 0, 0));
-        private static readonly Feature __partialIndexes = new Feature("PartialIndexes", new ServerVersion(3, 2, 0));
-        private static readonly ReadConcernFeature __readConcern = new ReadConcernFeature("ReadConcern", new ServerVersion(3, 2, 0));
-        private static readonly Feature __retryableReads = new Feature("RetryableReads", new ServerVersion(3, 6, 0));
-        private static readonly Feature __retryableWrites = new Feature("RetryableWrites", new ServerVersion(3, 6, 0));
-        private static readonly Feature __scramSha1Authentication = new Feature("ScramSha1Authentication", new ServerVersion(3, 0, 0));
-        private static readonly Feature __scramSha256Authentication = new Feature("ScramSha256Authentication", new ServerVersion(4, 0, 0, 0));
-        private static readonly Feature __serverExtractsUsernameFromX509Certificate = new Feature("ServerExtractsUsernameFromX509Certificate", new ServerVersion(3, 3, 12));
-        private static readonly Feature __serverReturnsResumableChangeStreamErrorLabel = new Feature("ServerReturnsResumableChangeStreamErrorLabel", new ServerVersion(4, 3, 0));
-        private static readonly Feature __serverReturnsRetryableWriteErrorLabel = new Feature("ServerReturnsRetryableWriteErrorLabel", new ServerVersion(4, 3, 0));
-        private static readonly Feature __shardedTransactions = new Feature("ShardedTransactions", new ServerVersion(4, 1, 6));
-        private static readonly Feature __speculativeAuthentication = new Feature("SpeculativeAuthentication", new ServerVersion(4, 4, 0, 0));
-        private static readonly Feature __tailableCursor = new Feature("TailableCursor", new ServerVersion(3, 2, 0));
-        private static readonly Feature __transactions = new Feature("Transactions", new ServerVersion(4, 0, 0));
-        private static readonly Feature __userManagementCommands = new Feature("UserManagementCommands", new ServerVersion(2, 6, 0));
-        private static readonly Feature __views = new Feature("Views", new ServerVersion(3, 3, 11));
-        private static readonly Feature __wildcardIndexes = new Feature("WildcardIndexes", new ServerVersion(4, 1, 6));
-        private static readonly Feature __writeCommands = new Feature("WriteCommands", new ServerVersion(2, 6, 0));
+        private static readonly Feature __aggregate = new Feature("Aggregate", new SemanticVersion(2, 2, 0));
+        private static readonly Feature __aggregateAccumulator = new Feature("AggregateAccumulator", new SemanticVersion(4, 3, 4));
+        private static readonly Feature __aggregateAddFields = new Feature("AggregateAddFields", new SemanticVersion(3, 4, 0));
+        private static readonly Feature __aggregateAllowDiskUse = new Feature("AggregateAllowDiskUse", new SemanticVersion(2, 6, 0));
+        private static readonly Feature __aggregateBucketStage = new Feature("AggregateBucketStage", new SemanticVersion(3, 3, 11));
+        private static readonly Feature __aggregateComment = new Feature("AggregateComment", new SemanticVersion(3, 6, 0, "rc0"));
+        private static readonly Feature __aggregateCountStage = new Feature("AggregateCountStage", new SemanticVersion(3, 3, 11));
+        private static readonly Feature __aggregateCursorResult = new Feature("AggregateCursorResult", new SemanticVersion(2, 6, 0));
+        private static readonly Feature __aggregateExplain = new Feature("AggregateExplain", new SemanticVersion(2, 6, 0));
+        private static readonly Feature __aggregateFacetStage = new Feature("AggregateFacetStage", new SemanticVersion(3, 4, 0, "rc0"));
+        private static readonly Feature __aggregateFunction = new Feature("AggregateFunction", new SemanticVersion(4, 3, 4));
+        private static readonly Feature __aggregateGraphLookupStage = new Feature("AggregateGraphLookupStage", new SemanticVersion(3, 4, 0, "rc0"));
+        private static readonly Feature __aggregateHint = new Feature("AggregateHint", new SemanticVersion(3, 6, 0, "rc0"));
+        private static readonly Feature __aggregateLet = new Feature("AggregateLet", new SemanticVersion(3, 6, 0));
+        private static readonly Feature __aggregateMerge = new Feature("AggregateMerge", new SemanticVersion(4, 2, 0));
+        private static readonly Feature __aggregateOut = new Feature("AggregateOut", new SemanticVersion(2, 6, 0));
+        private static readonly Feature __aggregateOutToDifferentDatabase = new Feature("AggregateOutToDifferentDatabase", new SemanticVersion(4, 3, 0));
+        private static readonly Feature __aggregateToString = new Feature("AggregateToString", new SemanticVersion(4, 0, 0));
+        private static readonly Feature __aggregateUnionWith = new Feature("AggregateUnionWith", new SemanticVersion(4, 3, 4));
+        private static readonly ArrayFiltersFeature __arrayFilters = new ArrayFiltersFeature("ArrayFilters", new SemanticVersion(3, 5, 11));
+        private static readonly Feature __bypassDocumentValidation = new Feature("BypassDocumentValidation", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __changeStreamStage = new Feature("ChangeStreamStage", new SemanticVersion(3, 5, 11));
+        private static readonly Feature __changeStreamPostBatchResumeToken = new Feature("ChangeStreamPostBatchResumeToken", new SemanticVersion(4, 0, 7));
+        private static readonly Feature __clientSideEncryption = new Feature("ClientSideEncryption", new SemanticVersion(4, 1, 9));
+        private static readonly CollationFeature __collation = new CollationFeature("Collation", new SemanticVersion(3, 3, 11));
+        private static readonly Feature __commandMessage = new Feature("CommandMessage", new SemanticVersion(3, 6, 0));
+        private static readonly CommandsThatWriteAcceptWriteConcernFeature __commandsThatWriteAcceptWriteConcern = new CommandsThatWriteAcceptWriteConcernFeature("CommandsThatWriteAcceptWriteConcern", new SemanticVersion(3, 3, 11));
+        private static readonly Feature __createIndexCommitQuorum = new Feature("CreateIndexCommitQuorum", new SemanticVersion(4, 4, 0, ""));
+        private static readonly Feature __createIndexesCommand = new Feature("CreateIndexesCommand", new SemanticVersion(2, 6, 0));
+        private static readonly Feature __createIndexesUsingInsertOperations = new Feature("CreateIndexesUsingInsertOperations", new SemanticVersion(1, 0, 0), new SemanticVersion(4, 1, 1, ""));
+        private static readonly Feature __currentOpCommand = new Feature("CurrentOpCommand", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __documentValidation = new Feature("DocumentValidation", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __eval = new Feature("Eval", new SemanticVersion(0, 0, 0), new SemanticVersion(4, 1, 0, ""));
+        private static readonly Feature __explainCommand = new Feature("ExplainCommand", new SemanticVersion(3, 0, 0));
+        private static readonly Feature __failPoints = new Feature("FailPoints", new SemanticVersion(2, 4, 0));
+        private static readonly Feature __failPointsFailCommand = new Feature("FailPointsFailCommand", new SemanticVersion(4, 0, 0));
+        private static readonly Feature __failPointsFailCommandForSharded = new Feature("FailPointsFailCommandForSharded", new SemanticVersion(4, 1, 5));
+        private static readonly FindAllowDiskUseFeature __findAllowDiskUse = new FindAllowDiskUseFeature("FindAllowDiskUse", new SemanticVersion(4, 4, 0, ""));
+        private static readonly Feature __findAndModifyWriteConcern = new Feature("FindAndModifyWriteConcern", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __findCommand = new Feature("FindCommand", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __geoNearCommand = new Feature("GeoNearCommand", new SemanticVersion(1, 0, 0), new SemanticVersion(4, 1, 0, ""));
+        private static readonly Feature __groupCommand = new Feature("GroupCommand", new SemanticVersion(1, 0, 0), new SemanticVersion(4, 1, 1, ""));
+        private static readonly Feature __hedgedReads = new Feature("HedgedReads", new SemanticVersion(4, 3, 1, ""));
+        private static readonly HintForDeleteOperationsFeature __hintForDeleteOperations = new HintForDeleteOperationsFeature("HintForDeleteOperations", new SemanticVersion(4, 3, 4));
+        private static readonly HintForFindAndModifyFeature __hintForFindAndModifyFeature = new HintForFindAndModifyFeature("HintForFindAndModify", new SemanticVersion(4, 3, 4));
+        private static readonly HintForUpdateAndReplaceOperationsFeature __hintForUpdateAndReplaceOperations = new HintForUpdateAndReplaceOperationsFeature("HintForUpdateAndReplaceOperations", new SemanticVersion(4, 2, 0));
+        private static readonly Feature __keepConnectionPoolWhenNotMasterConnectionException = new Feature("KeepConnectionPoolWhenNotMasterConnectionException", new SemanticVersion(4, 1, 10));
+        private static readonly Feature __keepConnectionPoolWhenReplSetStepDown = new Feature("KeepConnectionPoolWhenReplSetStepDown", new SemanticVersion(4, 1, 10));
+        private static readonly Feature __killCursorsCommand = new Feature("KillCursorsCommand", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __listCollectionsCommand = new Feature("ListCollectionsCommand", new SemanticVersion(3, 0, 0));
+        private static readonly Feature __listDatabasesAuthorizedDatabases = new Feature("ListDatabasesAuthorizedDatabases", new SemanticVersion(4, 0, 5));
+        private static readonly Feature __listDatabasesFilter = new Feature("ListDatabasesFilter", new SemanticVersion(3, 4, 2));
+        private static readonly Feature __listDatabasesNameOnlyOption = new Feature("ListDatabasesNameOnlyOption", new SemanticVersion(3, 4, 3));
+        private static readonly Feature __listIndexesCommand = new Feature("ListIndexesCommand", new SemanticVersion(3, 0, 0));
+        private static readonly Feature __indexOptionsDefaults = new Feature("IndexOptionsDefaults", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __maxStaleness = new Feature("MaxStaleness", new SemanticVersion(3, 3, 12));
+        private static readonly Feature __maxTime = new Feature("MaxTime", new SemanticVersion(2, 6, 0));
+        private static readonly Feature __mmapV1StorageEngine = new Feature("MmapV1StorageEngine", new SemanticVersion(0, 0, 0), new SemanticVersion(4, 1, 0, ""));
+        private static readonly Feature __partialIndexes = new Feature("PartialIndexes", new SemanticVersion(3, 2, 0));
+        private static readonly ReadConcernFeature __readConcern = new ReadConcernFeature("ReadConcern", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __retryableReads = new Feature("RetryableReads", new SemanticVersion(3, 6, 0));
+        private static readonly Feature __retryableWrites = new Feature("RetryableWrites", new SemanticVersion(3, 6, 0));
+        private static readonly Feature __scramSha1Authentication = new Feature("ScramSha1Authentication", new SemanticVersion(3, 0, 0));
+        private static readonly Feature __scramSha256Authentication = new Feature("ScramSha256Authentication", new SemanticVersion(4, 0, 0, ""));
+        private static readonly Feature __serverExtractsUsernameFromX509Certificate = new Feature("ServerExtractsUsernameFromX509Certificate", new SemanticVersion(3, 3, 12));
+        private static readonly Feature __serverReturnsResumableChangeStreamErrorLabel = new Feature("ServerReturnsResumableChangeStreamErrorLabel", new SemanticVersion(4, 3, 0));
+        private static readonly Feature __serverReturnsRetryableWriteErrorLabel = new Feature("ServerReturnsRetryableWriteErrorLabel", new SemanticVersion(4, 3, 0));
+        private static readonly Feature __shardedTransactions = new Feature("ShardedTransactions", new SemanticVersion(4, 1, 6));
+        private static readonly Feature __speculativeAuthentication = new Feature("SpeculativeAuthentication", new SemanticVersion(4, 4, 0, "rc0"));
+        private static readonly Feature __tailableCursor = new Feature("TailableCursor", new SemanticVersion(3, 2, 0));
+        private static readonly Feature __transactions = new Feature("Transactions", new SemanticVersion(4, 0, 0));
+        private static readonly Feature __userManagementCommands = new Feature("UserManagementCommands", new SemanticVersion(2, 6, 0));
+        private static readonly Feature __views = new Feature("Views", new SemanticVersion(3, 3, 11));
+        private static readonly Feature __wildcardIndexes = new Feature("WildcardIndexes", new SemanticVersion(4, 1, 6));
+        private static readonly Feature __writeCommands = new Feature("WriteCommands", new SemanticVersion(2, 6, 0));
 
         /// <summary>
         /// Gets the aggregate feature.
@@ -476,8 +476,8 @@ namespace MongoDB.Driver.Core.Misc
         #endregion
 
         private readonly string _name;
-        private readonly ServerVersion _firstSupportedVersion;
-        private readonly ServerVersion _supportRemovedVersion;
+        private readonly SemanticVersion _firstSupportedVersion;
+        private readonly SemanticVersion _supportRemovedVersion;
 
 
         /// <summary>
@@ -486,7 +486,7 @@ namespace MongoDB.Driver.Core.Misc
         /// <param name="name">The name of the feature.</param>
         /// <param name="firstSupportedVersion">The first server version that supports the feature.</param>
         /// /// <param name="supportRemovedVersion">The server version that stops support the feature.</param>
-        public Feature(string name, ServerVersion firstSupportedVersion, ServerVersion supportRemovedVersion = null)
+        public Feature(string name, SemanticVersion firstSupportedVersion, SemanticVersion supportRemovedVersion = null)
         {
             _name = name;
             _firstSupportedVersion = firstSupportedVersion;
@@ -501,19 +501,19 @@ namespace MongoDB.Driver.Core.Misc
         /// <summary>
         /// Gets the first server version that supports the feature.
         /// </summary>
-        public ServerVersion FirstSupportedVersion => _firstSupportedVersion;
+        public SemanticVersion FirstSupportedVersion => _firstSupportedVersion;
 
         /// <summary>
         /// Gets the last server version that does not support the feature.
         /// </summary>
-        public ServerVersion LastNotSupportedVersion => VersionBefore(_firstSupportedVersion);
+        public SemanticVersion LastNotSupportedVersion => VersionBefore(_firstSupportedVersion);
 
         /// <summary>
         /// Determines whether a feature is supported by a version of the server.
         /// </summary>
         /// <param name="serverVersion">The server version.</param>
         /// <returns>Whether a feature is supported by a version of the server.</returns>
-        public bool IsSupported(ServerVersion serverVersion)
+        public bool IsSupported(SemanticVersion serverVersion)
         {
             return _supportRemovedVersion != null
                    ? serverVersion >= _firstSupportedVersion && serverVersion < _supportRemovedVersion
@@ -525,7 +525,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </summary>
         /// <param name="isSupported">Whether the feature is supported or not.</param>
         /// <returns>A version of the server where the feature is or is not supported.</returns>
-        public ServerVersion SupportedOrNotSupportedVersion(bool isSupported)
+        public SemanticVersion SupportedOrNotSupportedVersion(bool isSupported)
         {
             return isSupported ? _firstSupportedVersion : VersionBefore(_firstSupportedVersion);
         }
@@ -534,7 +534,7 @@ namespace MongoDB.Driver.Core.Misc
         /// Throws if the feature is not supported by a version of the server.
         /// </summary>
         /// <param name="serverVersion">The server version.</param>
-        public void ThrowIfNotSupported(ServerVersion serverVersion)
+        public void ThrowIfNotSupported(SemanticVersion serverVersion)
         {
             if (!IsSupported(serverVersion))
             {
@@ -542,19 +542,19 @@ namespace MongoDB.Driver.Core.Misc
             }
         }
 
-        private ServerVersion VersionBefore(ServerVersion version)
+        private SemanticVersion VersionBefore(SemanticVersion version)
         {
             if (version.Patch > 0)
             {
-                return new ServerVersion(version.Major, version.Minor, version.Patch - 1);
+                return new SemanticVersion(version.Major, version.Minor, version.Patch - 1);
             }
             else if (version.Minor > 0)
             {
-                return new ServerVersion(version.Major, version.Minor - 1, 99);
+                return new SemanticVersion(version.Major, version.Minor - 1, 99);
             }
             else if (version.Major > 0)
             {
-                return new ServerVersion(version.Major - 1, 99, 99);
+                return new SemanticVersion(version.Major - 1, 99, 99);
             }
             else
             {

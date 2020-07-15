@@ -406,11 +406,11 @@ namespace MongoDB.Driver.Core.Bindings
             EndPoint endPoint = null,
             ServerState state = ServerState.Disconnected,
             ServerType type = ServerType.Unknown,
-            ServerVersion version = null)
+            SemanticVersion version = null)
         {
             endPoint = endPoint ?? new DnsEndPoint("localhost", 27017);
             serverId = serverId ?? new ServerId(new ClusterId(1), endPoint);
-            version = version ?? new ServerVersion(4, 0, 0);
+            version = version ?? SemanticVersion.Parse("4.0.0");
             return new ServerDescription(serverId, endPoint, state: state, type: type, version: version);
         }
 

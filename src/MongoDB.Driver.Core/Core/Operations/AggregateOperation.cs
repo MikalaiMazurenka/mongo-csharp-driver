@@ -344,7 +344,7 @@ namespace MongoDB.Driver.Core.Operations
                 { "readConcern", readConcern, readConcern != null }
             };
 
-            var useCursor = _useCursor.GetValueOrDefault(true) || connectionDescription.ServerVersion >= new ServerVersion(3, 6, 0);
+            var useCursor = _useCursor.GetValueOrDefault(true) || connectionDescription.ServerVersion >= new SemanticVersion(3, 6, 0);
             if (useCursor)
             {
                 command["cursor"] = new BsonDocument

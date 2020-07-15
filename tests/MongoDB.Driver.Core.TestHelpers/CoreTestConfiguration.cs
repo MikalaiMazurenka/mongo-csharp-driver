@@ -76,7 +76,7 @@ namespace MongoDB.Driver
             get { return __messageEncoderSettings; }
         }
 
-        public static ServerVersion ServerVersion
+        public static SemanticVersion ServerVersion
         {
             get
             {

@@ -68,7 +68,7 @@ namespace MongoDB.Driver.Tests
                         index.Contains("unique").Should().BeFalse();
                     }
 
-                    if (CoreTestConfiguration.ServerVersion < new ServerVersion(4, 3, 0))
+                    if (CoreTestConfiguration.ServerVersion < new SemanticVersion(4, 3, 0))
                     {
                         index["ns"].AsString.Should().Be(collectionNamespace.ToString());
                     }

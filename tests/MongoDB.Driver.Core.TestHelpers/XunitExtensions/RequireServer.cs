@@ -39,7 +39,7 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
         }
         #endregion
 
-        private ServerVersion _serverVersion;
+        private SemanticVersion _serverVersion;
 
         public RequireServer()
         {
@@ -174,7 +174,7 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
                 $"and this test requires TLS={required}.");
         }
 
-        public RequireServer VersionGreaterThanOrEqualTo(ServerVersion version)
+        public RequireServer VersionGreaterThanOrEqualTo(SemanticVersion version)
         {
             var actualVersion = CoreTestConfiguration.ServerVersion;
             if (actualVersion >= version)
@@ -186,10 +186,10 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
 
         public RequireServer VersionGreaterThanOrEqualTo(string version)
         {
-            return VersionGreaterThanOrEqualTo(ServerVersion.Parse(version));
+            return VersionGreaterThanOrEqualTo(SemanticVersion.Parse(version));
         }
 
-        public RequireServer VersionLessThan(ServerVersion version)
+        public RequireServer VersionLessThan(SemanticVersion version)
         {
             var actualVersion = CoreTestConfiguration.ServerVersion;
             if (actualVersion < version)
@@ -201,10 +201,10 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
 
         public RequireServer VersionLessThan(string version)
         {
-            return VersionLessThan(ServerVersion.Parse(version));
+            return VersionLessThan(SemanticVersion.Parse(version));
         }
 
-        public RequireServer VersionLessThanOrEqualTo(ServerVersion version)
+        public RequireServer VersionLessThanOrEqualTo(SemanticVersion version)
         {
             var actualVersion = CoreTestConfiguration.ServerVersion;
             if (actualVersion <= version)
@@ -216,7 +216,7 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
 
         public RequireServer VersionLessThanOrEqualTo(string version)
         {
-            return VersionLessThanOrEqualTo(ServerVersion.Parse(version));
+            return VersionLessThanOrEqualTo(SemanticVersion.Parse(version));
         }
 
         // private methods
@@ -225,7 +225,7 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
             if (requirement.TryGetValue("minServerVersion", out var minServerVersionBsonValue))
             {
                 var actualVersion = CoreTestConfiguration.ServerVersion;
-                var minServerVersion = ServerVersion.Parse(minServerVersionBsonValue.AsString);
+                var minServerVersion = SemanticVersion.Parse(minServerVersionBsonValue.AsString);
                 if (actualVersion < minServerVersion)
                 {
                     return false;
@@ -235,7 +235,7 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
             if (requirement.TryGetValue("maxServerVersion", out var maxServerVersionBsonValue))
             {
                 var actualVersion = CoreTestConfiguration.ServerVersion;
-                var maxServerVersion = ServerVersion.Parse(maxServerVersionBsonValue.AsString);
+                var maxServerVersion = SemanticVersion.Parse(maxServerVersionBsonValue.AsString);
                 if (actualVersion > maxServerVersion)
                 {
                     return false;

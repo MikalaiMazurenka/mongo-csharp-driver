@@ -41,7 +41,7 @@ namespace MongoDB.Driver.Core.Helpers
                 state: ServerState.Connected,
                 tags: tags,
                 type: serverType,
-                version: new ServerVersion(2, 6, 3),
+                version: new SemanticVersion(2, 6, 3),
                 wireVersionRange: wireVersionRange ?? new Range<int>(0, 2));
         }
     }

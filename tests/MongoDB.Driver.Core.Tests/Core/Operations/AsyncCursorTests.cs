@@ -68,7 +68,7 @@ namespace MongoDB.Driver.Core.Operations
         [InlineData(true, "3.2.0")]
         public void Close_should_call_supported_kill_cursors(bool async, string version)
         {
-            bool isKillCursorsCommandSupported = Feature.KillCursorsCommand.IsSupported(ServerVersion.Parse(version));
+            bool isKillCursorsCommandSupported = Feature.KillCursorsCommand.IsSupported(SemanticVersion.Parse(version));
 
             var mockChannelHandle = new Mock<IChannelHandle>();
             int testCursorId = 1;

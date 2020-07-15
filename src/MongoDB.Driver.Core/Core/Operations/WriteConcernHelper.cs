@@ -21,7 +21,7 @@ namespace MongoDB.Driver.Core.Operations
 {
     internal static class WriteConcernHelper
     {
-        public static BsonDocument GetWriteConcernForCommand(ICoreSession session, WriteConcern writeConcern, ServerVersion serverVersion, Feature requiredFeature)
+        public static BsonDocument GetWriteConcernForCommand(ICoreSession session, WriteConcern writeConcern, SemanticVersion serverVersion, Feature requiredFeature)
         {
             if (!session.IsInTransaction && writeConcern != null && !writeConcern.IsServerDefault && requiredFeature.IsSupported(serverVersion))
             {
@@ -31,7 +31,7 @@ namespace MongoDB.Driver.Core.Operations
             return null;
         }
 
-        public static BsonDocument GetWriteConcernForCommandThatWrites(ICoreSession session, WriteConcern writeConcern, ServerVersion serverVersion)
+        public static BsonDocument GetWriteConcernForCommandThatWrites(ICoreSession session, WriteConcern writeConcern, SemanticVersion serverVersion)
         {
             return GetWriteConcernForCommand(session, writeConcern, serverVersion, Feature.CommandsThatWriteAcceptWriteConcern);
         }

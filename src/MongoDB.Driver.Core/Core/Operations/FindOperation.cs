@@ -604,7 +604,7 @@ namespace MongoDB.Driver.Core.Operations
         }
 #pragma warning restore
 
-        private IExecutableInRetryableReadContext<IAsyncCursor<TDocument>> CreateOperation(ServerVersion serverVersion)
+        private IExecutableInRetryableReadContext<IAsyncCursor<TDocument>> CreateOperation(SemanticVersion serverVersion)
         {
             var hasExplainModifier = _modifiers != null && _modifiers.Contains("$explain");
             if (Feature.FindCommand.IsSupported(serverVersion) && !hasExplainModifier)

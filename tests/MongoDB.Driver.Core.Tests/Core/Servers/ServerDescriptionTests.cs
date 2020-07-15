@@ -73,7 +73,7 @@ namespace MongoDB.Driver.Core.Servers
             var state = ServerState.Connected;
             var tags = new TagSet(new[] { new Tag("x", "a") });
             var type = ServerType.ReplicaSetPrimary;
-            var version = new ServerVersion(2, 6, 3);
+            var version = new SemanticVersion(2, 6, 3);
             var wireVersionRange = new Range<int>(2, 3);
 
             var subject = new ServerDescription(
@@ -131,7 +131,7 @@ namespace MongoDB.Driver.Core.Servers
             var state = ServerState.Connected;
             var tags = new TagSet(new[] { new Tag("x", "a") });
             var type = ServerType.ReplicaSetPrimary;
-            var version = new ServerVersion(2, 6, 3);
+            var version = new SemanticVersion(2, 6, 3);
             var wireVersionRange = new Range<int>(2, 3);
 
             var subject = new ServerDescription(
@@ -159,7 +159,7 @@ namespace MongoDB.Driver.Core.Servers
                 case "ServerId": serverId = new ServerId(new ClusterId(), endPoint); break;
                 case "Tags": tags = new TagSet(new[] { new Tag("x", "b") }); break;
                 case "Type": type = ServerType.ReplicaSetSecondary; break;
-                case "Version": version = new ServerVersion(version.Major, version.Minor, version.Patch + 1); break;
+                case "Version": version = new SemanticVersion(version.Major, version.Minor, version.Patch + 1); break;
                 case "WireVersionRange": wireVersionRange = new Range<int>(0, 0); break;
             }
 
@@ -269,7 +269,7 @@ namespace MongoDB.Driver.Core.Servers
             var state = ServerState.Connected;
             var tags = new TagSet(new[] { new Tag("x", "a") });
             var type = ServerType.ReplicaSetPrimary;
-            var version = new ServerVersion(2, 6, 3);
+            var version = new SemanticVersion(2, 6, 3);
             var wireVersionRange = new Range<int>(2, 3);
 
             var subject = new ServerDescription(
@@ -312,7 +312,7 @@ namespace MongoDB.Driver.Core.Servers
                 case "State": state = ServerState.Disconnected; break;
                 case "Tags": tags = new TagSet(new[] { new Tag("x", "b") }); break;
                 case "Type": type = ServerType.ReplicaSetSecondary; break;
-                case "Version": version = new ServerVersion(version.Major, version.Minor, version.Patch + 1); break;
+                case "Version": version = new SemanticVersion(version.Major, version.Minor, version.Patch + 1); break;
                 case "WireVersionRange": wireVersionRange = new Range<int>(0, 0); break;
             }
 
@@ -355,7 +355,7 @@ namespace MongoDB.Driver.Core.Servers
             var state = ServerState.Connected;
             var tags = new TagSet(new[] { new Tag("x", "a") });
             var type = ServerType.ReplicaSetPrimary;
-            var version = new ServerVersion(2, 6, 3);
+            var version = new SemanticVersion(2, 6, 3);
             var wireVersionRange = new Range<int>(0, 2);
 
             var subject = new ServerDescription(

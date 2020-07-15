@@ -96,7 +96,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values("3.0.0", "3.2.0")] string serverVersionString,
             [Values(null, ReadConcernLevel.Local, ReadConcernLevel.Majority)] ReadConcernLevel? readConcernLevel)
         {
-            var serverVersion = ServerVersion.Parse(serverVersionString);
+            var serverVersion = SemanticVersion.Parse(serverVersionString);
             var filter = new BsonDocument("x", 1);
             var limit = 10;
             var maxDistance = 30;
@@ -154,7 +154,7 @@ namespace MongoDB.Driver.Core.Operations
             {
                 MaxTime = TimeSpan.FromTicks(maxTimeTicks)
             };
-            var serverVersion = new ServerVersion(3, 2, 0);
+            var serverVersion = new SemanticVersion(3, 2, 0);
             var connectionDescription = OperationTestHelper.CreateConnectionDescription(serverVersion);
             var session = OperationTestHelper.CreateSession();
 

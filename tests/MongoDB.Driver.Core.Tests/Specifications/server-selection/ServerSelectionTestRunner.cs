@@ -201,7 +201,7 @@ namespace MongoDB.Driver.Specifications.server_selection
             }
             var maxWireVersion = serverDescription.GetValue("maxWireVersion", 5).ToInt32();
             var wireVersionRange = new Range<int>(0, maxWireVersion);
-            var serverVersion = maxWireVersion == 5 ? new ServerVersion(3, 4, 0) : new ServerVersion(3, 2, 0);
+            var serverVersion = maxWireVersion == 5 ? new SemanticVersion(3, 4, 0) : new SemanticVersion(3, 2, 0);
             DateTime lastUpdateTimestamp;
             if (serverDescription.Contains("lastUpdateTime"))
             {

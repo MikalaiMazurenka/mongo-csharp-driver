@@ -28,7 +28,7 @@ namespace MongoDB.Driver.Tests.Specifications.retryable_writes
         private BsonDocument _replacement;
         private FindOneAndReplaceOptions<BsonDocument> _options = new FindOneAndReplaceOptions<BsonDocument>();
         private BsonDocument _result;
-        private ServerVersion _serverVersion;
+        private SemanticVersion _serverVersion;
 
         // public methods
         public override void Initialize(BsonDocument operation)
@@ -92,7 +92,7 @@ namespace MongoDB.Driver.Tests.Specifications.retryable_writes
 
         protected override void VerifyCollectionContents(List<BsonDocument> actualContents, List<BsonDocument> expectedContents)
         {
-            if (_serverVersion < new ServerVersion(2, 6, 0) && _options.IsUpsert)
+            if (_serverVersion < new SemanticVersion(2, 6, 0) && _options.IsUpsert)
             {
                 RemoveIds(actualContents);
                 RemoveIds(expectedContents);

@@ -38,7 +38,7 @@ namespace MongoDB.Driver.Tests
     public class MongoCollectionTests
     {
         #region static
-        private static readonly ServerVersion __mapReduceNewServerImplementationServerVersion = new ServerVersion(4, 3, 0);
+        private static readonly SemanticVersion __mapReduceNewServerImplementationServerVersion = new SemanticVersion(4, 3, 0);
         #endregion
 
         private class TestClass
@@ -676,7 +676,7 @@ namespace MongoDB.Driver.Tests
         {
             void assertNamespace(IndexInfo indexInfo)
             {
-                if (CoreTestConfiguration.ServerVersion < new ServerVersion(4, 3, 0, 0))
+                if (CoreTestConfiguration.ServerVersion < new SemanticVersion(4, 3, 0, ""))
                 {
                     Assert.Equal(_collection.FullName, indexInfo.Namespace);
                 }
@@ -1582,7 +1582,7 @@ namespace MongoDB.Driver.Tests
         [SkippableFact]
         public void TestFindWithMaxScan()
         {
-            RequireServer.Check().VersionLessThan("4.1.0");
+            RequireServer.Check().VersionLessThan("4.1.0-");
             _collection.Drop();
             var docs = Enumerable.Range(0, 10).Select(x => new BsonDocument("_id", x));
             _collection.InsertBatch(docs);

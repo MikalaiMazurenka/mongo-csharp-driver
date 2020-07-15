@@ -91,7 +91,7 @@ namespace MongoDB.Driver.Tests.Specifications.crud
         {
             var data = collection.FindSync("{}").ToList();
 
-            if (ClusterDescription.Servers[0].Version < new ServerVersion(2, 6, 0) && _options.IsUpsert)
+            if (ClusterDescription.Servers[0].Version < new SemanticVersion(2, 6, 0) && _options.IsUpsert)
             {
                 foreach (var doc in data)
                 {
