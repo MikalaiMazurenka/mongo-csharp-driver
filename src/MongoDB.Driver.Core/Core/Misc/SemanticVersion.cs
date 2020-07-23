@@ -14,7 +14,6 @@
 */
 
 using System;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace MongoDB.Driver.Core.Misc
@@ -129,12 +128,10 @@ namespace MongoDB.Driver.Core.Misc
                 return result;
             }
 
-            if (IsServerVersion(_preRelease) || IsServerVersion(other._preRelease))
+            if (ServerVersion.TryParse(ToString(), out var serverVersion) &&
+                ServerVersion.TryParse(other.ToString(), out var otherServerVersion))
             {
-                var thisServerVersion = ServerVersion.FromSemanticVersion(this);
-                var otherServerVersion = ServerVersion.FromSemanticVersion(other);
-
-                return thisServerVersion.CompareTo(otherServerVersion);
+                return serverVersion.CompareTo(otherServerVersion);
             }
 
             if (_preRelease == null && other._preRelease == null)
@@ -320,160 +317,6 @@ namespace MongoDB.Driver.Core.Misc
         public static bool operator <=(SemanticVersion a, SemanticVersion b)
         {
             return !(b < a);
-        }
-
-        // private methods
-        private bool IsServerVersion(string preRelease)
-        {
-            if (preRelease == null)
-            {
-                return false;
-            }
-
-            var pattern = @"^((?<releaseCandidate>rc\d+)?-?(?<internalBuild>\d+-g[0-9a-f]{4,40})?)$";
-            var match = Regex.Match(preRelease, pattern);
-
-            return match.Groups["releaseCandidate"].Success || match.Groups["internalBuild"].Success;
-        }
-
-        // nested types
-        internal class ServerVersion
-        {
-            // fields
-            private readonly string _commitHash;
-            private readonly int? _internalBuild;
-            private readonly int _major;
-            private readonly int _minor;
-            private readonly int _patch;
-            private readonly int? _releaseCandidate;
-
-            // constructors
-            internal ServerVersion(int major, int minor, int patch, int? releaseCandidate, int? internalBuild, string commitHash)
-            {
-                _major = Ensure.IsGreaterThanOrEqualToZero(major, nameof(major));
-                _minor = Ensure.IsGreaterThanOrEqualToZero(minor, nameof(minor));
-                _patch = Ensure.IsGreaterThanOrEqualToZero(patch, nameof(patch));
-                _releaseCandidate = releaseCandidate; // can be null
-                _internalBuild = internalBuild; // can be null
-                _commitHash = commitHash; // can be null
-            }
-
-            // public methods
-            public int CompareTo(ServerVersion other)
-            {
-                if (other == null)
-                {
-                    return 1;
-                }
-
-                var result = _major.CompareTo(other._major);
-                if (result != 0)
-                {
-                    return result;
-                }
-
-                result = _minor.CompareTo(other._minor);
-                if (result != 0)
-                {
-                    return result;
-                }
-
-                result = _patch.CompareTo(other._patch);
-                if (result != 0)
-                {
-                    return result;
-                }
-
-                if (_releaseCandidate != null || other._releaseCandidate != null)
-                {
-                    if (_releaseCandidate == null)
-                    {
-                        return 1;
-                    }
-                    if (other._releaseCandidate == null)
-                    {
-                        return -1;
-                    }
-
-                    result = _releaseCandidate.Value.CompareTo(other._releaseCandidate.Value);
-                    if (result != 0)
-                    {
-                        return result;
-                    }
-                }
-
-                if (_internalBuild != null || other._internalBuild != null)
-                {
-                    if (_internalBuild == null)
-                    {
-                        return -1;
-                    }
-                    if (other._internalBuild == null)
-                    {
-                        return 1;
-                    }
-
-                    result = _internalBuild.Value.CompareTo(other._internalBuild.Value);
-                    if (result != 0)
-                    {
-                        return result;
-                    }
-                }
-
-                if (_commitHash == null && other._commitHash == null)
-                {
-                    return 0;
-                }
-                if (_commitHash == null)
-                {
-                    return -1;
-                }
-
-                return _commitHash.CompareTo(other._commitHash);
-            }
-
-            // static methods
-            public static ServerVersion FromSemanticVersion(SemanticVersion semanticVersion)
-            {
-                var preRelease = semanticVersion.PreRelease;
-
-                if (preRelease == null)
-                {
-                    return new ServerVersion(
-                        major: semanticVersion.Major,
-                        minor: semanticVersion.Minor,
-                        patch: semanticVersion.Patch,
-                        releaseCandidate: null,
-                        internalBuild: null,
-                        commitHash: null);
-                }
-
-                var pattern = @"^((rc(?<releaseCandidate>\d+))?-?((?<internalBuild>\d+)-g(?<commitHash>[0-9a-f]{4,40}))?)$";
-                var match = Regex.Match(semanticVersion.PreRelease, pattern);
-
-                var releaseCandidateEntry = match.Groups["releaseCandidate"].Success ? match.Groups["releaseCandidate"].Value : null;
-                var internalBuildEntry = match.Groups["internalBuild"].Success ? match.Groups["internalBuild"].Value : null;
-                var commitHash = match.Groups["commitHash"].Success ? match.Groups["commitHash"].Value : null;
-
-                int? releaseCandidate = null;
-                if (releaseCandidateEntry != null && int.TryParse(releaseCandidateEntry, out int releaseCandidateParsed))
-                {
-                    releaseCandidate = releaseCandidateParsed;
-                }
-                int? internalBuild = null;
-                if (internalBuildEntry != null && int.TryParse(internalBuildEntry, out int internalBuildParsed))
-                {
-                    internalBuild = internalBuildParsed;
-                }
-
-                return new ServerVersion(
-                    major: semanticVersion.Major,
-                    minor: semanticVersion.Minor,
-                    patch: semanticVersion.Patch,
-                    releaseCandidate: releaseCandidate,
-                    internalBuild: internalBuild,
-                    commitHash: commitHash);
-            }
         }
     }
 }
