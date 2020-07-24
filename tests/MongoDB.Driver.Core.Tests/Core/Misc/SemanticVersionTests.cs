@@ -48,9 +48,15 @@ namespace MongoDB.Driver.Core.Misc
         [InlineData("4.4.0-rc12-5-g5a9a742f6f", "4.4.0-rc12", 1)]
         [InlineData("4.4.0-rc12-5-g5a9a742f6f", "4.4.0-rc12-4-g5a9a742f6f", 1)]
         [InlineData("4.4.0-rc12-5-g5a9a742f6f", "4.4.0-rc13-5-g5a9a742f6f", -1)]
-        [InlineData("4.4.0-zeta", "4.4.0-rc12", 1)] // versions which cannot be converted to ServerVersion fallback to simple comparison
-        [InlineData("4.4.0-zeta", "4.4.0", -1)] // versions which cannot be converted to ServerVersion fallback to simple comparison
-        [InlineData("4.4.0-zeta", "4.4.0-4-g5a9a742f6f", 1)] // versions which cannot be converted to ServerVersion fallback to simple comparison
+        [InlineData("4.4.0-alpha1", "4.4.0-alpha", 1)]
+        [InlineData("4.4.0-alpha3", "4.4.0-beta1", -1)]
+        [InlineData("4.4.0-alpha0", "4.4.0-alpha", 1)]
+        [InlineData("4.4.0-alpha2", "4.4.0-alpha1", 1)]
+        [InlineData("4.4.0-alpha2", "4.4.0-alpha11", -1)]
+        [InlineData("4.4.0-alpha", "4.4.0", -1)]
+        [InlineData("4.4.0-alpha", "4.4.0-alpha", 0)]
+        [InlineData("4.4.0-beta", "4.4.0-5-g5a9a742f6f", -1)]
+        [InlineData("4.4.0-alpha12-5-g5a9a742f6f", "4.4.0-rc13-5-g5a9a742f6f", -1)]
         public void Comparisons_should_be_correct(string a, string b, int comparison)
         {
             var subject = SemanticVersion.Parse(a);

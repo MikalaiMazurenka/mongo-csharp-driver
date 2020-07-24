@@ -47,6 +47,15 @@ namespace MongoDB.Driver.Core.Misc
         [InlineData("4.4.0-rc12-5-g5a9a742f6f", "4.4.0-rc12", 1)]
         [InlineData("4.4.0-rc12-5-g5a9a742f6f", "4.4.0-rc12-4-g5a9a742f6f", 1)]
         [InlineData("4.4.0-rc12-5-g5a9a742f6f", "4.4.0-rc13-5-g5a9a742f6f", -1)]
+        [InlineData("4.4.0-alpha1", "4.4.0-alpha", 1)]
+        [InlineData("4.4.0-alpha3", "4.4.0-beta1", -1)]
+        [InlineData("4.4.0-alpha0", "4.4.0-alpha", 1)]
+        [InlineData("4.4.0-alpha2", "4.4.0-alpha1", 1)]
+        [InlineData("4.4.0-alpha2", "4.4.0-alpha11", -1)]
+        [InlineData("4.4.0-alpha", "4.4.0", -1)]
+        [InlineData("4.4.0-alpha", "4.4.0-alpha", 0)]
+        [InlineData("4.4.0-beta", "4.4.0-5-g5a9a742f6f", -1)]
+        [InlineData("4.4.0-alpha12-5-g5a9a742f6f", "4.4.0-rc13-5-g5a9a742f6f", -1)]
         public void Comparisons_should_be_correct(string a, string b, int comparison)
         {
             var subject = a == null ? null : ServerVersion.Parse(a);
@@ -62,15 +71,18 @@ namespace MongoDB.Driver.Core.Misc
         }
 
         [Theory]
-        [InlineData("4.2", 4, 2, 0, null, null, null)]
-        [InlineData("1.0.0", 1, 0, 0, null, null, null)]
-        [InlineData("1.2.0", 1, 2, 0, null, null, null)]
-        [InlineData("1.0.3", 1, 0, 3, null, null, null)]
-        [InlineData("1.0.3-rc0", 1, 0, 3, 0, null, null)]
-        [InlineData("1.0.3-rc23", 1, 0, 3, 23, null, null)]
-        [InlineData("4.5.0-489-gb8f58d7", 4, 5, 0, null, 489, "b8f58d7")]
-        [InlineData("4.4.0-rc12-5-g5a9a742f6f", 4, 4, 0, 12, 5, "5a9a742f6f")]
-        public void Parse_should_handle_valid_server_version_strings(string versionString, int major, int minor, int patch, int? releaseCandidate, int? internalBuild, string commitHash)
+        [InlineData("4.2", 4, 2, 0, null, null, null, null)]
+        [InlineData("1.0.0", 1, 0, 0, null, null, null, null)]
+        [InlineData("1.2.0", 1, 2, 0, null, null, null, null)]
+        [InlineData("1.0.3", 1, 0, 3, null, null, null, null)]
+        [InlineData("2.1.0-alpha", 2, 1, 0, "alpha", null, null, null)]
+        [InlineData("2.1.0-beta0", 2, 1, 0, "beta", 0, null, null)]
+        [InlineData("2.1.0-gamma12", 2, 1, 0, "gamma", 12, null, null)]
+        [InlineData("1.0.3-rc0", 1, 0, 3, "rc", 0, null, null)]
+        [InlineData("1.0.3-rc23", 1, 0, 3, "rc", 23, null, null)]
+        [InlineData("4.5.0-489-gb8f58d7", 4, 5, 0, null, null, 489, "b8f58d7")]
+        [InlineData("4.4.0-rc12-5-g5a9a742f6f", 4, 4, 0, "rc", 12, 5, "5a9a742f6f")]
+        public void Parse_should_handle_valid_server_version_strings(string versionString, int major, int minor, int patch, string releaseType, int? releaseCandidate, int? commitsAfterRelease, string commitHash)
         {
             var subject = ServerVersion.Parse(versionString);
 
@@ -78,7 +90,7 @@ namespace MongoDB.Driver.Core.Misc
             subject.Minor.Should().Be(minor);
             subject.Patch.Should().Be(patch);
             subject.ReleaseCandidate.Should().Be(releaseCandidate);
-            subject.InternalBuild.Should().Be(internalBuild);
+            subject.CommitsAfterRelease.Should().Be(commitsAfterRelease);
             subject.CommitHash.Should().Be(commitHash);
         }
 
@@ -92,7 +104,7 @@ namespace MongoDB.Driver.Core.Misc
         [InlineData("4.5.0--489-gb8f58d7")]
         [InlineData("4.5.0-489--gb8f58d7")]
         [InlineData("4.5.0-489-gb8f58x7")]
-        [InlineData("1.0.0-alpha")]
+        [InlineData("1.0.0-alpha-1")]
         [InlineData("4.5.0-489")]
         [InlineData("4.5.0-489-b8f58x7")]
         [InlineData("4.4.0-rc12-5-g5a9a742f6f-123")]
@@ -104,15 +116,16 @@ namespace MongoDB.Driver.Core.Misc
         }
 
         [Theory]
-        [InlineData("1.0.0", 1, 0, 0, null, null, null)]
-        [InlineData("1.2.0", 1, 2, 0, null, null, null)]
-        [InlineData("1.0.3", 1, 0, 3, null, null, null)]
-        [InlineData("1.0.3-rc13", 1, 0, 3, 13, null, null)]
-        [InlineData("4.5.0-489-gb8f58d7", 4, 5, 0, null, 489, "b8f58d7")]
-        [InlineData("4.4.0-rc12-5-g5a9a742f6f", 4, 4, 0, 12, 5, "5a9a742f6f")]
-        public void ToString_should_render_a_correct_server_version_string(string versionString, int major, int minor, int patch, int? releaseCandidate, int? internalBuild, string commitHash)
+        [InlineData("1.0.0", 1, 0, 0, null, null, null, null)]
+        [InlineData("1.2.0", 1, 2, 0, null, null, null, null)]
+        [InlineData("1.0.3", 1, 0, 3, null, null, null, null)]
+        [InlineData("2.1.0-alpha", 2, 1, 0, "alpha", null, null, null)]
+        [InlineData("1.0.3-rc13", 1, 0, 3, "rc", 13, null, null)]
+        [InlineData("4.5.0-489-gb8f58d7", 4, 5, 0, null, null, 489, "b8f58d7")]
+        [InlineData("4.4.0-rc12-5-g5a9a742f6f", 4, 4, 0, "rc", 12, 5, "5a9a742f6f")]
+        public void ToString_should_render_a_correct_server_version_string(string versionString, int major, int minor, int patch, string releaseType, int? releaseCandidate, int? commitsAfterRelease, string commitHash)
         {
-            var subject = new ServerVersion(major, minor, patch, releaseCandidate, internalBuild, commitHash);
+            var subject = new ServerVersion(major, minor, patch, releaseType, releaseCandidate, commitsAfterRelease, commitHash);
 
             subject.ToString().Should().Be(versionString);
         }

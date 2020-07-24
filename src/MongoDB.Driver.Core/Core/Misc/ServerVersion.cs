@@ -23,11 +23,12 @@ namespace MongoDB.Driver.Core.Misc
     {
         // fields
         private readonly string _commitHash;
-        private readonly int? _internalBuild;
+        private readonly int? _commitsAfterRelease;
         private readonly int _major;
         private readonly int _minor;
         private readonly int _patch;
         private readonly int? _releaseCandidate;
+        private readonly string _releaseType;
 
         // constructors
         /// <summary>
@@ -37,7 +38,7 @@ namespace MongoDB.Driver.Core.Misc
         /// <param name="minor">The minor version.</param>
         /// <param name="patch">The patch version.</param>
         public ServerVersion(int major, int minor, int patch)
-            : this(major, minor, patch, null)
+            : this(major, minor, patch, releaseType: null, releaseCandidate: null)
         {
         }
 
@@ -47,9 +48,10 @@ namespace MongoDB.Driver.Core.Misc
         /// <param name="major">The major version.</param>
         /// <param name="minor">The minor version.</param>
         /// <param name="patch">The patch version.</param>
+        /// <param name="releaseType">The release type.</param>
         /// <param name="releaseCandidate">The release candidate version.</param>
-        public ServerVersion(int major, int minor, int patch, int? releaseCandidate)
-            : this(major, minor, patch, releaseCandidate, null, null)
+        public ServerVersion(int major, int minor, int patch, string releaseType, int? releaseCandidate)
+            : this(major, minor, patch, releaseType, releaseCandidate, null, null)
         {
         }
 
@@ -59,10 +61,10 @@ namespace MongoDB.Driver.Core.Misc
         /// <param name="major">The major version.</param>
         /// <param name="minor">The minor version.</param>
         /// <param name="patch">The patch version.</param>
-        /// <param name="internalBuild">The internal build version.</param>
+        /// <param name="commitsAfterRelease">The number of commits after release.</param>
         /// <param name="commitHash">The internal build commit hash.</param>
-        public ServerVersion(int major, int minor, int patch, int? internalBuild, string commitHash)
-            : this(major, minor, patch, null, internalBuild, commitHash)
+        public ServerVersion(int major, int minor, int patch, int? commitsAfterRelease, string commitHash)
+            : this(major, minor, patch, null, null, commitsAfterRelease, commitHash)
         {
         }
 
@@ -72,16 +74,18 @@ namespace MongoDB.Driver.Core.Misc
         /// <param name="major">The major version.</param>
         /// <param name="minor">The minor version.</param>
         /// <param name="patch">The patch version.</param>
+        /// <param name="releaseType">The release type.</param>
         /// <param name="releaseCandidate">The release candidate version.</param>
-        /// <param name="internalBuild">The internal build version.</param>
+        /// <param name="commitsAfterRelease">The number of commits after release.</param>
         /// <param name="commitHash">The internal build commit hash.</param>
-        public ServerVersion(int major, int minor, int patch, int? releaseCandidate, int? internalBuild, string commitHash)
+        public ServerVersion(int major, int minor, int patch, string releaseType, int? releaseCandidate, int? commitsAfterRelease, string commitHash)
         {
             _major = Ensure.IsGreaterThanOrEqualToZero(major, nameof(major));
             _minor = Ensure.IsGreaterThanOrEqualToZero(minor, nameof(minor));
             _patch = Ensure.IsGreaterThanOrEqualToZero(patch, nameof(patch));
+            _releaseType = releaseType; // can be null
             _releaseCandidate = releaseCandidate; // can be null
-            _internalBuild = internalBuild; // can be null
+            _commitsAfterRelease = commitsAfterRelease; // can be null
             _commitHash = commitHash; // can be null
         }
 
@@ -98,14 +102,14 @@ namespace MongoDB.Driver.Core.Misc
         }
 
         /// <summary>
-        /// Gets the internal build version.
+        /// Gets the number of commits after release.
         /// </summary>
         /// <value>
-        /// The internal build version.
+        /// The number of commits after release.
         /// </value>
-        public int? InternalBuild
+        public int? CommitsAfterRelease
         {
-            get { return _internalBuild; }
+            get { return _commitsAfterRelease; }
         }
 
         /// <summary>
@@ -152,6 +156,17 @@ namespace MongoDB.Driver.Core.Misc
             get { return _releaseCandidate; }
         }
 
+        /// <summary>
+        /// Gets the release type.
+        /// </summary>
+        /// <value>
+        /// The release type.
+        /// </value>
+        public string ReleaseType
+        {
+            get { return _releaseType; }
+        }
+
         // public methods
         public int CompareTo(ServerVersion other)
         {
@@ -178,36 +193,54 @@ namespace MongoDB.Driver.Core.Misc
                 return result;
             }
 
-            if (_releaseCandidate != null || other._releaseCandidate != null)
+            if (_releaseType != null || other._releaseType != null)
             {
-                if (_releaseCandidate == null)
+                if (_releaseType == null)
                 {
                     return 1;
                 }
-                if (other._releaseCandidate == null)
+                if (other._releaseType == null)
                 {
                     return -1;
                 }
 
-                result = _releaseCandidate.Value.CompareTo(other._releaseCandidate.Value);
+                result = _releaseType.CompareTo(other._releaseType);
                 if (result != 0)
                 {
                     return result;
                 }
+
+                if (_releaseCandidate != null || other._releaseCandidate != null)
+                {
+                    if (_releaseCandidate == null)
+                    {
+                        return -1;
+                    }
+                    if (other._releaseCandidate == null)
+                    {
+                        return 1;
+                    }
+
+                    result = _releaseCandidate.Value.CompareTo(other._releaseCandidate.Value);
+                    if (result != 0)
+                    {
+                        return result;
+                    }
+                }
             }
 
-            if (_internalBuild != null || other._internalBuild != null)
+            if (_commitsAfterRelease != null || other._commitsAfterRelease != null)
             {
-                if (_internalBuild == null)
+                if (_commitsAfterRelease == null)
                 {
                     return -1;
                 }
-                if (other._internalBuild == null)
+                if (other._commitsAfterRelease == null)
                 {
                     return 1;
                 }
 
-                result = _internalBuild.Value.CompareTo(other._internalBuild.Value);
+                result = _commitsAfterRelease.Value.CompareTo(other._commitsAfterRelease.Value);
                 if (result != 0)
                 {
                     return result;
@@ -252,13 +285,17 @@ namespace MongoDB.Driver.Core.Misc
         public override string ToString()
         {
             var sb = new StringBuilder($"{_major}.{_minor}.{_patch}");
-            if (_releaseCandidate != null)
+            if (_releaseType != null)
             {
-                sb.Append($"-rc{_releaseCandidate}");
+                sb.Append($"-{_releaseType}");
+                if (_releaseCandidate != null)
+                {
+                    sb.Append(_releaseCandidate);
+                }
             }
-            if (_internalBuild != null)
+            if (_commitsAfterRelease != null)
             {
-                sb.Append($"-{_internalBuild}");
+                sb.Append($"-{_commitsAfterRelease}");
             }
             if (_commitHash != null)
             {
@@ -299,7 +336,7 @@ namespace MongoDB.Driver.Core.Misc
                 result = null;
                 return false;
             }
-            var pattern = @"^(?<major>\d+)\.(?<minor>\d+)(\.(?<patch>\d+)(-rc(?<releaseCandidate>\d+))?(-(?<internalBuild>\d+)-g(?<commitHash>[0-9a-f]{4,40}))?)?$";
+            var pattern = @"^(?<major>\d+)\.(?<minor>\d+)(\.(?<patch>\d+)(-(?<releaseType>[A-Za-z]+)(?<releaseCandidate>\d+)?)?(-(?<commitsAfterRelease>\d+)-g(?<commitHash>[0-9a-f]{4,40}))?)?$";
             var match = Regex.Match(value, pattern);
 
             if (!match.Success)
@@ -311,8 +348,9 @@ namespace MongoDB.Driver.Core.Misc
             var major = int.Parse(match.Groups["major"].Value);
             var minor = int.Parse(match.Groups["minor"].Value);
             var patch = match.Groups["patch"].Success ? int.Parse(match.Groups["patch"].Value) : 0;
+            var releaseType = match.Groups["releaseType"].Success ? match.Groups["releaseType"].Value : null;
             var releaseCandidateEntry = match.Groups["releaseCandidate"].Success ? match.Groups["releaseCandidate"].Value : null;
-            var internalBuildEntry = match.Groups["internalBuild"].Success ? match.Groups["internalBuild"].Value : null;
+            var commitsAfterReleaseEntry = match.Groups["commitsAfterRelease"].Success ? match.Groups["commitsAfterRelease"].Value : null;
             var commitHash = match.Groups["commitHash"].Success ? match.Groups["commitHash"].Value : null;
 
             int? releaseCandidate = null;
@@ -320,13 +358,13 @@ namespace MongoDB.Driver.Core.Misc
             {
                 releaseCandidate = releaseCandidateParsed;
             }
-            int? internalBuild = null;
-            if (internalBuildEntry != null && int.TryParse(internalBuildEntry, out int internalBuildParsed))
+            int? commitsAfterRelease = null;
+            if (commitsAfterReleaseEntry != null && int.TryParse(commitsAfterReleaseEntry, out int commitsAfterReleaseParsed))
             {
-                internalBuild = internalBuildParsed;
+                commitsAfterRelease = commitsAfterReleaseParsed;
             }
 
-            result = new ServerVersion(major, minor, patch, releaseCandidate, internalBuild, commitHash);
+            result = new ServerVersion(major, minor, patch, releaseType, releaseCandidate, commitsAfterRelease, commitHash);
             return true;
         }
 
