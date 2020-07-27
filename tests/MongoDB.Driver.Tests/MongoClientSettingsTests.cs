@@ -117,7 +117,7 @@ namespace MongoDB.Driver.Tests
 
             var clone = settings.Clone();
 
-            Assert.Equal(settings, clone);
+            clone.Should().Be(settings);
         }
 
         [Fact]
@@ -130,7 +130,7 @@ namespace MongoDB.Driver.Tests
 
             var clone = settings.Clone();
 
-            Assert.Equal(settings, clone);
+            clone.Should().Be(settings);
         }
 
         [Fact]
