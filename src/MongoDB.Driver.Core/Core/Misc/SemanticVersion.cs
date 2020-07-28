@@ -23,11 +23,31 @@ namespace MongoDB.Driver.Core.Misc
     /// </summary>
     public class SemanticVersion : IEquatable<SemanticVersion>, IComparable<SemanticVersion>
     {
+        #region static
+        private static void LookForPreReleaseNumericSuffix(string preRelease, out string preReleasePrefix, out int? preReleaseNumericSuffix)
+        {
+            var pattern = @"^(?<prefix>.*[^\d])(?<numericSuffix>\d+)$";
+            var match = Regex.Match(preRelease, pattern);
+            if (match.Success)
+            {
+                preReleasePrefix = match.Groups["prefix"].Value;
+                preReleaseNumericSuffix = int.Parse(match.Groups["numericSuffix"].Value);
+            }
+            else
+            {
+                preReleasePrefix = preRelease;
+                preReleaseNumericSuffix = null;
+            }
+        }
+        #endregion
+
         // fields
         private readonly int _major;
         private readonly int _minor;
         private readonly int _patch;
         private readonly string _preRelease;
+        private readonly int? _preReleaseNumericSuffix;
+        private readonly string _preReleasePrefix;
 
         // constructors
         /// <summary>
@@ -54,6 +74,11 @@ namespace MongoDB.Driver.Core.Misc
             _minor = Ensure.IsGreaterThanOrEqualToZero(minor, nameof(minor));
             _patch = Ensure.IsGreaterThanOrEqualToZero(patch, nameof(patch));
             _preRelease = preRelease; // can be null
+
+            if (_preRelease != null)
+            {
+                LookForPreReleaseNumericSuffix(_preRelease, out _preReleasePrefix, out _preReleaseNumericSuffix);
+            }
         }
 
         // properties
@@ -105,9 +130,14 @@ namespace MongoDB.Driver.Core.Misc
         /// <inheritdoc/>
         public int CompareTo(SemanticVersion other)
         {
-            if (other == null)
+            if (ReferenceEquals(other, null))
             {
                 return 1;
+            }
+
+            if (IsInternalServerBuild() || other.IsInternalServerBuild())
+            {
+                return this.AsServerVersion().CompareTo(other.AsServerVersion());
             }
 
             var result = _major.CompareTo(other._major);
@@ -128,26 +158,50 @@ namespace MongoDB.Driver.Core.Misc
                 return result;
             }
 
-            if (ServerVersion.TryParse(ToString(), out var serverVersion) &&
-                ServerVersion.TryParse(other.ToString(), out var otherServerVersion))
+            result = ComparePreReleases();
+            if (result != 0)
             {
-                return serverVersion.CompareTo(otherServerVersion);
+                return result;
             }
 
-            if (_preRelease == null && other._preRelease == null)
-            {
-                return 0;
-            }
-            else if (_preRelease == null)
-            {
-                return 1;
-            }
-            else if (other._preRelease == null)
-            {
-                return -1;
-            }
+            return 0;
 
-            return _preRelease.CompareTo(other._preRelease);
+            int ComparePreReleases()
+            {
+                if (_preRelease == null && other._preRelease == null)
+                {
+                    return 0;
+                }
+                else if (_preRelease == null)
+                {
+                    return 1;
+                }
+                else if (other._preRelease == null)
+                {
+                    return -1;
+                }
+
+                result = _preReleasePrefix.CompareTo(other._preReleasePrefix);
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                if (_preReleaseNumericSuffix == null && other._preReleaseNumericSuffix == null)
+                {
+                    return 0;
+                }
+                else if (_preReleaseNumericSuffix == null)
+                {
+                    return -1;
+                }
+                else if (other._preReleaseNumericSuffix == null)
+                {
+                    return 1;
+                }
+
+                return _preReleaseNumericSuffix.Value.CompareTo(other._preReleaseNumericSuffix.Value);
+            }
         }
 
         /// <inheritdoc/>
@@ -188,14 +242,12 @@ namespace MongoDB.Driver.Core.Misc
         /// <returns>A semantic version.</returns>
         public static SemanticVersion Parse(string value)
         {
-            SemanticVersion result;
-            if (TryParse(value, out result))
+            if (TryParse(value, out var result))
             {
                 return result;
             }
 
-            throw new FormatException(string.Format(
-                "Invalid SemanticVersion string: '{0}'.", value));
+            throw new FormatException($"Invalid SemanticVersion string: '{value}'.");
         }
 
         /// <summary>
@@ -254,7 +306,12 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator !=(SemanticVersion a, SemanticVersion b)
         {
-            return !(a == b);
+            if (object.ReferenceEquals(a, null))
+            {
+                return !object.ReferenceEquals(b, null);
+            }
+
+            return a.CompareTo(b) != 0;
         }
 
         /// <summary>
@@ -267,13 +324,8 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator >(SemanticVersion a, SemanticVersion b)
         {
-            if (a == null)
+            if (object.ReferenceEquals(a, null))
             {
-                if (b == null)
-                {
-                    return true;
-                }
-
                 return false;
             }
 
@@ -290,7 +342,17 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator >=(SemanticVersion a, SemanticVersion b)
         {
-            return !(a < b);
+            if (object.ReferenceEquals(a, null))
+            {
+                if (object.ReferenceEquals(b, null))
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
+            return a.CompareTo(b) >= 0;
         }
 
         /// <summary>
@@ -303,7 +365,17 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator <(SemanticVersion a, SemanticVersion b)
         {
-            return b > a;
+            if (object.ReferenceEquals(a, null))
+            {
+                if (object.ReferenceEquals(b, null))
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            return a.CompareTo(b) < 0;
         }
 
         /// <summary>
@@ -316,7 +388,28 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator <=(SemanticVersion a, SemanticVersion b)
         {
-            return !(b < a);
+            if (object.ReferenceEquals(a, null))
+            {
+                return true;
+            }
+
+            return a.CompareTo(b) <= 0;
+        }
+
+        private ServerVersion AsServerVersion()
+        {
+            return new ServerVersion(_major, _minor, _patch, _preRelease);
+        }
+
+        private bool IsInternalServerBuild()
+        {
+            if (_preRelease != null)
+            {
+                var internalBuildPattern = @"^(.+-)?\d+-g[0-9a-fA-F]{4,40}$";
+                return Regex.IsMatch(_preRelease, internalBuildPattern);
+            }
+
+            return false;
         }
     }
 }

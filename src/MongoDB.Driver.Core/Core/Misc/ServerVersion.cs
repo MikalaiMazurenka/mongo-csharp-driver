@@ -21,14 +21,56 @@ namespace MongoDB.Driver.Core.Misc
 {
     internal class ServerVersion : IEquatable<ServerVersion>, IComparable<ServerVersion>
     {
+        #region static
+        private static void LookForPreReleaseNumericSuffix(string preRelease, out string preReleasePrefix, out int? preReleaseNumericSuffix)
+        {
+            var pattern = @"^(?<prefix>.*[^\d])(?<numericSuffix>\d+)$";
+            var match = Regex.Match(preRelease, pattern);
+            if (match.Success)
+            {
+                preReleasePrefix = match.Groups["prefix"].Value;
+                preReleaseNumericSuffix = int.Parse(match.Groups["numericSuffix"].Value);
+            }
+            else
+            {
+                preReleasePrefix = preRelease;
+                preReleaseNumericSuffix = null;
+            }
+        }
+
+        private static bool TryParseInternalPrelease(string preReleaseIn, out string preReleaseOut, out int? commitsAfterRelease, out string commitHash)
+        {
+            if (preReleaseIn != null)
+            {
+                var internalBuildPattern = @"^(?<preRelease>[A-Za-z]+[0-9]*)?-?(?<commitsAfterRelease>\d+)-g(?<commitHash>[0-9a-fA-F]{4,40})$";
+                var match = Regex.Match(preReleaseIn, internalBuildPattern);
+                if (match.Success)
+                {
+                    var preReleaseGroup = match.Groups["preRelease"];
+                    preReleaseOut = preReleaseGroup.Success ? preReleaseGroup.Value : null;
+                    commitsAfterRelease = int.Parse(match.Groups["commitsAfterRelease"].Value);
+                    commitHash = match.Groups["commitHash"].Value;
+                    return true;
+                }
+            }
+
+            preReleaseOut = preReleaseIn;
+            commitsAfterRelease = null;
+            commitHash = null;
+            return false;
+        }
+        #endregion
+
+        // fields
         // fields
         private readonly string _commitHash;
         private readonly int? _commitsAfterRelease;
         private readonly int _major;
         private readonly int _minor;
         private readonly int _patch;
-        private readonly int? _releaseCandidate;
-        private readonly string _releaseType;
+        private readonly string _preRelease;
+        private readonly int? _preReleaseNumericSuffix;
+        private readonly string _preReleasePrefix;
 
         // constructors
         /// <summary>
@@ -38,7 +80,7 @@ namespace MongoDB.Driver.Core.Misc
         /// <param name="minor">The minor version.</param>
         /// <param name="patch">The patch version.</param>
         public ServerVersion(int major, int minor, int patch)
-            : this(major, minor, patch, releaseType: null, releaseCandidate: null)
+            : this(major, minor, patch, null)
         {
         }
 
@@ -48,45 +90,30 @@ namespace MongoDB.Driver.Core.Misc
         /// <param name="major">The major version.</param>
         /// <param name="minor">The minor version.</param>
         /// <param name="patch">The patch version.</param>
-        /// <param name="releaseType">The release type.</param>
-        /// <param name="releaseCandidate">The release candidate version.</param>
-        public ServerVersion(int major, int minor, int patch, string releaseType, int? releaseCandidate)
-            : this(major, minor, patch, releaseType, releaseCandidate, null, null)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ServerVersion"/> class.
-        /// </summary>
-        /// <param name="major">The major version.</param>
-        /// <param name="minor">The minor version.</param>
-        /// <param name="patch">The patch version.</param>
-        /// <param name="commitsAfterRelease">The number of commits after release.</param>
-        /// <param name="commitHash">The internal build commit hash.</param>
-        public ServerVersion(int major, int minor, int patch, int? commitsAfterRelease, string commitHash)
-            : this(major, minor, patch, null, null, commitsAfterRelease, commitHash)
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ServerVersion"/> class.
-        /// </summary>
-        /// <param name="major">The major version.</param>
-        /// <param name="minor">The minor version.</param>
-        /// <param name="patch">The patch version.</param>
-        /// <param name="releaseType">The release type.</param>
-        /// <param name="releaseCandidate">The release candidate version.</param>
-        /// <param name="commitsAfterRelease">The number of commits after release.</param>
-        /// <param name="commitHash">The internal build commit hash.</param>
-        public ServerVersion(int major, int minor, int patch, string releaseType, int? releaseCandidate, int? commitsAfterRelease, string commitHash)
+        /// <param name="preRelease">The pre release version.</param>
+        public ServerVersion(int major, int minor, int patch, string preRelease)
         {
             _major = Ensure.IsGreaterThanOrEqualToZero(major, nameof(major));
             _minor = Ensure.IsGreaterThanOrEqualToZero(minor, nameof(minor));
             _patch = Ensure.IsGreaterThanOrEqualToZero(patch, nameof(patch));
-            _releaseType = releaseType; // can be null
-            _releaseCandidate = releaseCandidate; // can be null
-            _commitsAfterRelease = commitsAfterRelease; // can be null
-            _commitHash = commitHash; // can be null
+
+            if (TryParseInternalPrelease(preRelease, out var preReleaseOut, out var commitsAfterRelease, out var commitHash))
+            {
+                _preRelease = preReleaseOut; // can be null
+                _commitsAfterRelease = commitsAfterRelease;
+                _commitHash = commitHash;
+            }
+            else
+            {
+                _preRelease = preRelease; // can be null
+                _commitsAfterRelease = null;
+                _commitHash = null;
+            }
+
+            if (_preRelease != null)
+            {
+                LookForPreReleaseNumericSuffix(_preRelease, out _preReleasePrefix, out _preReleaseNumericSuffix);
+            }
         }
 
         // properties
@@ -146,31 +173,21 @@ namespace MongoDB.Driver.Core.Misc
         }
 
         /// <summary>
-        /// Gets the release candidate version.
+        /// Gets the pre release version.
         /// </summary>
         /// <value>
-        /// The release candidate version.
+        /// The pre release version.
         /// </value>
-        public int? ReleaseCandidate
+        public string PreRelease
         {
-            get { return _releaseCandidate; }
-        }
-
-        /// <summary>
-        /// Gets the release type.
-        /// </summary>
-        /// <value>
-        /// The release type.
-        /// </value>
-        public string ReleaseType
-        {
-            get { return _releaseType; }
+            get { return _preRelease; }
         }
 
         // public methods
+        /// <inheritdoc/>
         public int CompareTo(ServerVersion other)
         {
-            if (ReferenceEquals(other, null))
+            if (object.ReferenceEquals(other, null))
             {
                 return 1;
             }
@@ -193,74 +210,75 @@ namespace MongoDB.Driver.Core.Misc
                 return result;
             }
 
-            if (_releaseType != null || other._releaseType != null)
+            result = ComparePreReleases();
+            if (result != 0)
             {
-                if (_releaseType == null)
-                {
-                    return 1;
-                }
-                if (other._releaseType == null)
-                {
-                    return -1;
-                }
-
-                result = _releaseType.CompareTo(other._releaseType);
-                if (result != 0)
-                {
-                    return result;
-                }
-
-                if (_releaseCandidate != null || other._releaseCandidate != null)
-                {
-                    if (_releaseCandidate == null)
-                    {
-                        return -1;
-                    }
-                    if (other._releaseCandidate == null)
-                    {
-                        return 1;
-                    }
-
-                    result = _releaseCandidate.Value.CompareTo(other._releaseCandidate.Value);
-                    if (result != 0)
-                    {
-                        return result;
-                    }
-                }
+                return result;
             }
 
-            if (_commitsAfterRelease != null || other._commitsAfterRelease != null)
+            result = CompareCommitsAfterRelease();
+            if (result != 0)
             {
-                if (_commitsAfterRelease == null)
-                {
-                    return -1;
-                }
-                if (other._commitsAfterRelease == null)
-                {
-                    return 1;
-                }
-
-                result = _commitsAfterRelease.Value.CompareTo(other._commitsAfterRelease.Value);
-                if (result != 0)
-                {
-                    return result;
-                }
+                return result;
             }
 
-            if (_commitHash == null && other._commitHash == null)
-            {
-                return 0;
-            }
-            if (_commitHash == null)
-            {
-                return -1;
-            }
-            if (other._commitHash == null)
-            {
-                return 1;
-            }
-
+            // ignore _commitHash for comparison purposes
             return 0;
+
+            int ComparePreReleases()
+            {
+                if (_preRelease == null && other._preRelease == null)
+                {
+                    return 0;
+                }
+                else if (_preRelease == null)
+                {
+                    return 1;
+                }
+                else if (other._preRelease == null)
+                {
+                    return -1;
+                }
+
+                result = _preReleasePrefix.CompareTo(other._preReleasePrefix);
+                if (result != 0)
+                {
+                    return result;
+                }
+
+                if (_preReleaseNumericSuffix == null && other._preReleaseNumericSuffix == null)
+                {
+                    return 0;
+                }
+                else if (_preReleaseNumericSuffix == null)
+                {
+                    return -1;
+                }
+                else if (other._preReleaseNumericSuffix == null)
+                {
+                    return 1;
+                }
+
+                return _preReleaseNumericSuffix.Value.CompareTo(other._preReleaseNumericSuffix.Value);
+            }
+
+            int CompareCommitsAfterRelease()
+            {
+                if (_commitsAfterRelease == null && other._commitsAfterRelease == null)
+                {
+                    return 0;
+                }
+                else if (_commitsAfterRelease == null)
+                {
+                    return -1;
+                }
+                else if (other._commitsAfterRelease == null)
+                {
+                    return 1;
+                }
+
+                return _commitsAfterRelease.Value.CompareTo(other._commitsAfterRelease.Value);
+            }
         }
 
         /// <inheritdoc/>
@@ -284,24 +302,27 @@ namespace MongoDB.Driver.Core.Misc
         /// <inheritdoc/>
         public override string ToString()
         {
-            var sb = new StringBuilder($"{_major}.{_minor}.{_patch}");
-            if (_releaseType != null)
+            var sb = new StringBuilder();
+            sb.Append(_major);
+            sb.Append('.');
+            sb.Append(_minor);
+            sb.Append('.');
+            sb.Append(_patch);
+            if (_preRelease != null)
             {
-                sb.Append($"-{_releaseType}");
-                if (_releaseCandidate != null)
-                {
-                    sb.Append(_releaseCandidate);
-                }
+                sb.Append('-');
+                sb.Append(_preRelease);
             }
             if (_commitsAfterRelease != null)
             {
-                sb.Append($"-{_commitsAfterRelease}");
+                sb.Append('-');
+                sb.Append(_commitsAfterRelease);
             }
             if (_commitHash != null)
             {
-                sb.Append($"-g{_commitHash}");
+                sb.Append("-g");
+                sb.Append(_commitHash);
             }
-
             return sb.ToString();
         }
 
@@ -331,41 +352,24 @@ namespace MongoDB.Driver.Core.Misc
         /// <returns>True if the string representation was parsed successfully; otherwise false.</returns>
         public static bool TryParse(string value, out ServerVersion result)
         {
-            if (string.IsNullOrEmpty(value))
+            if (!string.IsNullOrEmpty(value))
             {
-                result = null;
-                return false;
-            }
-            var pattern = @"^(?<major>\d+)\.(?<minor>\d+)(\.(?<patch>\d+)(-(?<releaseType>[A-Za-z]+)(?<releaseCandidate>\d+)?)?(-(?<commitsAfterRelease>\d+)-g(?<commitHash>[0-9a-f]{4,40}))?)?$";
-            var match = Regex.Match(value, pattern);
+                var pattern = @"(?<major>\d+)\.(?<minor>\d+)(\.(?<patch>\d+)(-(?<preRelease>.*))?)?";
+                var match = Regex.Match((string)value, pattern);
+                if (match.Success)
+                {
+                    var major = int.Parse(match.Groups["major"].Value);
+                    var minor = int.Parse(match.Groups["minor"].Value);
+                    var patch = match.Groups["patch"].Success ? int.Parse(match.Groups["patch"].Value) : 0;
+                    var preRelease = match.Groups["preRelease"].Success ? match.Groups["preRelease"].Value : null;
 
-            if (!match.Success)
-            {
-                result = null;
-                return false;
-            }
-
-            var major = int.Parse(match.Groups["major"].Value);
-            var minor = int.Parse(match.Groups["minor"].Value);
-            var patch = match.Groups["patch"].Success ? int.Parse(match.Groups["patch"].Value) : 0;
-            var releaseType = match.Groups["releaseType"].Success ? match.Groups["releaseType"].Value : null;
-            var releaseCandidateEntry = match.Groups["releaseCandidate"].Success ? match.Groups["releaseCandidate"].Value : null;
-            var commitsAfterReleaseEntry = match.Groups["commitsAfterRelease"].Success ? match.Groups["commitsAfterRelease"].Value : null;
-            var commitHash = match.Groups["commitHash"].Success ? match.Groups["commitHash"].Value : null;
-
-            int? releaseCandidate = null;
-            if (releaseCandidateEntry != null && int.TryParse(releaseCandidateEntry, out int releaseCandidateParsed))
-            {
-                releaseCandidate = releaseCandidateParsed;
-            }
-            int? commitsAfterRelease = null;
-            if (commitsAfterReleaseEntry != null && int.TryParse(commitsAfterReleaseEntry, out int commitsAfterReleaseParsed))
-            {
-                commitsAfterRelease = commitsAfterReleaseParsed;
+                    result = new ServerVersion(major, minor, patch, preRelease);
+                    return true;
+                }
             }
 
-            result = new ServerVersion(major, minor, patch, releaseType, releaseCandidate, commitsAfterRelease, commitHash);
-            return true;
+            result = null;
+            return false;
         }
 
         // public operators
