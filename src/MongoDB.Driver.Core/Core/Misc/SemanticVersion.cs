@@ -26,7 +26,7 @@ namespace MongoDB.Driver.Core.Misc
         #region static
         private static void LookForPreReleaseNumericSuffix(string preRelease, out string preReleasePrefix, out int? preReleaseNumericSuffix)
         {
-            var pattern = @"^(?<prefix>.*[^\d])(?<numericSuffix>\d+)$";
+            var pattern = @"^(?<prefix>[^\d]+)(?<numericSuffix>\d+)$";;
             var match = Regex.Match(preRelease, pattern);
             if (match.Success)
             {
@@ -130,14 +130,9 @@ namespace MongoDB.Driver.Core.Misc
         /// <inheritdoc/>
         public int CompareTo(SemanticVersion other)
         {
-            if (ReferenceEquals(other, null))
+            if (object.ReferenceEquals(other, null))
             {
                 return 1;
-            }
-
-            if (IsInternalServerBuild() || other.IsInternalServerBuild())
-            {
-                return this.AsServerVersion().CompareTo(other.AsServerVersion());
             }
 
             var result = _major.CompareTo(other._major);
@@ -156,6 +151,11 @@ namespace MongoDB.Driver.Core.Misc
             if (result != 0)
             {
                 return result;
+            }
+
+            if (IsInternalServerBuild() || other.IsInternalServerBuild())
+            {
+                return this.AsServerVersion().CompareTo(other.AsServerVersion());
             }
 
             result = ComparePreReleases();

@@ -22,6 +22,8 @@ namespace MongoDB.Driver.Core.Misc
     public class SemanticVersionTests
     {
         [Theory]
+        [InlineData(null, null, 0)]
+        [InlineData(null, "1.0.0", -1)]
         [InlineData("1.0.0", null, 1)]
         [InlineData("1.0.0", "1.0.0", 0)]
         [InlineData("1.1.0", "1.1.0", 0)]
@@ -59,10 +61,10 @@ namespace MongoDB.Driver.Core.Misc
         [InlineData("4.4.0-alpha12-5-g5a9a742f6f", "4.4.0-rc13-5-g5a9a742f6f", -1)]
         public void Comparisons_should_be_correct(string a, string b, int comparison)
         {
-            var subject = SemanticVersion.Parse(a);
-            var comparand = b == null ? null : SemanticVersion.Parse(b);
-            subject.Equals(comparand).Should().Be(comparison == 0);
-            subject.CompareTo(comparand).Should().Be(comparison);
+            var subject = a == null ? null : ServerVersion.Parse(a);
+            var comparand = b == null ? null : ServerVersion.Parse(b);
+            subject?.Equals(comparand).Should().Be(comparison == 0);
+            subject?.CompareTo(comparand).Should().Be(comparison);
             (subject == comparand).Should().Be(comparison == 0);
             (subject != comparand).Should().Be(comparison != 0);
             (subject > comparand).Should().Be(comparison == 1);

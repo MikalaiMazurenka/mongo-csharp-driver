@@ -24,7 +24,7 @@ namespace MongoDB.Driver.Core.Misc
         #region static
         private static void LookForPreReleaseNumericSuffix(string preRelease, out string preReleasePrefix, out int? preReleaseNumericSuffix)
         {
-            var pattern = @"^(?<prefix>.*[^\d])(?<numericSuffix>\d+)$";
+            var pattern = @"^(?<prefix>[^\d]+)(?<numericSuffix>\d+)$"; ;
             var match = Regex.Match(preRelease, pattern);
             if (match.Success)
             {
@@ -42,7 +42,7 @@ namespace MongoDB.Driver.Core.Misc
         {
             if (preReleaseIn != null)
             {
-                var internalBuildPattern = @"^(?<preRelease>[A-Za-z]+[0-9]*)?-?(?<commitsAfterRelease>\d+)-g(?<commitHash>[0-9a-fA-F]{4,40})$";
+                var internalBuildPattern = @"^((?<preRelease>.+)-)?(?<commitsAfterRelease>\d+)-g(?<commitHash>[0-9a-fA-F]{4,40})$";
                 var match = Regex.Match(preReleaseIn, internalBuildPattern);
                 if (match.Success)
                 {
@@ -61,7 +61,6 @@ namespace MongoDB.Driver.Core.Misc
         }
         #endregion
 
-        // fields
         // fields
         private readonly string _commitHash;
         private readonly int? _commitsAfterRelease;
@@ -120,9 +119,6 @@ namespace MongoDB.Driver.Core.Misc
         /// <summary>
         /// Gets the internal build commit hash.
         /// </summary>
-        /// <value>
-        /// The internal build commit hash.
-        /// </value>
         public string CommitHash
         {
             get { return _commitHash; }
@@ -131,9 +127,6 @@ namespace MongoDB.Driver.Core.Misc
         /// <summary>
         /// Gets the number of commits after release.
         /// </summary>
-        /// <value>
-        /// The number of commits after release.
-        /// </value>
         public int? CommitsAfterRelease
         {
             get { return _commitsAfterRelease; }
@@ -142,9 +135,6 @@ namespace MongoDB.Driver.Core.Misc
         /// <summary>
         /// Gets the major version.
         /// </summary>
-        /// <value>
-        /// The major version.
-        /// </value>
         public int Major
         {
             get { return _major; }
@@ -153,9 +143,6 @@ namespace MongoDB.Driver.Core.Misc
         /// <summary>
         /// Gets the minor version.
         /// </summary>
-        /// <value>
-        /// The minor version.
-        /// </value>
         public int Minor
         {
             get { return _minor; }
@@ -164,9 +151,6 @@ namespace MongoDB.Driver.Core.Misc
         /// <summary>
         /// Gets the patch version.
         /// </summary>
-        /// <value>
-        /// The patch version.
-        /// </value>
         public int Patch
         {
             get { return _patch; }
@@ -175,9 +159,6 @@ namespace MongoDB.Driver.Core.Misc
         /// <summary>
         /// Gets the pre release version.
         /// </summary>
-        /// <value>
-        /// The pre release version.
-        /// </value>
         public string PreRelease
         {
             get { return _preRelease; }
@@ -302,27 +283,16 @@ namespace MongoDB.Driver.Core.Misc
         /// <inheritdoc/>
         public override string ToString()
         {
-            var sb = new StringBuilder();
-            sb.Append(_major);
-            sb.Append('.');
-            sb.Append(_minor);
-            sb.Append('.');
-            sb.Append(_patch);
+            var sb = new StringBuilder($"{_major}.{_minor}.{_patch}");
             if (_preRelease != null)
             {
-                sb.Append('-');
-                sb.Append(_preRelease);
+                sb.Append($"-{_preRelease}");
             }
             if (_commitsAfterRelease != null)
             {
-                sb.Append('-');
-                sb.Append(_commitsAfterRelease);
+                sb.Append($"-{_commitsAfterRelease}-g{_commitHash}");
             }
-            if (_commitHash != null)
-            {
-                sb.Append("-g");
-                sb.Append(_commitHash);
-            }
+
             return sb.ToString();
         }
 
@@ -335,8 +305,7 @@ namespace MongoDB.Driver.Core.Misc
         /// <exception cref="FormatException">value</exception>
         public static ServerVersion Parse(string value)
         {
-            ServerVersion result;
-            if (TryParse(value, out result))
+            if (TryParse(value, out var result))
             {
                 return result;
             }
@@ -374,17 +343,6 @@ namespace MongoDB.Driver.Core.Misc
 
         // public operators
         /// <summary>
-        /// Casts a SemanticVersion to a ServerVersion.
-        /// </summary>
-        /// <param name="semanticVersion">The SemanticVersion.</param>
-        /// <returns>A ServerVersion.</returns>
-        /// <exception cref="FormatException">semanticVersion</exception>
-        public static explicit operator ServerVersion(SemanticVersion semanticVersion)
-        {
-            return Parse(semanticVersion.ToString());
-        }
-
-        /// <summary>
         /// Determines whether two specified server versions have the same value.
         /// </summary>
         /// <param name="a">The first server version to compare, or null.</param>
@@ -394,9 +352,9 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator ==(ServerVersion a, ServerVersion b)
         {
-            if (ReferenceEquals(a, null))
+            if (object.ReferenceEquals(a, null))
             {
-                return ReferenceEquals(b, null);
+                return object.ReferenceEquals(b, null);
             }
 
             return a.CompareTo(b) == 0;
@@ -412,9 +370,9 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator !=(ServerVersion a, ServerVersion b)
         {
-            if (ReferenceEquals(a, null))
+            if (object.ReferenceEquals(a, null))
             {
-                return !ReferenceEquals(b, null);
+                return !object.ReferenceEquals(b, null);
             }
 
             return a.CompareTo(b) != 0;
@@ -430,7 +388,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator >(ServerVersion a, ServerVersion b)
         {
-            if (ReferenceEquals(a, null))
+            if (object.ReferenceEquals(a, null))
             {
                 return false;
             }
@@ -448,9 +406,9 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator >=(ServerVersion a, ServerVersion b)
         {
-            if (ReferenceEquals(a, null))
+            if (object.ReferenceEquals(a, null))
             {
-                if (ReferenceEquals(b, null))
+                if (object.ReferenceEquals(b, null))
                 {
                     return true;
                 }
@@ -471,9 +429,9 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator <(ServerVersion a, ServerVersion b)
         {
-            if (ReferenceEquals(a, null))
+            if (object.ReferenceEquals(a, null))
             {
-                if (ReferenceEquals(b, null))
+                if (object.ReferenceEquals(b, null))
                 {
                     return false;
                 }
@@ -494,7 +452,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator <=(ServerVersion a, ServerVersion b)
         {
-            if (ReferenceEquals(a, null))
+            if (object.ReferenceEquals(a, null))
             {
                 return true;
             }
