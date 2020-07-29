@@ -24,7 +24,7 @@ namespace MongoDB.Driver.Core.Misc
         #region static
         private static void LookForPreReleaseNumericSuffix(string preRelease, out string preReleasePrefix, out int? preReleaseNumericSuffix)
         {
-            var pattern = @"^(?<prefix>[^\d]+)(?<numericSuffix>\d+)$"; ;
+            var pattern = @"^(?<prefix>[^\d]+)(?<numericSuffix>\d+)$";
             var match = Regex.Match(preRelease, pattern);
             if (match.Success)
             {
@@ -370,12 +370,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator !=(ServerVersion a, ServerVersion b)
         {
-            if (object.ReferenceEquals(a, null))
-            {
-                return !object.ReferenceEquals(b, null);
-            }
-
-            return a.CompareTo(b) != 0;
+            return !(a == b);
         }
 
         /// <summary>
@@ -406,17 +401,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator >=(ServerVersion a, ServerVersion b)
         {
-            if (object.ReferenceEquals(a, null))
-            {
-                if (object.ReferenceEquals(b, null))
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            return a.CompareTo(b) >= 0;
+            return !(a < b);
         }
 
         /// <summary>
@@ -429,17 +414,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator <(ServerVersion a, ServerVersion b)
         {
-            if (object.ReferenceEquals(a, null))
-            {
-                if (object.ReferenceEquals(b, null))
-                {
-                    return false;
-                }
-
-                return true;
-            }
-
-            return a.CompareTo(b) < 0;
+            return b > a;
         }
 
         /// <summary>
@@ -452,12 +427,7 @@ namespace MongoDB.Driver.Core.Misc
         /// </returns>
         public static bool operator <=(ServerVersion a, ServerVersion b)
         {
-            if (object.ReferenceEquals(a, null))
-            {
-                return true;
-            }
-
-            return a.CompareTo(b) <= 0;
+            return !(b < a);
         }
     }
 }

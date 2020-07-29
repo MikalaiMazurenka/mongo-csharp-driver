@@ -61,8 +61,8 @@ namespace MongoDB.Driver.Core.Misc
         [InlineData("4.4.0-alpha12-5-g5a9a742f6f", "4.4.0-rc13-5-g5a9a742f6f", -1)]
         public void Comparisons_should_be_correct(string a, string b, int comparison)
         {
-            var subject = a == null ? null : ServerVersion.Parse(a);
-            var comparand = b == null ? null : ServerVersion.Parse(b);
+            var subject = a == null ? null : SemanticVersion.Parse(a);
+            var comparand = b == null ? null : SemanticVersion.Parse(b);
             subject?.Equals(comparand).Should().Be(comparison == 0);
             subject?.CompareTo(comparand).Should().Be(comparison);
             (subject == comparand).Should().Be(comparison == 0);
