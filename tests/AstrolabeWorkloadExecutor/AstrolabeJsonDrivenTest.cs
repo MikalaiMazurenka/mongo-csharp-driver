@@ -24,11 +24,12 @@ namespace WorkloadExecutor
 {
     public class AstrolabeJsonDrivenTest : JsonDrivenTest
     {
-        private readonly JsonDrivenTest _wrapped;
-
-        readonly Action _incrementOperationSuccesses;
+        // private fields
         readonly Action _incrementOperationErrors;
         readonly Action _incrementOperationFailures;
+        readonly Action _incrementOperationSuccesses;
+        private readonly JsonDrivenTest _wrapped;
+
         // constructors
         public AstrolabeJsonDrivenTest(JsonDrivenTest test, Action incrementOperationSuccesses, Action incrementOperationErrors, Action incrementOperationFailures)
         {
@@ -57,9 +58,9 @@ namespace WorkloadExecutor
                         Console.WriteLine($"Operation error (unexpected exception): {wrappedActualException}");
                         _incrementOperationErrors();
                     }
+
                     return;
                 }
-
                 if (_wrapped._expectedResult() == null)
                 {
                     _incrementOperationSuccesses();
@@ -78,14 +79,14 @@ namespace WorkloadExecutor
                     }
                 }
             }
-            else // there currently are no expected exceptions, so this part is slightly speculative
+            else
             {
                 if (wrappedActualException == null)
                 {
                     _incrementOperationErrors();
+
                     return;
                 }
-
                 try
                 {
                     AssertException();
@@ -97,7 +98,6 @@ namespace WorkloadExecutor
                 }
             }
         }
-
 
         // protected methods
         protected override void AssertException() => _wrapped.AssertException();
@@ -113,7 +113,6 @@ namespace WorkloadExecutor
         protected override void SetArgument(string name, BsonValue value) => _wrapped.SetArgument(name, value);
 
         protected override void SetArguments(BsonDocument arguments) => _wrapped.SetArguments(arguments);
-
     }
 
     internal static class JsonDrivenTestReflector
@@ -167,6 +166,5 @@ namespace WorkloadExecutor
         {
            Reflector.Invoke(test, nameof(SetArguments), arguments);
         }
-
     }
 }

@@ -3,9 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFrameworks>netcoreapp2.1;netcoreapp1.1;net452</TargetFrameworks>
-    <RootNamespace>WorkloadExecutor</RootNamespace>
     <LangVersion>8.0</LangVersion>
-    <Nullable>enable</Nullable>
+    <AssemblyName>workload-executor</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>

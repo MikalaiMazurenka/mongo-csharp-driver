@@ -54,7 +54,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SkippableTests", "tests\Ski
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MongoDB.Driver.TestConsoleApplication", "tests\MongoDB.Driver.TestConsoleApplication\MongoDB.Driver.TestConsoleApplication.csproj", "{2E5780D2-29A5-483C-9CA2-844F45A66D0C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "workload-executor", "tests\AstrolabeWorkloadExecutor\workload-executor.csproj", "{B90F025F-89D3-436A-AD78-6AA304A6E240}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AstrolabeWorkloadExecutor", "tests\AstrolabeWorkloadExecutor\AstrolabeWorkloadExecutor.csproj", "{B90F025F-89D3-436A-AD78-6AA304A6E240}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -17,7 +17,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Driver;
@@ -30,13 +29,15 @@ namespace WorkloadExecutor
 {
     public class AstrolabeTestRunner : MongoClientJsonDrivenTestRunnerBase
     {
-        protected override string[] ExpectedSharedColumns => new[] { "_path", "description", "database", "collection", "testData", "tests", "operations", "outcome", "expectations", "async" };
-        protected override string[] ExpectedTestColumns => new[] { "description", "database", "collection", "testData", "operations", "outcome", "expectations", "async" };
-
+        // private fields
+        private readonly CancellationToken _cancellationToken;
         private readonly Action _incrementOperationSuccesses;
         private readonly Action _incrementOperationErrors;
         private readonly Action _incrementOperationFailures;
-        private readonly CancellationToken _cancellationToken;
+
+        // protected properties
+        protected override string[] ExpectedSharedColumns => new[] { "_path", "database", "collection", "testData", "tests" };
+        protected override string[] ExpectedTestColumns => new[] { "operations", "async" };
 
         public AstrolabeTestRunner(
             Action incrementOperationSuccesses,
@@ -47,7 +48,6 @@ namespace WorkloadExecutor
             _incrementOperationSuccesses = incrementOperationSuccesses;
             _incrementOperationErrors = incrementOperationErrors;
             _incrementOperationFailures = incrementOperationFailures;
-
             _cancellationToken = cancellationToken;
         }
 
@@ -61,43 +61,12 @@ namespace WorkloadExecutor
             SetupAndRunTest(testCase);
         }
 
-        public async Task RunAsync(JsonDrivenTestCase testCase)
-        {
-            await Task.Run(()=>SetupAndRunTest(testCase), CancellationToken.None).ConfigureAwait(false); // SetupAndRunTest runs synchronously
-        }
-
-        protected override void RunTest(BsonDocument shared, BsonDocument test, EventCapturer eventCapturer)
-        {
-            Console.WriteLine("dotnet astrolabetestrunner> creating disposable client...");
-            using (var client = CreateClient(eventCapturer)) // DriverTestConfiguration.CreateDisposableClient does not work with mongodb+srv
-            {
-                Console.WriteLine("dotnet astrolabetestrunner> looping until cancellation is requested...");
-                while(!_cancellationToken.IsCancellationRequested)
-                {
-                    // we clone because inserts will auto assign an id to the test case document
-                    ExecuteOperations(client,  objectMap: new Dictionary<string, object>(), test.DeepClone().AsBsonDocument);
-                }
-            }
-
-            static DisposableMongoClient CreateClient(EventCapturer eventCapturer)
-            {
-                var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
-                var settings = MongoClientSettings.FromConnectionString(connectionString);
-                if (eventCapturer != null)
-                {
-                    settings.ClusterConfigurator = c => c.Subscribe(eventCapturer);
-                }
-
-                return new DisposableMongoClient(new MongoClient(settings));
-            }
-        }
-
-        protected override void ExecuteOperations(IMongoClient client, Dictionary<string, object> objectMap, BsonDocument test, EventCapturer? eventCapturer = null)
+        // protected methods
+        protected override void ExecuteOperations(IMongoClient client, Dictionary<string, object> objectMap, BsonDocument test, EventCapturer eventCapturer = null)
         {
             _objectMap = objectMap;
 
-            var factory = new JsonDrivenTestFactory(client, DatabaseName, CollectionName, bucketName: null, objectMap,
-                eventCapturer);
+            var factory = new JsonDrivenTestFactory(client, DatabaseName, CollectionName, bucketName: null, objectMap, eventCapturer);
 
             Func<JsonDrivenTest, AstrolabeJsonDrivenTest> wrapTest = wrapped =>
                 new AstrolabeJsonDrivenTest(wrapped, _incrementOperationSuccesses, _incrementOperationErrors, _incrementOperationFailures);
@@ -109,7 +78,6 @@ namespace WorkloadExecutor
                     return;
                 }
 
-                ModifyOperationIfNeeded(operation);
                 var receiver = operation["object"].AsString;
                 var name = operation["name"].AsString;
                 JsonDrivenTest jsonDrivenTest;
@@ -120,14 +88,13 @@ namespace WorkloadExecutor
                 }
                 catch (FormatException)
                 {
-                    // run unknown commands via runCommand
+                    // Run unknown commands via runCommand
                     var database = client.GetDatabase(DatabaseName);
                     var innerTest = new JsonDrivenRunCommandTest(database, objectMap);
                     operation["command_name"] = operation["name"];
-                    operation["object"] = "database"; // JsonDrivenRunCommand requires this
+                    operation["object"] = "database";
                     var command = new BsonDocument(operation["name"].AsString, 1);
-                    if (operation.TryGetValue("arguments", out var argumentsValue) &&
-                        argumentsValue is BsonDocument arguments)
+                    if (operation.TryGetValue("arguments", out var argumentsValue) && argumentsValue is BsonDocument arguments)
                     {
                         command.Merge(arguments);
                         operation.Remove("arguments");
@@ -150,42 +117,57 @@ namespace WorkloadExecutor
             }
         }
 
-        // nested types
-        public class TestCaseFactory : JsonDrivenTestCaseFactory
+        protected override void RunTest(BsonDocument shared, BsonDocument test, EventCapturer eventCapturer)
         {
-            public JsonDrivenTestCase CreateTestCase(BsonDocument driverWorkload)
+            Console.WriteLine("dotnet astrolabetestrunner> creating disposable client...");
+            using (var client = CreateClient(eventCapturer))
             {
-                var adaptedDriverWorkload = new BsonDocument("tests", new BsonArray(new [] {driverWorkload}));
-                adaptedDriverWorkload.Add("_path", "Astrolabe command line arguments");
-                adaptedDriverWorkload.Add("database", driverWorkload["database"]); // todo: drop these?
-                adaptedDriverWorkload.Add("collection", driverWorkload["collection"]);
+                Console.WriteLine("dotnet astrolabetestrunner> looping until cancellation is requested...");
+                while(!_cancellationToken.IsCancellationRequested)
+                {
+                    // Clone because inserts will auto assign an id to the test case document
+                    ExecuteOperations(
+                        client: client,
+                        objectMap: new Dictionary<string, object>(),
+                        test: test.DeepClone().AsBsonDocument);
+                }
+            }
+
+            DisposableMongoClient CreateClient(EventCapturer eventCapturer)
+            {
+                var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
+                var settings = MongoClientSettings.FromConnectionString(connectionString);
+                if (eventCapturer != null)
+                {
+                    settings.ClusterConfigurator = c => c.Subscribe(eventCapturer);
+                }
+
+                return new DisposableMongoClient(new MongoClient(settings));
+            }
+        }
+
+        // nested types
+        internal class TestCaseFactory : JsonDrivenTestCaseFactory
+        {
+            public JsonDrivenTestCase CreateTestCase(BsonDocument driverWorkload, bool async)
+            {
+                JsonDrivenHelper.EnsureAllFieldsAreValid(driverWorkload, new [] { "database", "collection", "testData", "operations" });
+
+                var adaptedDriverWorkload = new BsonDocument
+                {
+                    { "_path", "Astrolabe command line arguments" },
+                    { "database", driverWorkload["database"] },
+                    { "collection", driverWorkload["collection"] },
+                    { "tests", new BsonArray(new [] { new BsonDocument("operations", driverWorkload["operations"]) }) }
+                };
                 if (driverWorkload.Contains("testData"))
                 {
                     adaptedDriverWorkload.Add("testData", driverWorkload["testData"]);
                 }
-                var testCases = CreateTestCases(adaptedDriverWorkload).ToList();
-                if (testCases.Count != 1)
-                {
-                    throw new Exception($"{nameof(driverWorkload)} should only have one test.");
-                }
-                return testCases[0];
-            }
+                var testCase = CreateTestCases(adaptedDriverWorkload).Single();
+                testCase.Test["async"] = async;
 
-            // protected properties
-            protected override string? PathPrefix => null;
-
-            // protected methods
-            protected override IEnumerable<JsonDrivenTestCase> CreateTestCases(BsonDocument document)
-            {
-                foreach (var testCase in base.CreateTestCases(document))
-                {
-                    foreach (var async in new[] { true })
-                    {
-                        var name = $"{testCase.Name}:async={async}";
-                        var test = testCase.Test.DeepClone().AsBsonDocument.Add("async", async);
-                        yield return new JsonDrivenTestCase(name, testCase.Shared, test);
-                    }
-                }
+                return testCase;
             }
         }
     }
