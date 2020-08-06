@@ -17,7 +17,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Bson.TestHelpers;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Driver;
 using MongoDB.Driver.Core;
@@ -64,42 +66,25 @@ namespace WorkloadExecutor
         // protected methods
         protected override void ExecuteOperations(IMongoClient client, Dictionary<string, object> objectMap, BsonDocument test, EventCapturer eventCapturer = null)
         {
-            //if (_cancellationToken.IsCancellationRequested)
-            //{
-            //    return;
-            //}
-            //base.ExecuteOperations(client, objectMap, test, eventCapturer);
-
             _objectMap = objectMap;
 
             var factory = new JsonDrivenTestFactory(client, DatabaseName, CollectionName, bucketName: null, objectMap, eventCapturer);
 
-            Func<JsonDrivenTest, AstrolabeJsonDrivenTest> wrapTest = wrapped =>
-                new AstrolabeJsonDrivenTest(wrapped, _incrementOperationSuccesses, _incrementOperationErrors, _incrementOperationFailures);
-
             foreach (var operation in test[OperationsKey].AsBsonArray.Cast<BsonDocument>())
             {
-                if (_cancellationToken.IsCancellationRequested)
-                {
-                    return;
-                }
-
+                ModifyOperationIfNeeded(operation);
                 var receiver = operation["object"].AsString;
                 var name = operation["name"].AsString;
-                JsonDrivenTest jsonDrivenTest;
-                var innerTest = factory.CreateTest(receiver, name);
-                jsonDrivenTest = wrapTest(innerTest);
-
+                JsonDrivenTest jsonDrivenTest = factory.CreateTest(receiver, name);
                 jsonDrivenTest.Arrange(operation);
                 if (test["async"].AsBoolean)
                 {
-                    jsonDrivenTest.ActAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    jsonDrivenTest.ActAsync(_cancellationToken).GetAwaiter().GetResult();
                 }
                 else
                 {
-                    jsonDrivenTest.Act(CancellationToken.None);
+                    jsonDrivenTest.Act(_cancellationToken);
                 }
-
                 AssertTest(jsonDrivenTest);
             }
         }
@@ -209,6 +194,59 @@ namespace WorkloadExecutor
 
                 return testCase;
             }
+        }
+    }
+
+    internal static class JsonDrivenTestReflector
+    {
+        public static Exception _actualException(this JsonDrivenTest test)
+        {
+            return (Exception)Reflector.GetFieldValue(test, nameof(_actualException));
+        }
+
+        public static BsonValue _expectedResult(this JsonDrivenTest test)
+        {
+            return (BsonValue)Reflector.GetFieldValue(test, nameof(_expectedResult));
+        }
+
+        public static BsonDocument _expectedException(this JsonDrivenTest test)
+        {
+            return (BsonDocument)Reflector.GetFieldValue(test, nameof(_expectedException));
+        }
+
+        public static void AssertException(this JsonDrivenTest test)
+        {
+            Reflector.Invoke(test, nameof(AssertException));
+        }
+
+        public static void AssertResult(this JsonDrivenTest test)
+        {
+            Reflector.Invoke(test, nameof(AssertResult));
+        }
+
+        public static void CallMethod(this JsonDrivenTest test, CancellationToken cancellationToken)
+        {
+            Reflector.Invoke(test, nameof(CallMethod), cancellationToken);
+        }
+
+        public static Task CallMethodAsync(this JsonDrivenTest test, CancellationToken cancellationToken)
+        {
+            return (Task)Reflector.Invoke(test, nameof(CallMethodAsync), cancellationToken);
+        }
+
+        public static void ParseExpectedResult(this JsonDrivenTest test, BsonValue value)
+        {
+           Reflector.Invoke(test, nameof(ParseExpectedResult), value);
+        }
+
+        public static void SetArgument(this JsonDrivenTest test, string name, BsonValue value)
+        {
+           Reflector.Invoke(test, nameof(SetArgument), name, value);
+        }
+
+        public static void SetArguments(this JsonDrivenTest test, BsonDocument arguments)
+        {
+           Reflector.Invoke(test, nameof(SetArguments), arguments);
         }
     }
 }
