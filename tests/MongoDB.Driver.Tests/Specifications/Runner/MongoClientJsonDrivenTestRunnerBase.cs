@@ -56,15 +56,13 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
             "saslContinue",
             "getnonce"
         };
-
         private readonly string[] _expectedSharedColumns = { "_path", "runOn", "database_name", "collection_name", "data", "tests" };
 
-        private string DatabaseName { get; set; }
-        private string CollectionName { get; set; }
-
-        private IDictionary<string, object> _objectMap = null;
-
         // Protected
+        protected string DatabaseName { get; set; }
+        protected string CollectionName { get; set; }
+        protected IDictionary<string, object> _objectMap = null;
+
         // Virtual properties
         protected virtual HashSet<string> DefaultCommandsToNotCapture => _defaultCommandsToNotCapture;
 

@@ -64,6 +64,12 @@ namespace WorkloadExecutor
         // protected methods
         protected override void ExecuteOperations(IMongoClient client, Dictionary<string, object> objectMap, BsonDocument test, EventCapturer eventCapturer = null)
         {
+            //if (_cancellationToken.IsCancellationRequested)
+            //{
+            //    return;
+            //}
+            //base.ExecuteOperations(client, objectMap, test, eventCapturer);
+
             _objectMap = objectMap;
 
             var factory = new JsonDrivenTestFactory(client, DatabaseName, CollectionName, bucketName: null, objectMap, eventCapturer);
@@ -81,27 +87,8 @@ namespace WorkloadExecutor
                 var receiver = operation["object"].AsString;
                 var name = operation["name"].AsString;
                 JsonDrivenTest jsonDrivenTest;
-                try
-                {
-                    var innerTest = factory.CreateTest(receiver, name);
-                    jsonDrivenTest = wrapTest(innerTest);
-                }
-                catch (FormatException)
-                {
-                    // Run unknown commands via runCommand
-                    var database = client.GetDatabase(DatabaseName);
-                    var innerTest = new JsonDrivenRunCommandTest(database, objectMap);
-                    operation["command_name"] = operation["name"];
-                    operation["object"] = "database";
-                    var command = new BsonDocument(operation["name"].AsString, 1);
-                    if (operation.TryGetValue("arguments", out var argumentsValue) && argumentsValue is BsonDocument arguments)
-                    {
-                        command.Merge(arguments);
-                        operation.Remove("arguments");
-                    }
-                    operation.Add("arguments", new BsonDocument("command", command));
-                    jsonDrivenTest = wrapTest(innerTest);
-                }
+                var innerTest = factory.CreateTest(receiver, name);
+                jsonDrivenTest = wrapTest(innerTest);
 
                 jsonDrivenTest.Arrange(operation);
                 if (test["async"].AsBoolean)
@@ -113,7 +100,60 @@ namespace WorkloadExecutor
                     jsonDrivenTest.Act(CancellationToken.None);
                 }
 
-                jsonDrivenTest.Assert();
+                AssertTest(jsonDrivenTest);
+            }
+        }
+
+        public void AssertTest(JsonDrivenTest test)
+        {
+            var wrappedActualException = test._actualException();
+            if (test._expectedException() == null)
+            {
+                if (wrappedActualException != null)
+                {
+                    if (!(wrappedActualException is OperationCanceledException))
+                    {
+                        Console.WriteLine($"Operation error (unexpected exception): {wrappedActualException}");
+                        _incrementOperationErrors();
+                    }
+
+                    return;
+                }
+                if (test._expectedResult() == null)
+                {
+                    _incrementOperationSuccesses();
+                }
+                else
+                {
+                    try
+                    {
+                        test.AssertResult();
+                        _incrementOperationSuccesses();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Operation failure (unexpected result): {ex}");
+                        _incrementOperationFailures();
+                    }
+                }
+            }
+            else
+            {
+                if (wrappedActualException == null)
+                {
+                    _incrementOperationErrors();
+
+                    return;
+                }
+                try
+                {
+                    test.AssertException();
+                    _incrementOperationSuccesses();
+                }
+                catch
+                {
+                    _incrementOperationFailures();
+                }
             }
         }
 
