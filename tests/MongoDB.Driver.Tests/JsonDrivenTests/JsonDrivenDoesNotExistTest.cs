@@ -23,7 +23,6 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
 {
     public class JsonDrivenDoesNotExistTest : JsonDrivenCollectionTest
     {
-        
         // private fields
         private BsonDocument _command;
         private IClientSessionHandle _session;
@@ -32,6 +31,7 @@ namespace MongoDB.Driver.Tests.JsonDrivenTests
         public JsonDrivenDoesNotExistTest(IMongoCollection<BsonDocument> collection, Dictionary<string, object> objectMap)
             : base(collection, objectMap)
         {
+            _command = new BsonDocument("doesNotExist", 1);
         }
 
         protected override void AssertResult()
