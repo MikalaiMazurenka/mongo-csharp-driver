@@ -84,11 +84,11 @@ namespace WorkloadExecutor
                 jsonDrivenTest.Arrange(operation);
                 if (test["async"].AsBoolean)
                 {
-                    jsonDrivenTest.ActAsync(_cancellationToken).GetAwaiter().GetResult();
+                    jsonDrivenTest.ActAsync(CancellationToken.None).GetAwaiter().GetResult();
                 }
                 else
                 {
-                    jsonDrivenTest.Act(_cancellationToken);
+                    jsonDrivenTest.Act(CancellationToken.None);
                 }
                 AssertTest(jsonDrivenTest);
             }
