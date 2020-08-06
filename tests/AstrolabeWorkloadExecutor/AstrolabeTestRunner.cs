@@ -72,6 +72,11 @@ namespace WorkloadExecutor
 
             foreach (var operation in test[OperationsKey].AsBsonArray.Cast<BsonDocument>())
             {
+                if (_cancellationToken.IsCancellationRequested)
+                {
+                    return;
+                }
+
                 ModifyOperationIfNeeded(operation);
                 var receiver = operation["object"].AsString;
                 var name = operation["name"].AsString;

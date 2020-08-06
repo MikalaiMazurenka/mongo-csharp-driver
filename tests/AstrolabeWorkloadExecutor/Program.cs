@@ -53,7 +53,6 @@ namespace WorkloadExecutor
             }
             finally
             {
-                Console.WriteLine("dotnet main finally>");
                 Console.CancelKeyPress -= cancelHandler;
                 Console.WriteLine("dotnet main finally> Writing final results file");
                 var resultsJson = ConvertResultsToJson();
@@ -100,7 +99,7 @@ namespace WorkloadExecutor
         {
             Console.Write($"\ndotnet cancel workload> Canceling the workload task...");
             cancellationTokenSource.Cancel();
-            Console.WriteLine($"dotnet cancel workload> Done.");
+            Console.WriteLine($"Done.");
         }
 
         internal static void HandleCancel(
