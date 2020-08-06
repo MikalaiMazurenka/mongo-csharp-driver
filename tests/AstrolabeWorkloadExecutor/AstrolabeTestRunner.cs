@@ -98,9 +98,12 @@ namespace WorkloadExecutor
                 {
                     if (!(wrappedActualException is OperationCanceledException))
                     {
-                        Console.WriteLine($"Operation error (unexpected exception): {wrappedActualException}");
+                        //Console.WriteLine($"Operation error (unexpected exception): {wrappedActualException}");
                         _incrementOperationErrors();
-
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Operation cancelled: {wrappedActualException}");
                     }
 
                     return;
@@ -149,7 +152,7 @@ namespace WorkloadExecutor
             using (var client = CreateClient(eventCapturer))
             {
                 Console.WriteLine("dotnet astrolabetestrunner> looping until cancellation is requested...");
-                while(!_cancellationToken.IsCancellationRequested)
+                while (!_cancellationToken.IsCancellationRequested)
                 {
                     // Clone because inserts will auto assign an id to the test case document
                     ExecuteOperations(
@@ -177,7 +180,7 @@ namespace WorkloadExecutor
         {
             public JsonDrivenTestCase CreateTestCase(BsonDocument driverWorkload, bool async)
             {
-                JsonDrivenHelper.EnsureAllFieldsAreValid(driverWorkload, new [] { "database", "collection", "testData", "operations" });
+                JsonDrivenHelper.EnsureAllFieldsAreValid(driverWorkload, new[] { "database", "collection", "testData", "operations" });
 
                 var adaptedDriverWorkload = new BsonDocument
                 {
