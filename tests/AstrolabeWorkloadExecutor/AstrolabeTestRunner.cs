@@ -101,8 +101,6 @@ namespace WorkloadExecutor
                         Console.WriteLine($"Operation error (unexpected exception): {wrappedActualException}");
                         _incrementOperationErrors();
                     }
-
-                    return;
                 }
                 if (test._expectedResult() == null)
                 {
