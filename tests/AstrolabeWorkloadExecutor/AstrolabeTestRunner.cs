@@ -101,8 +101,9 @@ namespace WorkloadExecutor
                         Console.WriteLine($"Operation error (unexpected exception): {wrappedActualException}");
                         _incrementOperationErrors();
 
-                        return;
                     }
+
+                    return;
                 }
                 if (test._expectedResult() == null)
                 {
@@ -222,31 +223,6 @@ namespace WorkloadExecutor
         public static void AssertResult(this JsonDrivenTest test)
         {
             Reflector.Invoke(test, nameof(AssertResult));
-        }
-
-        public static void CallMethod(this JsonDrivenTest test, CancellationToken cancellationToken)
-        {
-            Reflector.Invoke(test, nameof(CallMethod), cancellationToken);
-        }
-
-        public static Task CallMethodAsync(this JsonDrivenTest test, CancellationToken cancellationToken)
-        {
-            return (Task)Reflector.Invoke(test, nameof(CallMethodAsync), cancellationToken);
-        }
-
-        public static void ParseExpectedResult(this JsonDrivenTest test, BsonValue value)
-        {
-           Reflector.Invoke(test, nameof(ParseExpectedResult), value);
-        }
-
-        public static void SetArgument(this JsonDrivenTest test, string name, BsonValue value)
-        {
-           Reflector.Invoke(test, nameof(SetArgument), name, value);
-        }
-
-        public static void SetArguments(this JsonDrivenTest test, BsonDocument arguments)
-        {
-           Reflector.Invoke(test, nameof(SetArguments), arguments);
         }
     }
 }
