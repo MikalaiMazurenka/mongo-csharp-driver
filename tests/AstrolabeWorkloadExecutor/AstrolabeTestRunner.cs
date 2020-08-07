@@ -18,11 +18,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using MongoDB.Bson;
+using MongoDB.Bson.TestHelpers;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Driver;
 using MongoDB.Driver.Core;
 using MongoDB.Driver.TestHelpers;
-using MongoDB.Driver.Tests.JsonDrivenTests;
 using MongoDB.Driver.Tests.Specifications.Runner;
 
 namespace WorkloadExecutor
@@ -62,58 +62,60 @@ namespace WorkloadExecutor
         }
 
         // protected methods
-        protected override void ExecuteOperations(IMongoClient client, Dictionary<string, object> objectMap, BsonDocument test, EventCapturer eventCapturer = null)
+        protected override void AssertOperation(JsonDrivenTest test)
         {
-            _objectMap = objectMap;
-
-            var factory = new JsonDrivenTestFactory(client, DatabaseName, CollectionName, bucketName: null, objectMap, eventCapturer);
-
-            Func<JsonDrivenTest, AstrolabeJsonDrivenTest> wrapTest = wrapped =>
-                new AstrolabeJsonDrivenTest(wrapped, _incrementOperationSuccesses, _incrementOperationErrors, _incrementOperationFailures);
-
-            foreach (var operation in test[OperationsKey].AsBsonArray.Cast<BsonDocument>())
+            var wrappedActualException = test._actualException();
+            if (test._expectedException() == null)
             {
-                if (_cancellationToken.IsCancellationRequested)
+                if (wrappedActualException != null)
                 {
+                    if (!(wrappedActualException is OperationCanceledException))
+                    {
+                        Console.WriteLine($"Operation error (unexpected exception type): {wrappedActualException.GetType()}");
+                        _incrementOperationErrors();
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Operation cancelled: {wrappedActualException}");
+                    }
+
                     return;
                 }
-
-                var receiver = operation["object"].AsString;
-                var name = operation["name"].AsString;
-                JsonDrivenTest jsonDrivenTest;
-                try
+                if (test._expectedResult() == null)
                 {
-                    var innerTest = factory.CreateTest(receiver, name);
-                    jsonDrivenTest = wrapTest(innerTest);
-                }
-                catch (FormatException)
-                {
-                    // Run unknown commands via runCommand
-                    var database = client.GetDatabase(DatabaseName);
-                    var innerTest = new JsonDrivenRunCommandTest(database, objectMap);
-                    operation["command_name"] = operation["name"];
-                    operation["object"] = "database";
-                    var command = new BsonDocument(operation["name"].AsString, 1);
-                    if (operation.TryGetValue("arguments", out var argumentsValue) && argumentsValue is BsonDocument arguments)
-                    {
-                        command.Merge(arguments);
-                        operation.Remove("arguments");
-                    }
-                    operation.Add("arguments", new BsonDocument("command", command));
-                    jsonDrivenTest = wrapTest(innerTest);
-                }
-
-                jsonDrivenTest.Arrange(operation);
-                if (test["async"].AsBoolean)
-                {
-                    jsonDrivenTest.ActAsync(CancellationToken.None).GetAwaiter().GetResult();
+                    _incrementOperationSuccesses();
                 }
                 else
                 {
-                    jsonDrivenTest.Act(CancellationToken.None);
+                    try
+                    {
+                        test.AssertResult();
+                        _incrementOperationSuccesses();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Operation failure (unexpected exception type): {ex.GetType()}");
+                        _incrementOperationFailures();
+                    }
                 }
+            }
+            else
+            {
+                if (wrappedActualException == null)
+                {
+                    _incrementOperationErrors();
 
-                jsonDrivenTest.Assert();
+                    return;
+                }
+                try
+                {
+                    test.AssertException();
+                    _incrementOperationSuccesses();
+                }
+                catch
+                {
+                    _incrementOperationFailures();
+                }
             }
         }
 
@@ -123,7 +125,7 @@ namespace WorkloadExecutor
             using (var client = CreateClient(eventCapturer))
             {
                 Console.WriteLine("dotnet astrolabetestrunner> looping until cancellation is requested...");
-                while(!_cancellationToken.IsCancellationRequested)
+                while (!_cancellationToken.IsCancellationRequested)
                 {
                     // Clone because inserts will auto assign an id to the test case document
                     ExecuteOperations(
@@ -151,7 +153,7 @@ namespace WorkloadExecutor
         {
             public JsonDrivenTestCase CreateTestCase(BsonDocument driverWorkload, bool async)
             {
-                JsonDrivenHelper.EnsureAllFieldsAreValid(driverWorkload, new [] { "database", "collection", "testData", "operations" });
+                JsonDrivenHelper.EnsureAllFieldsAreValid(driverWorkload, new[] { "database", "collection", "testData", "operations" });
 
                 var adaptedDriverWorkload = new BsonDocument
                 {
@@ -169,6 +171,34 @@ namespace WorkloadExecutor
 
                 return testCase;
             }
+        }
+    }
+
+    internal static class JsonDrivenTestReflector
+    {
+        public static Exception _actualException(this JsonDrivenTest test)
+        {
+            return (Exception)Reflector.GetFieldValue(test, nameof(_actualException));
+        }
+
+        public static BsonDocument _expectedException(this JsonDrivenTest test)
+        {
+            return (BsonDocument)Reflector.GetFieldValue(test, nameof(_expectedException));
+        }
+
+        public static BsonValue _expectedResult(this JsonDrivenTest test)
+        {
+            return (BsonValue)Reflector.GetFieldValue(test, nameof(_expectedResult));
+        }
+
+        public static void AssertException(this JsonDrivenTest test)
+        {
+            Reflector.Invoke(test, nameof(AssertException));
+        }
+
+        public static void AssertResult(this JsonDrivenTest test)
+        {
+            Reflector.Invoke(test, nameof(AssertResult));
         }
     }
 }
