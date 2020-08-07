@@ -17,14 +17,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Driver;
 using MongoDB.Driver.Core;
 using MongoDB.Driver.TestHelpers;
-using MongoDB.Driver.Tests.JsonDrivenTests;
 using MongoDB.Driver.Tests.Specifications.Runner;
 
 namespace WorkloadExecutor
@@ -64,32 +62,7 @@ namespace WorkloadExecutor
         }
 
         // protected methods
-        protected override void ExecuteOperations(IMongoClient client, Dictionary<string, object> objectMap, BsonDocument test, EventCapturer eventCapturer = null)
-        {
-            _objectMap = objectMap;
-
-            var factory = new JsonDrivenTestFactory(client, DatabaseName, CollectionName, bucketName: null, objectMap, eventCapturer);
-
-            foreach (var operation in test[OperationsKey].AsBsonArray.Cast<BsonDocument>())
-            {
-                ModifyOperationIfNeeded(operation);
-                var receiver = operation["object"].AsString;
-                var name = operation["name"].AsString;
-                JsonDrivenTest jsonDrivenTest = factory.CreateTest(receiver, name);
-                jsonDrivenTest.Arrange(operation);
-                if (test["async"].AsBoolean)
-                {
-                    jsonDrivenTest.ActAsync(CancellationToken.None).GetAwaiter().GetResult();
-                }
-                else
-                {
-                    jsonDrivenTest.Act(CancellationToken.None);
-                }
-                AssertTest(jsonDrivenTest);
-            }
-        }
-
-        public void AssertTest(JsonDrivenTest test)
+        protected override void AssertOperation(JsonDrivenTest test)
         {
             var wrappedActualException = test._actualException();
             if (test._expectedException() == null)
@@ -98,7 +71,7 @@ namespace WorkloadExecutor
                 {
                     if (!(wrappedActualException is OperationCanceledException))
                     {
-                        //Console.WriteLine($"Operation error (unexpected exception): {wrappedActualException}");
+                        Console.WriteLine($"Operation error (unexpected exception): {wrappedActualException}");
                         _incrementOperationErrors();
                     }
                     else
@@ -208,14 +181,14 @@ namespace WorkloadExecutor
             return (Exception)Reflector.GetFieldValue(test, nameof(_actualException));
         }
 
-        public static BsonValue _expectedResult(this JsonDrivenTest test)
-        {
-            return (BsonValue)Reflector.GetFieldValue(test, nameof(_expectedResult));
-        }
-
         public static BsonDocument _expectedException(this JsonDrivenTest test)
         {
             return (BsonDocument)Reflector.GetFieldValue(test, nameof(_expectedException));
+        }
+
+        public static BsonValue _expectedResult(this JsonDrivenTest test)
+        {
+            return (BsonValue)Reflector.GetFieldValue(test, nameof(_expectedResult));
         }
 
         public static void AssertException(this JsonDrivenTest test)

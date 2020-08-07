@@ -146,6 +146,11 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
             }
         }
 
+        protected virtual void AssertOperation(JsonDrivenTest jsonDrivenTest)
+        {
+            jsonDrivenTest.Assert();
+        }
+
         protected virtual void AssertOutcome(BsonDocument test)
         {
             if (test.TryGetValue(OutcomeKey, out var outcome))
@@ -235,7 +240,7 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
                 {
                     jsonDrivenTest.Act(CancellationToken.None);
                 }
-                jsonDrivenTest.Assert();
+                AssertOperation(jsonDrivenTest);
             }
         }
 
