@@ -20,13 +20,13 @@ using MongoDB.Bson;
 
 namespace WorkloadExecutor
 {
-    class Program
+    public static class Program
     {
-        static long __numberOfSuccessfulOperations;
-        static long __numberOfFailedOperations;
-        static long __numberOfOperationErrors;
+        private static long __numberOfSuccessfulOperations;
+        private static long __numberOfFailedOperations;
+        private static long __numberOfOperationErrors;
 
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             var connectionString = args[0];
             var driverWorkload = BsonDocument.Parse(args[1]);
@@ -36,7 +36,7 @@ namespace WorkloadExecutor
 
             var resultsDir = Environment.GetEnvironmentVariable("RESULTS_DIR");
             var resultsPath = resultsDir == null ? "results.json" : Path.Combine(resultsDir, "results.json");
-            Console.WriteLine($"dotnet main> Results will be written to {resultsPath}..." );
+            Console.WriteLine($"dotnet main> Results will be written to {resultsPath}...");
 
             try
             {
@@ -65,44 +65,41 @@ namespace WorkloadExecutor
             }
         }
 
-        static string ConvertResultsToJson()
+        private static string ConvertResultsToJson()
         {
-                var resultsJson =
-                @"{ " +
-                $"  \"numErrors\" : {Interlocked.Read(ref __numberOfOperationErrors)}, " +
-                $"  \"numFailures\" : {Interlocked.Read(ref __numberOfFailedOperations)}, " +
-                $"  \"numSuccesses\" : {Interlocked.Read(ref __numberOfSuccessfulOperations)}  " +
-                @"} ";
+            var resultsJson =
+            @"{ " +
+            $"  \"numErrors\" : {__numberOfOperationErrors}, " +
+            $"  \"numFailures\" : {__numberOfFailedOperations}, " +
+            $"  \"numSuccesses\" : {__numberOfSuccessfulOperations} " +
+            @"}";
 
-                return resultsJson;
+            return resultsJson;
         }
 
-        static void ExecuteWorkload(string connectionString, BsonDocument driverWorkload, bool async, CancellationToken cancellationToken)
+        private static void ExecuteWorkload(string connectionString, BsonDocument driverWorkload, bool async, CancellationToken cancellationToken)
         {
             Environment.SetEnvironmentVariable("MONGODB_URI", connectionString);
 
             var testRunner = new AstrolabeTestRunner(
-                incrementOperationSuccesses: () => Interlocked.Increment(ref __numberOfSuccessfulOperations),
-                incrementOperationErrors: () => Interlocked.Increment(ref __numberOfOperationErrors),
-                incrementOperationFailures: () => Interlocked.Increment(ref __numberOfFailedOperations),
+                incrementOperationSuccesses: () => __numberOfSuccessfulOperations++,
+                incrementOperationErrors: () => __numberOfOperationErrors++,
+                incrementOperationFailures: () => __numberOfFailedOperations++,
                 cancellationToken: cancellationToken);
             var factory = new AstrolabeTestRunner.TestCaseFactory();
             var testCase = factory.CreateTestCase(driverWorkload, async);
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                testRunner.Run(testCase);
-            }
+            testRunner.Run(testCase);
             Console.WriteLine("dotnet ExecuteWorkload> Returning...");
         }
 
-        internal static void CancelWorkloadTask(CancellationTokenSource cancellationTokenSource)
+        private static void CancelWorkloadTask(CancellationTokenSource cancellationTokenSource)
         {
             Console.Write($"\ndotnet cancel workload> Canceling the workload task...");
             cancellationTokenSource.Cancel();
             Console.WriteLine($"Done.");
         }
 
-        internal static void HandleCancel(
+        private static void HandleCancel(
             ConsoleCancelEventArgs args,
             CancellationTokenSource cancellationTokenSource)
         {
