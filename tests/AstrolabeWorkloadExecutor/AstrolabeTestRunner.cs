@@ -64,19 +64,19 @@ namespace WorkloadExecutor
         // protected methods
         protected override void AssertOperation(JsonDrivenTest test)
         {
-            var wrappedActualException = test._actualException();
+            var actualException = test._actualException();
             if (test._expectedException() == null)
             {
-                if (wrappedActualException != null)
+                if (actualException != null)
                 {
-                    if (!(wrappedActualException is OperationCanceledException))
+                    if (!(actualException is OperationCanceledException))
                     {
-                        Console.WriteLine($"Operation error (unexpected exception type): {wrappedActualException.GetType()}");
+                        Console.WriteLine($"Operation error (unexpected exception type): {actualException.GetType()}");
                         _incrementOperationErrors();
                     }
                     else
                     {
-                        Console.WriteLine($"Operation cancelled: {wrappedActualException}");
+                        Console.WriteLine($"Operation cancelled: {actualException}");
                     }
 
                     return;
@@ -101,7 +101,7 @@ namespace WorkloadExecutor
             }
             else
             {
-                if (wrappedActualException == null)
+                if (actualException == null)
                 {
                     _incrementOperationErrors();
 
@@ -122,7 +122,7 @@ namespace WorkloadExecutor
         protected override void RunTest(BsonDocument shared, BsonDocument test, EventCapturer eventCapturer)
         {
             Console.WriteLine("dotnet astrolabetestrunner> creating disposable client...");
-            using (var client = CreateClient(eventCapturer))
+            using (var client = CreateDisposableMongoClient(eventCapturer))
             {
                 Console.WriteLine("dotnet astrolabetestrunner> looping until cancellation is requested...");
                 while (!_cancellationToken.IsCancellationRequested)
@@ -134,18 +134,19 @@ namespace WorkloadExecutor
                         test: test.DeepClone().AsBsonDocument);
                 }
             }
+        }
 
-            DisposableMongoClient CreateClient(EventCapturer eventCapturer)
+        // private methods
+        private DisposableMongoClient CreateDisposableMongoClient(EventCapturer eventCapturer)
+        {
+            var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
+            var settings = MongoClientSettings.FromConnectionString(connectionString);
+            if (eventCapturer != null)
             {
-                var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
-                var settings = MongoClientSettings.FromConnectionString(connectionString);
-                if (eventCapturer != null)
-                {
-                    settings.ClusterConfigurator = c => c.Subscribe(eventCapturer);
-                }
-
-                return new DisposableMongoClient(new MongoClient(settings));
+                settings.ClusterConfigurator = c => c.Subscribe(eventCapturer);
             }
+
+            return new DisposableMongoClient(new MongoClient(settings));
         }
 
         // nested types
