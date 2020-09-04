@@ -83,6 +83,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Specifications\atlas-data-lake\tests\" />
     <Folder Include="Specifications\transactions-convenient-api\tests\" />
   </ItemGroup>
 
