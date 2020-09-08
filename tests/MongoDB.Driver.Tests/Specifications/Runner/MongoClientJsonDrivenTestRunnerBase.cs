@@ -241,6 +241,16 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
             }
         }
 
+        protected virtual string GetCollectionName(BsonDocument definition)
+        {
+            return definition[CollectionNameKey].AsString;
+        }
+
+        protected virtual string GetDatabaseName(BsonDocument definition)
+        {
+            return definition[DatabaseNameKey].AsString;
+        }
+
         protected virtual void InsertData(IMongoClient client, string databaseName, string collectionName, BsonDocument shared)
         {
             if (shared.Contains(DataKey))
@@ -464,8 +474,8 @@ namespace MongoDB.Driver.Tests.Specifications.Runner
 
             CustomDataValidation(shared, test);
 
-            DatabaseName = shared[DatabaseNameKey].AsString;
-            CollectionName = shared[CollectionNameKey].AsString;
+            DatabaseName = GetDatabaseName(shared);
+            CollectionName = GetCollectionName(shared);
 
             var client = CreateClientForTestSetup();
             TestInitialize(client, test, shared);

@@ -33,8 +33,10 @@ namespace MongoDB.Driver.Tests.Specifications.atlas_data_lake.prose_tests
         {
             RequireEnvironment.Check().EnvironmentVariable("ATLAS_DATA_LAKE_TESTS_ENABLED");
 
-            var client = DriverTestConfiguration.CreateDisposableClient();
-            client.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+            using (var client = DriverTestConfiguration.CreateDisposableClient())
+            {
+                client.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+            }
         }
 
         [SkippableFact]
@@ -51,8 +53,10 @@ namespace MongoDB.Driver.Tests.Specifications.atlas_data_lake.prose_tests
             var settings = DriverTestConfiguration.Client.Settings.Clone();
             settings.Credential = MongoCredential.FromComponents(mechanism: "SCRAM-SHA-1", source, username, password);
 
-            var client = DriverTestConfiguration.CreateDisposableClient(settings);
-            client.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+            using (var client = DriverTestConfiguration.CreateDisposableClient(settings))
+            {
+                client.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+            }
         }
 
         [SkippableFact]
@@ -69,8 +73,10 @@ namespace MongoDB.Driver.Tests.Specifications.atlas_data_lake.prose_tests
             var settings = DriverTestConfiguration.Client.Settings.Clone();
             settings.Credential = MongoCredential.FromComponents(mechanism: "SCRAM-SHA-256", source, username, password);
 
-            var client = DriverTestConfiguration.CreateDisposableClient(settings);
-            client.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+            using (var client = DriverTestConfiguration.CreateDisposableClient(settings))
+            {
+                client.GetDatabase("admin").RunCommand<BsonDocument>(new BsonDocument("ping", 1));
+            }
         }
 
         [SkippableFact]

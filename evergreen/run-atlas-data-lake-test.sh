@@ -3,9 +3,6 @@
 set -o xtrace
 set -o errexit  # Exit the script with error if any of the commands fail
 
-# Supported/used environment variables:
-#       MONGODB_URI             Set the URI, including username/password to use to connect to the mongohouse
-
 ############################################
 #            Main Program                  #
 ############################################

@@ -13,129 +13,43 @@
 * limitations under the License.
 */
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
-using MongoDB.Driver.Core;
-using MongoDB.Driver.Core.Events;
-using MongoDB.Driver.Core.TestHelpers.JsonDrivenTests;
-using MongoDB.Driver.Tests.JsonDrivenTests;
+using MongoDB.Driver.Tests.Specifications.Runner;
 using Xunit;
 
 namespace MongoDB.Driver.Tests.Specifications.atlas_data_lake
 {
     [Trait("Category", "AtlasDataLake")]
-    public class AtlasDataLakeTestRunner
+    public class AtlasDataLakeTestRunner : MongoClientJsonDrivenTestRunnerBase
     {
-        #region static
-        private static readonly HashSet<string> __commandsToNotCapture = new HashSet<string>
-        {
-            "configureFailPoint",
-            "isMaster",
-            "buildInfo",
-            "getLastError",
-            "authenticate",
-            "saslStart",
-            "saslContinue",
-            "getnonce"
-        };
-        #endregion
-
-        private readonly EventCapturer _eventCapturer = new EventCapturer()
-            .Capture<CommandStartedEvent>(e => !__commandsToNotCapture.Contains(e.CommandName));
+        protected override string[] ExpectedSharedColumns => new[] { "_path", "database_name", "collection_name", "tests" };
+        protected override string[] ExpectedTestColumns => new[] { "description", "operations", "expectations", "async" };
 
         [SkippableTheory]
         [ClassData(typeof(TestCaseFactory))]
         public void Run(JsonDrivenTestCase testCase)
         {
-            RunTestDefinition(testCase.Shared, testCase.Test);
-        }
-
-        public void RunTestDefinition(BsonDocument shared, BsonDocument test)
-        {
             RequireEnvironment.Check().EnvironmentVariable("ATLAS_DATA_LAKE_TESTS_ENABLED");
 
-            JsonDrivenHelper.EnsureAllFieldsAreValid(shared, "_path", "database_name", "collection_name", "tests");
-            JsonDrivenHelper.EnsureAllFieldsAreValid(test, "description", "operations", "expectations", "async");
-
-            var databaseName = GetDatabaseName(shared);
-            var collectionName = GetCollectionName(shared);
-
-            using (var client = DriverTestConfiguration.CreateDisposableClient(_eventCapturer))
-            {
-                ExecuteOperation(client, databaseName, collectionName, test, _eventCapturer);
-                AssertEventsIfNeeded(_eventCapturer, test);
-            }
+            SetupAndRunTest(testCase);
         }
 
-        private void AssertEvent(object actualEvent, BsonDocument expectedEvent)
+        protected override void CreateCollection(IMongoClient client, string databaseName, string collectionName, BsonDocument test, BsonDocument shared)
         {
-            if (expectedEvent.ElementCount != 1)
-            {
-                throw new FormatException("Expected event must be a document with a single element with a name the specifies the type of the event.");
-            }
-
-            var eventType = expectedEvent.GetElement(0).Name;
-            var eventAsserter = EventAsserterFactory.CreateAsserter(eventType);
-            eventAsserter.AssertAspects(actualEvent, expectedEvent[0].AsBsonDocument);
+            // do nothing
         }
 
-        private void AssertEventsIfNeeded(EventCapturer eventCapturer, BsonDocument test)
+        protected override void DropCollection(MongoClient client, string databaseName, string collectionName, BsonDocument test, BsonDocument shared)
         {
-            if (test.TryGetValue("expectations", out var expectations))
-            {
-                var actualEvents = eventCapturer.Events;
-                var expectedEvents = expectations.AsBsonArray.Cast<BsonDocument>().ToList();
-
-                var minCount = Math.Min(actualEvents.Count, expectedEvents.Count);
-                for (var i = 0; i < minCount; i++)
-                {
-                    AssertEvent(actualEvents[i], expectedEvents[i]);
-                }
-
-                if (actualEvents.Count < expectedEvents.Count)
-                {
-                    throw new Exception($"Missing event: {expectedEvents[actualEvents.Count]}.");
-                }
-
-                if (actualEvents.Count > expectedEvents.Count)
-                {
-                    throw new Exception($"Unexpected event of type: {actualEvents[expectedEvents.Count].GetType().Name}.");
-                }
-            }
-        }
-        
-        private void ExecuteOperation(IMongoClient client, string databaseName, string collectionName, BsonDocument test, EventCapturer eventCapturer)
-        {
-            var factory = new JsonDrivenTestFactory(client, databaseName, collectionName, bucketName: null, objectMap: null, eventCapturer);
-
-            foreach (var operation in test["operations"].AsBsonArray.Cast<BsonDocument>())
-            {
-                JsonDrivenHelper.EnsureAllFieldsAreValid(operation, "name", "object", "command_name", "arguments", "result");
-
-                var receiver = operation["object"].AsString;
-                var name = operation["name"].AsString;
-                var jsonDrivenTest = factory.CreateTest(receiver, name);
-                jsonDrivenTest.Arrange(operation);
-                if (test["async"].AsBoolean)
-                {
-                    jsonDrivenTest.ActAsync(CancellationToken.None).GetAwaiter().GetResult();
-                }
-                else
-                {
-                    jsonDrivenTest.Act(CancellationToken.None);
-                }
-                jsonDrivenTest.Assert();
-            }
+            // do nothing
         }
 
-        private string GetCollectionName(BsonDocument definition)
+        protected override string GetCollectionName(BsonDocument definition)
         {
-            if (definition.TryGetValue("collection_name", out var collectionName))
+            if (definition.TryGetValue(CollectionNameKey, out var collectionName))
             {
                 return collectionName.AsString;
             }
@@ -145,9 +59,9 @@ namespace MongoDB.Driver.Tests.Specifications.atlas_data_lake
             }
         }
 
-        private string GetDatabaseName(BsonDocument definition)
+        protected override string GetDatabaseName(BsonDocument definition)
         {
-            if (definition.TryGetValue("database_name", out var databaseName))
+            if (definition.TryGetValue(DatabaseNameKey, out var databaseName))
             {
                 return databaseName.AsString;
             }
