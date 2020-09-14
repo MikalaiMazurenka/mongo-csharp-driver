@@ -370,7 +370,7 @@ namespace MongoDB.Driver.Core.Connections
                         }
                         catch (Exception ex)
                         {
-                            _dropbox.AddException(responseTo, ex);
+                            _dropbox.AddException(ex);
                             throw;
                         }
 
@@ -441,7 +441,7 @@ namespace MongoDB.Driver.Core.Connections
                         }
                         catch (Exception ex)
                         {
-                            _dropbox.AddException(responseTo, ex);
+                            _dropbox.AddException(ex);
                             throw;
                         }
 
@@ -782,10 +782,12 @@ namespace MongoDB.Driver.Core.Connections
             private readonly ConcurrentDictionary<int, TaskCompletionSource<IByteBuffer>> _messages = new ConcurrentDictionary<int, TaskCompletionSource<IByteBuffer>>();
 
             // public methods
-            public void AddException(int responseTo, Exception exception)
+            public void AddException(Exception exception)
             {
-                var tcs = _messages.GetOrAdd(responseTo, x => new TaskCompletionSource<IByteBuffer>());
-                tcs.TrySetException(exception);
+                foreach (var tsc in _messages.Values)
+                {
+                    tsc.TrySetException(exception);
+                }
             }
 
             public void AddMessage(IByteBuffer message)
