@@ -768,7 +768,7 @@ namespace MongoDB.Driver.Core.Connections
             {
                 foreach (var tsc in _messages.Values)
                 {
-                    tsc.TrySetException(exception);
+                    tsc.TrySetException(exception); // has no effect on already completed tasks
                 }
             }
 
