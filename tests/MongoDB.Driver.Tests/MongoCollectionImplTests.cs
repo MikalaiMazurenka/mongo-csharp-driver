@@ -260,6 +260,46 @@ namespace MongoDB.Driver
 
         [Theory]
         [ParameterAttributeData]
+        public void Aggregate_should_recognize_short_merge_collection_argument(
+            [Values(false, true)] bool async)
+        {
+            var collectionName = "output";
+            var subject = CreateSubject<BsonDocument>(collectionName: collectionName);
+            var pipeline = new EmptyPipelineDefinition<BsonDocument>()
+                .AppendStage<BsonDocument, BsonDocument, BsonDocument>(new BsonDocument("$merge", collectionName));
+
+            IAsyncCursor<BsonDocument> result;
+            if (async)
+            {
+                result = subject.AggregateAsync(pipeline).GetAwaiter().GetResult();
+            }
+            else
+            {
+                result = subject.Aggregate(pipeline);
+            }
+            var aggregateCall = _operationExecutor.GetWriteCall<BsonDocument>();
+
+            var aggregateOperation = aggregateCall.Operation.Should().BeOfType<AggregateToCollectionOperation>().Subject;
+            aggregateOperation.CollectionNamespace.Should().Be(subject.CollectionNamespace);
+
+            var mockCursor = new Mock<IAsyncCursor<BsonDocument>>();
+            _operationExecutor.EnqueueResult(mockCursor.Object);
+            if (async)
+            {
+                result.MoveNextAsync().GetAwaiter().GetResult();
+            }
+            else
+            {
+                result.MoveNext();
+            }
+            var findCall = _operationExecutor.GetReadCall<IAsyncCursor<BsonDocument>>();
+
+            var findOperation = findCall.Operation.Should().BeOfType<FindOperation<BsonDocument>>().Subject;
+            findOperation.CollectionNamespace.Should().Be(subject.CollectionNamespace);
+        }
+
+        [Theory]
+        [ParameterAttributeData]
         public void AggregateToCollection_should_execute_an_AggregateToCollectionOperation(
             [Values(false, true)] bool usingSession,
             [Values(false, true)] bool usingDifferentOutputDatabase,
