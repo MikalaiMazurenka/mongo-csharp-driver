@@ -258,15 +258,42 @@ namespace MongoDB.Driver
             findOperation.Sort.Should().BeNull();
         }
 
-        [Theory]
-        [ParameterAttributeData]
-        public void Aggregate_should_recognize_short_merge_collection_argument(
-            [Values(false, true)] bool async)
+        [Theory] // The only excluded option is simplified form with different database, because it is not supported by server
+        [InlineData(false, false, false)]
+        [InlineData(false, false, true)]
+        [InlineData(true, false, false)]
+        [InlineData(true, false, true)]
+        [InlineData(true, true, false)]
+        [InlineData(true, true, true)]
+        public void Aggregate_should_recognize_merge_collection_argument(bool fullForm, bool outputToDifferentDatabase, bool async)
         {
-            var collectionName = "output";
-            var subject = CreateSubject<BsonDocument>(collectionName: collectionName);
-            var pipeline = new EmptyPipelineDefinition<BsonDocument>()
-                .AppendStage<BsonDocument, BsonDocument, BsonDocument>(new BsonDocument("$merge", collectionName));
+            var subject = CreateSubject<BsonDocument>();
+
+            CollectionNamespace expectedCollectionNamespace;
+            PipelineStageDefinition<BsonDocument, BsonDocument> stageDefinition;
+            var outputCollectionName = "outputcollection";
+            if (fullForm)
+            {
+                if (outputToDifferentDatabase)
+                {
+                    var outputDatabaseName = "outputdatabase";
+                    var outputDatabaseAndCollectionName = new BsonDocument { { "db", outputDatabaseName}, { "coll", outputCollectionName } };
+                    stageDefinition = new BsonDocument("$merge", new BsonDocument { { "into",  outputDatabaseAndCollectionName } });
+                    expectedCollectionNamespace = new CollectionNamespace(outputDatabaseName, outputCollectionName);
+                }
+                else
+                {
+                    stageDefinition = new BsonDocument("$merge", new BsonDocument { { "into", outputCollectionName } });
+                    expectedCollectionNamespace = new CollectionNamespace(subject.CollectionNamespace.DatabaseNamespace, outputCollectionName);
+                }
+            }
+            else
+            {
+                stageDefinition = new BsonDocument("$merge", outputCollectionName);
+                expectedCollectionNamespace = new CollectionNamespace(subject.CollectionNamespace.DatabaseNamespace, outputCollectionName);
+            }
+
+            var pipeline = new EmptyPipelineDefinition<BsonDocument>().AppendStage(stageDefinition);
 
             IAsyncCursor<BsonDocument> result;
             if (async)
@@ -295,7 +322,7 @@ namespace MongoDB.Driver
             var findCall = _operationExecutor.GetReadCall<IAsyncCursor<BsonDocument>>();
 
             var findOperation = findCall.Operation.Should().BeOfType<FindOperation<BsonDocument>>().Subject;
-            findOperation.CollectionNamespace.Should().Be(subject.CollectionNamespace);
+            findOperation.CollectionNamespace.Should().Be(expectedCollectionNamespace);
         }
 
         [Theory]
