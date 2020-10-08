@@ -258,42 +258,56 @@ namespace MongoDB.Driver
             findOperation.Sort.Should().BeNull();
         }
 
-        [Theory] // The only excluded option is simplified form with different database, because it is not supported by server
-        [InlineData(false, false, false)]
-        [InlineData(false, false, true)]
-        [InlineData(true, false, false)]
-        [InlineData(true, false, true)]
-        [InlineData(true, true, false)]
-        [InlineData(true, true, true)]
-        public void Aggregate_should_recognize_merge_collection_argument(bool fullForm, bool outputToDifferentDatabase, bool async)
+        [Theory]
+        [ParameterAttributeData]
+        public void Aggregate_should_recognize_merge_collection_argument(
+            [Values(
+                "{ $merge : \"outputcollection\" }",
+                "{ $merge : { into : \"outputcollection\" } }",
+                "{ $merge : { into : { coll : \"outputcollection\" } } }",
+                "{ $merge : { into : { db: \"outputdatabase\", coll : \"outputcollection\" } } }")]
+            string stageDefinitionString,
+            [Values(false, true)] bool async)
         {
             var subject = CreateSubject<BsonDocument>();
-
             CollectionNamespace expectedCollectionNamespace;
-            PipelineStageDefinition<BsonDocument, BsonDocument> stageDefinition;
-            var outputCollectionName = "outputcollection";
-            if (fullForm)
+
+            var stageDefinition = BsonDocument.Parse(stageDefinitionString);
+            if (stageDefinition[0].IsString)
             {
-                if (outputToDifferentDatabase)
-                {
-                    var outputDatabaseName = "outputdatabase";
-                    var outputDatabaseAndCollectionName = new BsonDocument { { "db", outputDatabaseName}, { "coll", outputCollectionName } };
-                    stageDefinition = new BsonDocument("$merge", new BsonDocument { { "into",  outputDatabaseAndCollectionName } });
-                    expectedCollectionNamespace = new CollectionNamespace(outputDatabaseName, outputCollectionName);
-                }
-                else
-                {
-                    stageDefinition = new BsonDocument("$merge", new BsonDocument { { "into", outputCollectionName } });
-                    expectedCollectionNamespace = new CollectionNamespace(subject.CollectionNamespace.DatabaseNamespace, outputCollectionName);
-                }
+                expectedCollectionNamespace = new CollectionNamespace(
+                    subject.CollectionNamespace.DatabaseNamespace,
+                    stageDefinition[0].AsString);
             }
             else
             {
-                stageDefinition = new BsonDocument("$merge", outputCollectionName);
-                expectedCollectionNamespace = new CollectionNamespace(subject.CollectionNamespace.DatabaseNamespace, outputCollectionName);
+                var into = stageDefinition[0].AsBsonDocument["into"];
+                if (into.IsString)
+                {
+                    expectedCollectionNamespace = new CollectionNamespace(
+                        subject.CollectionNamespace.DatabaseNamespace,
+                        into.AsString);
+                }
+                else
+                {
+                    if (into.AsBsonDocument.Contains("db"))
+                    {
+                        expectedCollectionNamespace = new CollectionNamespace(
+                            into["db"].AsString,
+                            into["coll"].AsString);
+                    }
+                    else
+                    {
+                        expectedCollectionNamespace = new CollectionNamespace(
+                            subject.CollectionNamespace.DatabaseNamespace,
+                            into["coll"].AsString);
+                    }
+                }
             }
 
-            var pipeline = new EmptyPipelineDefinition<BsonDocument>().AppendStage(stageDefinition);
+            var pipeline = new EmptyPipelineDefinition<BsonDocument>()
+                .AppendStage<BsonDocument, BsonDocument, BsonDocument>(stageDefinition);
+            var expectedPipeline = new List<BsonDocument>(RenderPipeline(subject, pipeline).Documents);
 
             IAsyncCursor<BsonDocument> result;
             if (async)
@@ -308,6 +322,7 @@ namespace MongoDB.Driver
 
             var aggregateOperation = aggregateCall.Operation.Should().BeOfType<AggregateToCollectionOperation>().Subject;
             aggregateOperation.CollectionNamespace.Should().Be(subject.CollectionNamespace);
+            aggregateOperation.Pipeline.Should().Equal(expectedPipeline);
 
             var mockCursor = new Mock<IAsyncCursor<BsonDocument>>();
             _operationExecutor.EnqueueResult(mockCursor.Object);

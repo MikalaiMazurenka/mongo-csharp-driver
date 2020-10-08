@@ -824,7 +824,14 @@ namespace MongoDB.Driver
                             }
                             else
                             {
-                                outputDatabaseNamespace = new DatabaseNamespace(into["db"].AsString);
+                                if (into.AsBsonDocument.Contains("db"))
+                                {
+                                    outputDatabaseNamespace = new DatabaseNamespace(into["db"].AsString);
+                                }
+                                else
+                                {
+                                    outputDatabaseNamespace = _collectionNamespace.DatabaseNamespace;
+                                }
                                 outputCollectionName = into["coll"].AsString;
                             }
                         }
