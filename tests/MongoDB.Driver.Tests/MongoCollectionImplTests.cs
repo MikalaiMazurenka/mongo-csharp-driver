@@ -259,51 +259,25 @@ namespace MongoDB.Driver
         }
 
         [Theory]
-        [ParameterAttributeData]
+        [InlineData("{ $merge : \"outputcollection\" }", null, "outputcollection", false)]
+        [InlineData("{ $merge : \"outputcollection\" }", null, "outputcollection", true)]
+        [InlineData("{ $merge : { into : \"outputcollection\" } }", null, "outputcollection", false)]
+        [InlineData("{ $merge : { into : \"outputcollection\" } }", null, "outputcollection", true)]
+        [InlineData("{ $merge : { into : { coll : \"outputcollection\" } } }", null, "outputcollection", false)]
+        [InlineData("{ $merge : { into : { coll : \"outputcollection\" } } }", null, "outputcollection", true)]
+        [InlineData("{ $merge : { into : { db: \"outputdatabase\", coll : \"outputcollection\" } } }", "outputdatabase", "outputcollection", false)]
+        [InlineData("{ $merge : { into : { db: \"outputdatabase\", coll : \"outputcollection\" } } }", "outputdatabase", "outputcollection", true)]
         public void Aggregate_should_recognize_merge_collection_argument(
-            [Values(
-                "{ $merge : \"outputcollection\" }",
-                "{ $merge : { into : \"outputcollection\" } }",
-                "{ $merge : { into : { coll : \"outputcollection\" } } }",
-                "{ $merge : { into : { db: \"outputdatabase\", coll : \"outputcollection\" } } }")]
             string stageDefinitionString,
-            [Values(false, true)] bool async)
+            string expectedDatabaseName,
+            string expectedCollectionName,
+            bool async)
         {
             var subject = CreateSubject<BsonDocument>();
-            CollectionNamespace expectedCollectionNamespace;
-
             var stageDefinition = BsonDocument.Parse(stageDefinitionString);
-            if (stageDefinition[0].IsString)
-            {
-                expectedCollectionNamespace = new CollectionNamespace(
-                    subject.CollectionNamespace.DatabaseNamespace,
-                    stageDefinition[0].AsString);
-            }
-            else
-            {
-                var into = stageDefinition[0].AsBsonDocument["into"];
-                if (into.IsString)
-                {
-                    expectedCollectionNamespace = new CollectionNamespace(
-                        subject.CollectionNamespace.DatabaseNamespace,
-                        into.AsString);
-                }
-                else
-                {
-                    if (into.AsBsonDocument.Contains("db"))
-                    {
-                        expectedCollectionNamespace = new CollectionNamespace(
-                            into["db"].AsString,
-                            into["coll"].AsString);
-                    }
-                    else
-                    {
-                        expectedCollectionNamespace = new CollectionNamespace(
-                            subject.CollectionNamespace.DatabaseNamespace,
-                            into["coll"].AsString);
-                    }
-                }
-            }
+            var expectedCollectionNamespace = new CollectionNamespace(
+                expectedDatabaseName ?? subject.CollectionNamespace.DatabaseNamespace.DatabaseName,
+                expectedCollectionName);
 
             var pipeline = new EmptyPipelineDefinition<BsonDocument>()
                 .AppendStage<BsonDocument, BsonDocument, BsonDocument>(stageDefinition);
