@@ -766,9 +766,9 @@ namespace MongoDB.Driver.Core.Connections
             // public methods
             public void AddException(Exception exception)
             {
-                foreach (var tsc in _messages.Values)
+                foreach (var taskCompletionSource in _messages.Values)
                 {
-                    tsc.TrySetException(exception); // has no effect on already completed tasks
+                    taskCompletionSource.TrySetException(exception); // has no effect on already completed tasks
                 }
             }
 
