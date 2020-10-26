@@ -352,33 +352,42 @@ namespace MongoDB.Driver.Core.Connections
             using (var receiveLockRequest = new SemaphoreSlimRequest(_receiveLock, cancellationToken))
             {
                 var messageTask = _dropbox.GetMessageAsync(responseTo);
-
-                Task.WaitAny(messageTask, receiveLockRequest.Task);
-                if (messageTask.IsCompleted)
+                try
                 {
-                    return _dropbox.RemoveMessage(responseTo);
-                }
-
-                receiveLockRequest.Task.GetAwaiter().GetResult(); // propagate exceptions
-                while (true)
-                {
-                    try
-                    {
-                        var buffer = ReceiveBuffer(cancellationToken);
-                        _dropbox.AddMessage(buffer);
-                    }
-                    catch (Exception ex)
-                    {
-                        _dropbox.AddException(ex);
-                        throw;
-                    }
-
+                    Task.WaitAny(messageTask, receiveLockRequest.Task);
                     if (messageTask.IsCompleted)
                     {
                         return _dropbox.RemoveMessage(responseTo);
                     }
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                    receiveLockRequest.Task.GetAwaiter().GetResult(); // propagate exceptions
+                    while (true)
+                    {
+                        try
+                        {
+                            var buffer = ReceiveBuffer(cancellationToken);
+                            _dropbox.AddMessage(buffer);
+                        }
+                        catch (Exception ex)
+                        {
+                            _dropbox.AddException(ex);
+                            throw;
+                        }
+
+                        if (messageTask.IsCompleted)
+                        {
+                            return _dropbox.RemoveMessage(responseTo);
+                        }
+
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+                }
+                catch
+                {
+                    var ignored = messageTask.ContinueWith(
+                        t => { _dropbox.RemoveMessage(responseTo).Dispose(); },
+                        TaskContinuationOptions.OnlyOnRanToCompletion);
+                    throw;
                 }
             }
         }
@@ -414,33 +423,42 @@ namespace MongoDB.Driver.Core.Connections
             using (var receiveLockRequest = new SemaphoreSlimRequest(_receiveLock, cancellationToken))
             {
                 var messageTask = _dropbox.GetMessageAsync(responseTo);
-
-                await Task.WhenAny(messageTask, receiveLockRequest.Task).ConfigureAwait(false);
-                if (messageTask.IsCompleted)
+                try
                 {
-                    return _dropbox.RemoveMessage(responseTo);
-                }
-
-                receiveLockRequest.Task.GetAwaiter().GetResult(); // propagate exceptions
-                while (true)
-                {
-                    try
-                    {
-                        var buffer = await ReceiveBufferAsync(cancellationToken).ConfigureAwait(false);
-                        _dropbox.AddMessage(buffer);
-                    }
-                    catch (Exception ex)
-                    {
-                        _dropbox.AddException(ex);
-                        throw;
-                    }
-
+                    await Task.WhenAny(messageTask, receiveLockRequest.Task).ConfigureAwait(false);
                     if (messageTask.IsCompleted)
                     {
                         return _dropbox.RemoveMessage(responseTo);
                     }
 
-                    cancellationToken.ThrowIfCancellationRequested();
+                    receiveLockRequest.Task.GetAwaiter().GetResult(); // propagate exceptions
+                    while (true)
+                    {
+                        try
+                        {
+                            var buffer = await ReceiveBufferAsync(cancellationToken).ConfigureAwait(false);
+                            _dropbox.AddMessage(buffer);
+                        }
+                        catch (Exception ex)
+                        {
+                            _dropbox.AddException(ex);
+                            throw;
+                        }
+
+                        if (messageTask.IsCompleted)
+                        {
+                            return _dropbox.RemoveMessage(responseTo);
+                        }
+
+                        cancellationToken.ThrowIfCancellationRequested();
+                    }
+                }
+                catch
+                {
+                    var ignored = messageTask.ContinueWith(
+                        t => { _dropbox.RemoveMessage(responseTo).Dispose(); },
+                        TaskContinuationOptions.OnlyOnRanToCompletion);
+                    throw;
                 }
             }
         }
