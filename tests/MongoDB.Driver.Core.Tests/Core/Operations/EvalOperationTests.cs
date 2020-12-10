@@ -155,7 +155,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Authentication(false);
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
             var function = "return 1";
             var subject = new EvalOperation(_adminDatabaseNamespace, function, _messageEncoderSettings);
 
@@ -170,7 +170,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Authentication(false);
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
             var function = "function(x) { return x; }";
             var subject = new EvalOperation(_adminDatabaseNamespace, function, _messageEncoderSettings);
             subject.Args = new BsonValue[] { 1 };
@@ -198,7 +198,7 @@ namespace MongoDB.Driver.Core.Operations
             [Values(false, true)]
             bool async)
         {
-            RequireServer.Check().Authentication(false);
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)).Authentication(false); // #11 eval
             var function = "return 1";
             var subject = new EvalOperation(_adminDatabaseNamespace, function, _messageEncoderSettings);
             subject.NoLock = true;

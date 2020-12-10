@@ -126,6 +126,16 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
                 }
             }
 
+            if (CoreTestConfiguration.ServerVersion >= new SemanticVersion(4, 1, 5, ""))
+            {
+                switch (definition["description"].AsString)
+                {
+                    case "A successful insert one command with write errors":
+                    case "A successful insert many command with write errors":
+                        throw new SkipTestException("Test ignored because of CSHARP-2444");
+                }
+            }
+
             var database = __client
                 .GetDatabase(databaseName);
             var collection = database
@@ -290,6 +300,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
                         {
                             writeError["code"] = 42;
                             writeError["errmsg"] = "";
+                            writeError.Remove("codeName"); // #4 (extra field "codeName")
                         }
                     }
                     break;
@@ -328,6 +339,7 @@ namespace MongoDB.Driver.Tests.Specifications.command_monitoring
 
         private class TestCaseFactory : IEnumerable<object[]>
         {
+            // Issues #6 and #7 are fixed in find.json
             public IEnumerator<object[]> GetEnumerator()
             {
                 const string prefix = "MongoDB.Driver.Tests.Specifications.command_monitoring.tests.";

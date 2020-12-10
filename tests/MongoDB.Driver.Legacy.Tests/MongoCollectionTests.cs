@@ -568,12 +568,17 @@ namespace MongoDB.Driver.Tests
             Assert.True(collection.Exists());
         }
 
-        [Theory]
+        [SkippableTheory]
         [ParameterAttributeData]
         public void TestCreateCollectionSetAutoIndexId(
             [Values(false, true)]
             bool autoIndexId)
         {
+            if (autoIndexId == false) // #2 (autoIndexId)
+            {
+                RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0));
+            }
+
             var collection = _database.GetCollection("cappedcollection");
             collection.Drop();
             var options = CollectionOptions.SetAutoIndexId(autoIndexId);
@@ -1560,9 +1565,10 @@ namespace MongoDB.Driver.Tests
             // note: the hits are unordered
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestFindWithMaxScan()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #9 geoNear
             _collection.Drop();
             var docs = Enumerable.Range(0, 10).Select(x => new BsonDocument("_id", x));
             _collection.InsertBatch(docs);
@@ -1702,9 +1708,10 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGeoNear()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #9 geoNear
             _collection.Drop();
             _collection.Insert(new Place { Location = new[] { 1.0, 1.0 }, Name = "One", Type = "Museum" });
             _collection.Insert(new Place { Location = new[] { 1.0, 2.0 }, Name = "Two", Type = "Coffee" });
@@ -1748,9 +1755,10 @@ namespace MongoDB.Driver.Tests
             Assert.Equal("Coffee", place.Type);
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGeoNearGeneric()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #9 geoNear
             _collection.Drop();
             _collection.Insert(new Place { Location = new[] { 1.0, 1.0 }, Name = "One", Type = "Museum" });
             _collection.Insert(new Place { Location = new[] { 1.0, 2.0 }, Name = "Two", Type = "Coffee" });
@@ -1794,9 +1802,10 @@ namespace MongoDB.Driver.Tests
             Assert.Equal("Coffee", place.Type);
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGeoNearSphericalFalse()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #9 geoNear
             _collection.Drop();
             _collection.Insert(new Place { Location = new[] { -74.0, 40.74 }, Name = "10gen", Type = "Office" });
             _collection.Insert(new Place { Location = new[] { -75.0, 40.74 }, Name = "Two", Type = "Coffee" });
@@ -1849,9 +1858,10 @@ namespace MongoDB.Driver.Tests
             Assert.Equal("Coffee", hit2.RawDocument["Type"].AsString);
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGeoNearSphericalTrue()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #9 geoNear
             if (_server.BuildInfo.Version >= new Version(1, 8, 0))
             {
                 _collection.Drop();
@@ -1907,9 +1917,10 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGeoNearWithGeoJsonPoints()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #9 geoNear
             if (_server.BuildInfo.Version >= new Version(2, 4, 0))
             {
                 _collection.Drop();
@@ -1947,9 +1958,10 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGeoNearWithMaxTime()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #9 geoNear
             if (_primary.Supports(FeatureId.MaxTime))
             {
                 using (var failpoint = new FailPoint(FailPointName.MaxTimeAlwaysTimeout, _server, _primary))
@@ -2044,9 +2056,10 @@ namespace MongoDB.Driver.Tests
             _collection.FindAll().ToList();
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGroupWithFinalizeFunction()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #8 group
             _collection.Drop();
             _collection.Insert(new BsonDocument("x", 1));
             _collection.Insert(new BsonDocument("x", 1));
@@ -2072,9 +2085,10 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(-3, results[2]["count"].ToInt32());
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGroupWithKeyFields()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #8 group
             _collection.Drop();
             _collection.Insert(new BsonDocument("x", 1));
             _collection.Insert(new BsonDocument("x", 1));
@@ -2099,9 +2113,10 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(3, results[2]["count"].ToInt32());
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGroupWithKeyFunction()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #8 group
             _collection.Drop();
             _collection.Insert(new BsonDocument("x", 1));
             _collection.Insert(new BsonDocument("x", 1));
@@ -2126,9 +2141,10 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(3, results[2]["count"].ToInt32());
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGroupWithMaxTime()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #8 group
             if (_primary.Supports(FeatureId.MaxTime))
             {
                 using (var failpoint = new FailPoint(FailPointName.MaxTimeAlwaysTimeout, _server, _primary))
@@ -2152,9 +2168,10 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGroupWithQuery()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 0, 0)); // #8 group
             _collection.Drop();
             _collection.Insert(new BsonDocument("x", 1));
             _collection.Insert(new BsonDocument("x", 1));
