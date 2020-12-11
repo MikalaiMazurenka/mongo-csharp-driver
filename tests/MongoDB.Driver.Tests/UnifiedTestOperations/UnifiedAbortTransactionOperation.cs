@@ -15,7 +15,6 @@
 
 using System;
 using MongoDB.Bson;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -49,7 +48,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
 
             if (arguments != null)
             {
-                throw new FormatException("AbortTransactionOperation is not expected to contain arguments");
+                throw new FormatException("AbortTransactionOperation is not expected to contain arguments.");
             }
 
             return new UnifiedAbortTransactionOperation(session);

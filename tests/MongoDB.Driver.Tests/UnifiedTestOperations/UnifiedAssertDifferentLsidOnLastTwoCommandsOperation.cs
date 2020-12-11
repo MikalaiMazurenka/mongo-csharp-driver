@@ -19,7 +19,6 @@ using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Driver.Core;
 using MongoDB.Driver.Core.Events;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -65,7 +64,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         eventCapturer = _entityMap.GetEventCapturer(argument.Value.AsString);
                         break;
                     default:
-                        throw new FormatException($"Invalid AssertDifferentLsidOnLastTwoCommandsOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid AssertDifferentLsidOnLastTwoCommandsOperation argument name: '{argument.Name}'.");
                 }
             }
 

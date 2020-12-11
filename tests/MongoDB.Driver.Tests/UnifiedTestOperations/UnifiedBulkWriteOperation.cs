@@ -20,7 +20,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -120,7 +119,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         session = _entityMap.GetSession(argument.Value.AsString);
                         break;
                     default:
-                        throw new FormatException($"Invalid BulkWriteOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid BulkWriteOperation argument name: '{argument.Name}'.");
                 }
             }
 
@@ -200,7 +199,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
         {
             if (modelItem.ElementCount != 1)
             {
-                throw new FormatException("BulkWrite request model must contain a single element");
+                throw new FormatException("BulkWrite request model must contain a single element.");
             }
 
             var modelName = modelItem.GetElement(0).Name;
@@ -220,7 +219,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 case "updateOne":
                     return ParseUpdateOneModel(model);
                 default:
-                    throw new FormatException($"Invalid write model name: '{modelName}'");
+                    throw new FormatException($"Invalid write model name: '{modelName}'.");
             }
         }
 

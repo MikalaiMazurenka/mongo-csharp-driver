@@ -17,7 +17,6 @@ using System;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.TestHelpers;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -68,7 +67,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         failPointCommand = argument.Value.AsBsonDocument;
                         break;
                     default:
-                        throw new FormatException($"Invalid FailPointOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid FailPointOperation argument name: '{argument.Name}'.");
                 }
             }
 

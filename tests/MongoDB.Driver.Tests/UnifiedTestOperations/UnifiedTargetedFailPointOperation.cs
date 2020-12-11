@@ -17,7 +17,6 @@ using System;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Bindings;
 using MongoDB.Driver.Core.TestHelpers;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -73,7 +72,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         session = _entityMap.GetSession(sessionId);
                         break;
                     default:
-                        throw new FormatException($"Invalid TargetedFailPointOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid TargetedFailPointOperation argument name: '{argument.Name}'.");
                 }
             }
 

@@ -19,7 +19,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -117,7 +116,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         session = _entityMap.GetSession(argument.Value.AsString);
                         break;
                     default:
-                        throw new FormatException($"Invalid InsertManyOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid InsertManyOperation argument name: '{argument.Name}'.");
                 }
             }
 

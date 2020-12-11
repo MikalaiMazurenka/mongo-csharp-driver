@@ -58,7 +58,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                 var expectedEventDocument = expectedEventsDocuments[i].AsBsonDocument;
                 if (expectedEventDocument.ElementCount != 1)
                 {
-                    throw new FormatException("Expected event document model must contain a single element");
+                    throw new FormatException("Expected event document model must contain a single element.");
                 }
                 var expectedEventType = expectedEventDocument.GetElement(0).Name;
                 var expectedEventValue = expectedEventDocument[0].AsBsonDocument;
@@ -81,7 +81,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                                     commandStartedEvent.DatabaseNamespace.DatabaseName.Should().Be(element.Value.AsString);
                                     break;
                                 default:
-                                    throw new FormatException($"Unexpected commandStartedEvent field: '{element.Name}'");
+                                    throw new FormatException($"Unexpected commandStartedEvent field: '{element.Name}'.");
                             }
                         }
                         break;
@@ -98,7 +98,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                                     commandSucceededEvent.CommandName.Should().Be(element.Value.AsString);
                                     break;
                                 default:
-                                    throw new FormatException($"Unexpected commandStartedEvent field: '{element.Name}'");
+                                    throw new FormatException($"Unexpected commandStartedEvent field: '{element.Name}'.");
                             }
                         }
                         break;
@@ -112,7 +112,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                                     commandFailedEvent.CommandName.Should().Be(element.Value.AsString);
                                     break;
                                 default:
-                                    throw new FormatException($"Unexpected commandStartedEvent field: '{element.Name}'");
+                                    throw new FormatException($"Unexpected commandStartedEvent field: '{element.Name}'.");
                             }
                         }
                         break;
@@ -156,13 +156,13 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         actualEventsDocuments.Add(new BsonDocument("commandFailedEvent", commandFailedDocument));
                         break;
                     default:
-                        throw new FormatException($"Unrecognized event type: '{actualEvent.GetType()}'");
+                        throw new FormatException($"Unrecognized event type: '{actualEvent.GetType()}'.");
                 }
             }
 
             return
                 $"Expected events to be: {expectedEventsDocuments.ToJson(jsonWriterSettings)}{Environment.NewLine}" +
-                $"But found: {actualEventsDocuments.ToJson(jsonWriterSettings)}{Environment.NewLine}";
+                $"But found: {actualEventsDocuments.ToJson(jsonWriterSettings)}.";
         }
     }
 }

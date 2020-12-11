@@ -17,7 +17,6 @@ using System;
 using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Driver.Core.Bindings;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -65,7 +64,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         coreTransactionState = (CoreTransactionState)Enum.Parse(typeof(CoreTransactionState), argument.Value.AsString, ignoreCase: true);
                         break;
                     default:
-                        throw new FormatException($"Invalid AssertSessionTransactionStateOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid AssertSessionTransactionStateOperation argument name: '{argument.Name}'.");
                 }
             }
 

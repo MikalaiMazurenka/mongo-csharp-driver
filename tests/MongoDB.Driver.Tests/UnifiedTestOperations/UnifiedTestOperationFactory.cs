@@ -15,9 +15,8 @@
 
 using System;
 using MongoDB.Bson;
-using MongoDB.Driver.Tests.UnifiedTestOperations;
 
-namespace MongoDB.Driver.Tests.Specifications.unified_test_format
+namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
     public class UnifiedTestOperationFactory
     {
@@ -62,7 +61,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         case "targetedFailPoint":
                             return new UnifiedTargetedFailPointOperationBuilder(_entityMap).Build(operationArguments);
                         default:
-                            throw new FormatException($"Invalid method name: \"{operationName}\".");
+                            throw new FormatException($"Invalid method name: '{operationName}'.");
                     }
 
                 case var _ when _entityMap.HasBucket(targetEntityId):
@@ -75,7 +74,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         case "upload":
                             return new UnifiedGridFsUploadOperationBuilder(_entityMap).Build(targetEntityId, operationArguments);
                         default:
-                            throw new FormatException($"Invalid method name: \"{operationName}\".");
+                            throw new FormatException($"Invalid method name: '{operationName}'.");
                     }
 
                 case var _ when _entityMap.HasChangeStream(targetEntityId):
@@ -84,7 +83,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         case "iterateUntilDocumentOrError":
                             return new UnifiedIterateUntilDocumentOrErrorOperationBuilder(_entityMap).Build(targetEntityId, operationArguments);
                         default:
-                            throw new FormatException($"Invalid method name: \"{operationName}\".");
+                            throw new FormatException($"Invalid method name: '{operationName}'.");
                     }
 
                 case var _ when _entityMap.HasClient(targetEntityId):
@@ -95,7 +94,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         case "listDatabases":
                             return new UnifiedListDatabasesOperationBuilder(_entityMap).Build(targetEntityId, operationArguments);
                         default:
-                            throw new FormatException($"Invalid method name: \"{operationName}\".");
+                            throw new FormatException($"Invalid method name: '{operationName}'.");
                     }
 
                 case var _ when _entityMap.HasCollection(targetEntityId):
@@ -122,7 +121,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         case "replaceOne":
                             return new UnifiedReplaceOneOperationBuilder(_entityMap).Build(targetEntityId, operationArguments);
                         default:
-                            throw new FormatException($"Invalid method name: \"{operationName}\".");
+                            throw new FormatException($"Invalid method name: '{operationName}'.");
                     }
 
                 case var _ when _entityMap.HasDatabase(targetEntityId):
@@ -135,7 +134,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         case "dropCollection":
                             return new UnifiedDropCollectionOperationBuilder(_entityMap).Build(targetEntityId, operationArguments);
                         default:
-                            throw new FormatException($"Invalid method name: \"{operationName}\".");
+                            throw new FormatException($"Invalid method name: '{operationName}'.");
                     }
 
                 case var _ when _entityMap.HasSession(targetEntityId):
@@ -152,11 +151,11 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         case "withTransaction":
                             return new UnifiedWithTransactionOperationBuilder(_entityMap).Build(targetEntityId, operationArguments);
                         default:
-                            throw new FormatException($"Invalid method name: \"{operationName}\".");
+                            throw new FormatException($"Invalid method name: '{operationName}'.");
                     }
 
                 default:
-                    throw new FormatException($"Target entity type not recognized for entity with id: \"{targetEntityId}\".");
+                    throw new FormatException($"Target entity type not recognized for entity with id: '{targetEntityId}'.");
             }
         }
     }

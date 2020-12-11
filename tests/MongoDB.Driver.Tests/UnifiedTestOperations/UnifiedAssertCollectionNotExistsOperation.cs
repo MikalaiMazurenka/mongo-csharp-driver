@@ -59,7 +59,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         databaseName = argument.Value.AsString;
                         break;
                     default:
-                        throw new FormatException($"Invalid AssertCollectionNotExistsOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid AssertCollectionNotExistsOperation argument name: '{argument.Name}'.");
                 }
             }
 

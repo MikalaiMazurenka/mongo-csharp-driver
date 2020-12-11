@@ -16,7 +16,6 @@
 using System;
 using FluentAssertions;
 using MongoDB.Bson;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -56,7 +55,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         session = _entityMap.GetSession(argument.Value.AsString);
                         break;
                     default:
-                        throw new FormatException($"Invalid AssertSessionUnpinnedOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid AssertSessionUnpinnedOperation argument name: '{argument.Name}'.");
                 }
             }
 

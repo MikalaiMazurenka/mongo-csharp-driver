@@ -20,6 +20,7 @@ using FluentAssertions;
 using MongoDB.Bson;
 using MongoDB.Bson.IO;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
+using MongoDB.Driver.Tests.UnifiedTestOperations;
 using Xunit.Sdk;
 
 namespace MongoDB.Driver.Tests.Specifications.unified_test_format
@@ -44,7 +45,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                 var jsonWriterSettings = new JsonWriterSettings { Indent = true };
                 var message =
                     $"Expected value to be: {expected?.ToJson(jsonWriterSettings)}{Environment.NewLine}" +
-                    $"But found: {actual?.ToJson(jsonWriterSettings)}{Environment.NewLine}";
+                    $"But found: {actual?.ToJson(jsonWriterSettings)}.";
                 throw new AssertionException(message, exception);
             }
         }
@@ -74,7 +75,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         }
                         break;
                     default:
-                        throw new FormatException($"Unrecognized root level special operator: '{operatorName}'");
+                        throw new FormatException($"Unrecognized root level special operator: '{operatorName}'.");
                 }
 
                 return;
@@ -134,7 +135,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                                 expectedValue = _entityMap.GetSessionId(sessionId);
                                 break;
                             default:
-                                throw new FormatException($"Unrecognized special operator: '{operatorName}'");
+                                throw new FormatException($"Unrecognized special operator: '{operatorName}'.");
                         }
                     }
 
@@ -162,7 +163,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
             }
             else if (expected.IsNumeric)
             {
-                actual.IsNumeric.Should().BeTrue($"Actual value must be numeric");
+                actual.IsNumeric.Should().BeTrue();
                 actual.ToDouble().Should().Be(expected.ToDouble());
             }
             else
@@ -187,7 +188,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
             }
             else
             {
-                throw new FormatException($"Unexpected $$type value BsonType: '{expectedTypes.BsonType}'");
+                throw new FormatException($"Unexpected $$type value BsonType: '{expectedTypes.BsonType}'.");
             }
 
             actualTypeName.Should().BeOneOf(expectedTypeNames);
@@ -226,7 +227,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                 case BsonType.Decimal128:
                     return "decimal";
                 default:
-                    throw new FormatException($"Unrecognized bson type string conversion: '{bsonType}'");
+                    throw new FormatException($"Unrecognized bson type string conversion: '{bsonType}'.");
             }
         }
     }

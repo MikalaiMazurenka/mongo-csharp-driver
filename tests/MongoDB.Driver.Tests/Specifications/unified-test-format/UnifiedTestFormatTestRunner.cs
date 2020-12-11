@@ -180,7 +180,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                     _failPoints.Add(failPoint);
                     break;
                 default:
-                    throw new FormatException($"Unexpected operation type: '{operation.GetType()}'");
+                    throw new FormatException($"Unexpected operation type: '{operation.GetType()}'.");
             }
         }
 
@@ -236,7 +236,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                 }
                 else
                 {
-                    throw new AssertionException($"Expected result to be present but none found to save with id: '{saveResultAsEntity.AsString}'");
+                    throw new AssertionException($"Expected result to be present but none found to save with id: '{saveResultAsEntity.AsString}'.");
                 }
             }
         }

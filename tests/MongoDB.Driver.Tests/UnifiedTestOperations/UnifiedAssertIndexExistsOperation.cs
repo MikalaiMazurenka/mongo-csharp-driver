@@ -70,7 +70,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         indexName = argument.Value.AsString;
                         break;
                     default:
-                        throw new FormatException($"Invalid AssertIndexExistsOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid AssertIndexExistsOperation argument name: '{argument.Name}'.");
                 }
             }
 

@@ -17,7 +17,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -101,7 +100,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         options.IsUpsert = argument.Value.AsBoolean;
                         break;
                     default:
-                        throw new FormatException($"Invalid ReplaceOneOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid ReplaceOneOperation argument name: '{argument.Name}'.");
                 }
             }
 
@@ -113,7 +112,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
     {
         public OperationResult Convert(ReplaceOneResult result)
         {
-            throw new NotImplementedException("Specification requirements are not clear on result format");
+            throw new NotImplementedException("Specification requirements are not clear on result format.");
         }
     }
 }

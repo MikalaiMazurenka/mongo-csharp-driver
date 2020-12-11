@@ -17,7 +17,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -90,7 +89,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         filter = new BsonDocumentFilterDefinition<BsonDocument>(argument.Value.AsBsonDocument);
                         break;
                     default:
-                        throw new FormatException($"Invalid DeleteOneOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid DeleteOneOperation argument name: '{argument.Name}'.");
                 }
             }
 

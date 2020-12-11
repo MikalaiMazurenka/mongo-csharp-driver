@@ -19,7 +19,6 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.TestHelpers.JsonDrivenTests;
 using MongoDB.Driver.GridFS;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -110,7 +109,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         source = BsonUtils.ParseHexString(sourceString);
                         break;
                     default:
-                        throw new FormatException($"Invalid GridFsUploadOperation argument name: '{argument.Name}'");
+                        throw new FormatException($"Invalid GridFsUploadOperation argument name: '{argument.Name}'.");
                 }
             }
 

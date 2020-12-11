@@ -18,7 +18,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
-using MongoDB.Driver.Tests.Specifications.unified_test_format;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
@@ -77,7 +76,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
 
             if (arguments != null)
             {
-                throw new FormatException("IterateUntilDocumentOrErrorOperation is not expected to contain arguments");
+                throw new FormatException("IterateUntilDocumentOrErrorOperation is not expected to contain arguments.");
             }
 
             return new UnifiedIterateUntilDocumentOrErrorOperation(changeStream);

@@ -60,7 +60,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         AssertExpectResult(actualException, element.Value.AsBsonDocument);
                         break;
                     default:
-                        throw new FormatException($"Unrecognized error assertion: '{element.Name}'");
+                        throw new FormatException($"Unrecognized error assertion: '{element.Name}'.");
                 }
             }
         }
