@@ -27,82 +27,37 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
     public sealed class UnifiedEntityMap : IDisposable
     {
         // private variables
-        private readonly Dictionary<string, IGridFSBucket> _buckets = new Dictionary<string, IGridFSBucket>();
-        private readonly Dictionary<string, IEnumerator<ChangeStreamDocument<BsonDocument>>> _changeStreams = new Dictionary<string, IEnumerator<ChangeStreamDocument<BsonDocument>>>();
-        private readonly Dictionary<string, EventCapturer> _clientEventCapturers = new Dictionary<string, EventCapturer>();
-        private readonly Dictionary<string, DisposableMongoClient> _clients = new Dictionary<string, DisposableMongoClient>();
-        private readonly Dictionary<string, IMongoCollection<BsonDocument>> _collections = new Dictionary<string, IMongoCollection<BsonDocument>>();
-        private readonly Dictionary<string, IMongoDatabase> _databases = new Dictionary<string, IMongoDatabase>();
-        private readonly Dictionary<string, BsonValue> _results = new Dictionary<string, BsonValue>();
-        private readonly Dictionary<string, IClientSessionHandle> _sessions = new Dictionary<string, IClientSessionHandle>();
-        private readonly Dictionary<string, BsonDocument> _sessionIds = new Dictionary<string, BsonDocument>();
+        private readonly Dictionary<string, IGridFSBucket> _buckets;
+        private readonly Dictionary<string, IEnumerator<ChangeStreamDocument<BsonDocument>>> _changeStreams;
+        private readonly Dictionary<string, EventCapturer> _clientEventCapturers;
+        private readonly Dictionary<string, DisposableMongoClient> _clients;
+        private readonly Dictionary<string, IMongoCollection<BsonDocument>> _collections;
+        private readonly Dictionary<string, IMongoDatabase> _databases;
+        private readonly Dictionary<string, BsonValue> _results;
+        private readonly Dictionary<string, IClientSessionHandle> _sessions;
+        private readonly Dictionary<string, BsonDocument> _sessionIds;
 
-        public UnifiedEntityMap(BsonArray entitiesArray)
+        // public constructors
+        public UnifiedEntityMap(
+            Dictionary<string, IGridFSBucket> buckets,
+            Dictionary<string, IEnumerator<ChangeStreamDocument<BsonDocument>>> changeStreams,
+            Dictionary<string, EventCapturer> clientEventCapturers,
+            Dictionary<string, DisposableMongoClient> clients,
+            Dictionary<string, IMongoCollection<BsonDocument>> collections,
+            Dictionary<string, IMongoDatabase> databases,
+            Dictionary<string, BsonValue> results,
+            Dictionary<string, IClientSessionHandle> sessions,
+            Dictionary<string, BsonDocument> sessionIds)
         {
-            if (entitiesArray == null)
-            {
-                return;
-            }
-
-            foreach (var entityItem in entitiesArray)
-            {
-                if (entityItem.AsBsonDocument.ElementCount != 1)
-                {
-                    throw new FormatException("Entity item should contain single element.");
-                }
-
-                var entityType = entityItem.AsBsonDocument.GetElement(0).Name;
-                var entity = entityItem[0].AsBsonDocument;
-                var id = entity["id"].AsString;
-                switch (entityType)
-                {
-                    case "bucket":
-                        if (_buckets.ContainsKey(id))
-                        {
-                            throw new Exception($"Bucket entity with id '{id}' already exists.");
-                        }
-                        var bucket = CreateBucket(entity);
-                        _buckets.Add(id, bucket);
-                        break;
-                    case "client":
-                        if (_clients.ContainsKey(id))
-                        {
-                            throw new Exception($"Client entity with id '{id}' already exists.");
-                        }
-                        CreateClient(entity, out var client, out var eventCapturer);
-                        _clients.Add(id, client);
-                        _clientEventCapturers.Add(id, eventCapturer);
-                        break;
-                    case "collection":
-                        if (_collections.ContainsKey(id))
-                        {
-                            throw new Exception($"Collection entity with id '{id}' already exists.");
-                        }
-                        var collection = CreateCollection(entity);
-                        _collections.Add(id, collection);
-                        break;
-                    case "database":
-                        if (_databases.ContainsKey(id))
-                        {
-                            throw new Exception($"Database entity with id '{id}' already exists.");
-                        }
-                        var database = CreateDatabase(entity);
-                        _databases.Add(id, database);
-                        break;
-                    case "session":
-                        if (_sessions.ContainsKey(id))
-                        {
-                            throw new Exception($"Session entity with id '{id}' already exists.");
-                        }
-                        var session = CreateSession(entity);
-                        var sessionId = session.WrappedCoreSession.Id;
-                        _sessions.Add(id, session);
-                        _sessionIds.Add(id, sessionId);
-                        break;
-                    default:
-                        throw new FormatException($"Unrecognized entity type: '{entityType}'.");
-                }
-            }
+            _buckets = buckets;
+            _changeStreams = changeStreams;
+            _clientEventCapturers = clientEventCapturers;
+            _clients = clients;
+            _collections = collections;
+            _databases = databases;
+            _results = results;
+            _sessions = sessions;
+            _sessionIds = sessionIds;
         }
 
         // public methods
@@ -215,9 +170,99 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
         {
             return _sessions.ContainsKey(sessionId);
         }
+    }
+
+    public class UnifiedEntityMapBuilder
+    {
+        public UnifiedEntityMap Build(BsonArray entitiesArray)
+        {
+            var buckets = new Dictionary<string, IGridFSBucket>();
+            var changeStreams = new Dictionary<string, IEnumerator<ChangeStreamDocument<BsonDocument>>>();
+            var clientEventCapturers = new Dictionary<string, EventCapturer>();
+            var clients = new Dictionary<string, DisposableMongoClient>();
+            var collections = new Dictionary<string, IMongoCollection<BsonDocument>>();
+            var databases = new Dictionary<string, IMongoDatabase>();
+            var results = new Dictionary<string, BsonValue>();
+            var sessions = new Dictionary<string, IClientSessionHandle>();
+            var sessionIds = new Dictionary<string, BsonDocument>();
+
+            if (entitiesArray != null)
+            {
+                foreach (var entityItem in entitiesArray)
+                {
+                    if (entityItem.AsBsonDocument.ElementCount != 1)
+                    {
+                        throw new FormatException("Entity item should contain single element.");
+                    }
+
+                    var entityType = entityItem.AsBsonDocument.GetElement(0).Name;
+                    var entity = entityItem[0].AsBsonDocument;
+                    var id = entity["id"].AsString;
+                    switch (entityType)
+                    {
+                        case "bucket":
+                            if (buckets.ContainsKey(id))
+                            {
+                                throw new Exception($"Bucket entity with id '{id}' already exists.");
+                            }
+                            var bucket = CreateBucket(entity, databases);
+                            buckets.Add(id, bucket);
+                            break;
+                        case "client":
+                            if (clients.ContainsKey(id))
+                            {
+                                throw new Exception($"Client entity with id '{id}' already exists.");
+                            }
+                            CreateClient(entity, out var client, out var eventCapturer);
+                            clients.Add(id, client);
+                            clientEventCapturers.Add(id, eventCapturer);
+                            break;
+                        case "collection":
+                            if (collections.ContainsKey(id))
+                            {
+                                throw new Exception($"Collection entity with id '{id}' already exists.");
+                            }
+                            var collection = CreateCollection(entity, databases);
+                            collections.Add(id, collection);
+                            break;
+                        case "database":
+                            if (databases.ContainsKey(id))
+                            {
+                                throw new Exception($"Database entity with id '{id}' already exists.");
+                            }
+                            var database = CreateDatabase(entity, clients);
+                            databases.Add(id, database);
+                            break;
+                        case "session":
+                            if (sessions.ContainsKey(id))
+                            {
+                                throw new Exception($"Session entity with id '{id}' already exists.");
+                            }
+                            var session = CreateSession(entity, clients);
+                            var sessionId = session.WrappedCoreSession.Id;
+                            sessions.Add(id, session);
+                            sessionIds.Add(id, sessionId);
+                            break;
+                        default:
+                            throw new FormatException($"Unrecognized entity type: '{entityType}'.");
+                    }
+                }
+            }
+
+            return new UnifiedEntityMap(
+                buckets,
+                changeStreams,
+                clientEventCapturers,
+                clients,
+                collections,
+                databases,
+                results,
+                sessions,
+                sessionIds);
+        }
 
         // private methods
-        private IGridFSBucket CreateBucket(BsonDocument entity)
+        private IGridFSBucket CreateBucket(BsonDocument entity, Dictionary<string, IMongoDatabase> databases)
         {
             IMongoDatabase database = null;
 
@@ -230,7 +275,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         break;
                     case "database":
                         var databaseId = element.Value.AsString;
-                        database = _databases[databaseId];
+                        database = databases[databaseId];
                         break;
                     default:
                         throw new FormatException($"Unrecognized bucket entity field: '{element.Name}'.");
@@ -240,10 +285,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             return new GridFSBucket(database);
         }
 
-        private void CreateClient(
-            BsonDocument entity,
-            out DisposableMongoClient client,
-            out EventCapturer eventCapturer)
+        private void CreateClient(BsonDocument entity, out DisposableMongoClient client, out EventCapturer eventCapturer)
         {
             var eventTypesToCapture = new List<string>();
             var commandNamesToSkip = new List<string>
@@ -349,7 +391,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 useMultipleShardRouters);
         }
 
-        private IMongoCollection<BsonDocument> CreateCollection(BsonDocument entity)
+        private IMongoCollection<BsonDocument> CreateCollection(BsonDocument entity, Dictionary<string, IMongoDatabase> databases)
         {
             string collectionName = null;
             IMongoDatabase database = null;
@@ -364,7 +406,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         break;
                     case "database":
                         var databaseId = entity["database"].AsString;
-                        database = _databases[databaseId];
+                        database = databases[databaseId];
                         break;
                     case "collectionName":
                         collectionName = entity["collectionName"].AsString;
@@ -391,7 +433,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             return database.GetCollection<BsonDocument>(collectionName, settings);
         }
 
-        private IMongoDatabase CreateDatabase(BsonDocument entity)
+        private IMongoDatabase CreateDatabase(BsonDocument entity, Dictionary<string, DisposableMongoClient> clients)
         {
             IMongoClient client = null;
             string databaseName = null;
@@ -405,7 +447,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         break;
                     case "client":
                         var clientId = element.Value.AsString;
-                        client = _clients[clientId];
+                        client = clients[clientId];
                         break;
                     case "databaseName":
                         databaseName = element.Value.AsString;
@@ -418,7 +460,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             return client.GetDatabase(databaseName);
         }
 
-        private IClientSessionHandle CreateSession(BsonDocument entity)
+        private IClientSessionHandle CreateSession(BsonDocument entity, Dictionary<string, DisposableMongoClient> clients)
         {
             IMongoClient client = null;
             ClientSessionOptions options = null;
@@ -432,7 +474,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         break;
                     case "client":
                         var clientId = element.Value.AsString;
-                        client = _clients[clientId];
+                        client = clients[clientId];
                         break;
                     case "sessionOptions":
                         options = new ClientSessionOptions();

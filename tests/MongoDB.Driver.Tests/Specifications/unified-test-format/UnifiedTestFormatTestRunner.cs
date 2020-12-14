@@ -68,7 +68,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
             }
             KillOpenTransactions(DriverTestConfiguration.Client);
 
-            _entityMap = new UnifiedEntityMap(entities);
+            _entityMap = new UnifiedEntityMapBuilder().Build(entities);
 
             if (initialData != null)
             {
