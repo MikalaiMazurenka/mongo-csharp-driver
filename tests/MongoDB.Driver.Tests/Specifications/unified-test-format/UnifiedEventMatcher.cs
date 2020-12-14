@@ -117,7 +117,7 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                         }
                         break;
                     default:
-                        throw new FormatException($"Unrecognized event type: '{expectedEventType}'");
+                        throw new FormatException($"Unrecognized event type: '{expectedEventType}'.");
                 }
             }
         }
