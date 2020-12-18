@@ -14,9 +14,11 @@
 */
 
 using System;
-using System.IO;
-using MongoDB.Driver.Core.Configuration;
-using MongoDB.Driver.Core.Events.Diagnostics;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
+using MongoDB.Bson;
 
 namespace MongoDB.Driver.TestConsoleApplication
 {
@@ -24,21 +26,41 @@ namespace MongoDB.Driver.TestConsoleApplication
     {
         static void Main(string[] args)
         {
-            //FilterMeasuring.TestAsync().GetAwaiter().GetResult();
-            int numConcurrentWorkers = 50;
-            //new CoreApi().Run(numConcurrentWorkers, ConfigureCluster);
-            new CoreApiSync().Run(numConcurrentWorkers, ConfigureCluster);
+            var numberOfTasks = 40;
+            var tasks = new List<Task>();
 
-            new Api().Run(numConcurrentWorkers, ConfigureCluster);
+            var client = new MongoClient("mongodb://localhost/?maxPoolSize=10"); // "mongodb://localhost/?connect=replicaSet"
+            var collection = client.GetDatabase("d").GetCollection<BsonDocument>("c");
 
-            //new LegacyApi().Run(numConcurrentWorkers, ConfigureCluster);
-        }
+            for (int i = 0; i < numberOfTasks; i++)
+            {
+                var j = i; // Variable capture workaround
+                var task = Task.Run(() =>
+                {
+                    var stopWatch = Stopwatch.StartNew();
+                    try
+                    {
+                        ThreadPool.GetMaxThreads(out var maxThreads, out _);
+                        ThreadPool.GetAvailableThreads(out var availableThreads, out _);
+                        Console.WriteLine("#{0,-2} [>] Started   | Threads in use: {1}/{2}", j, maxThreads - availableThreads, maxThreads);
+                        var count = collection.CountDocuments(new BsonDocument());
+                        Console.WriteLine("#{0,-2} [+] Succeeded | Execution time: {1}", j, stopWatch.ElapsedMilliseconds);
+                    }
+                    catch (TimeoutException)
+                    {
+                        Console.WriteLine("#{0,-2} [-] Timed out | Execution time: {1}", j, stopWatch.ElapsedMilliseconds);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(ex);
+                    }
+                });
+                tasks.Add(task);
+            }
 
-        private static void ConfigureCluster(ClusterBuilder cb)
-        {
-#if NET452
-            cb.UsePerformanceCounters("test", true);
-#endif
+            Task.WhenAll(tasks).Wait();
+            Console.Write("Done. Press return to exit...");
+            Console.ReadLine();
         }
     }
 }
