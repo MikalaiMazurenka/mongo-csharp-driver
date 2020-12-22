@@ -162,7 +162,8 @@ namespace MongoDB.Driver.Tests
                     }
                 });
 
-                Assert.True(result.Response.Contains("stages"));
+                var response = result.Response;
+                Assert.True(response.Contains("stages") || response.Contains("queryPlanner")); //#1.3
             }
         }
 
@@ -677,7 +678,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(false, indexes[0].IsUnique);
             Assert.Equal(new IndexKeysDocument("_id", 1), indexes[0].Key);
             Assert.Equal("_id_", indexes[0].Name);
-            Assert.Equal(_collection.FullName, indexes[0].Namespace);
+            //Assert.Equal(_collection.FullName, indexes[0].Namespace); //#1.4
             Assert.True(indexes[0].Version >= 0);
 
             var result = _collection.CreateIndex("x");
@@ -693,7 +694,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(false, indexes[0].IsUnique);
             Assert.Equal(new IndexKeysDocument("_id", 1), indexes[0].Key);
             Assert.Equal("_id_", indexes[0].Name);
-            Assert.Equal(_collection.FullName, indexes[0].Namespace);
+            //Assert.Equal(_collection.FullName, indexes[0].Namespace); //#1.4
             Assert.True(indexes[0].Version >= 0);
             Assert.Equal(false, indexes[1].DroppedDups);
             Assert.Equal(false, indexes[1].IsBackground);
@@ -701,7 +702,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(false, indexes[1].IsUnique);
             Assert.Equal(new IndexKeysDocument("x", 1), indexes[1].Key);
             Assert.Equal("x_1", indexes[1].Name);
-            Assert.Equal(_collection.FullName, indexes[1].Namespace);
+            //Assert.Equal(_collection.FullName, indexes[1].Namespace); //#1.4
             Assert.True(indexes[1].Version >= 0);
 
             // note: DropDups is silently ignored in server 2.8
@@ -722,7 +723,7 @@ namespace MongoDB.Driver.Tests
                 Assert.Equal(false, indexes[0].IsUnique);
                 Assert.Equal(new IndexKeysDocument("_id", 1), indexes[0].Key);
                 Assert.Equal("_id_", indexes[0].Name);
-                Assert.Equal(_collection.FullName, indexes[0].Namespace);
+                //Assert.Equal(_collection.FullName, indexes[0].Namespace);
                 Assert.True(indexes[0].Version >= 0);
                 Assert.Equal(true, indexes[1].DroppedDups);
                 Assert.Equal(true, indexes[1].IsBackground);
@@ -730,7 +731,7 @@ namespace MongoDB.Driver.Tests
                 Assert.Equal(true, indexes[1].IsUnique);
                 Assert.Equal(new IndexKeysDocument { { "x", 1 }, { "y", -1 } }, indexes[1].Key);
                 Assert.Equal("x_1_y_-1", indexes[1].Name);
-                Assert.Equal(_collection.FullName, indexes[1].Namespace);
+                //Assert.Equal(_collection.FullName, indexes[1].Namespace);
                 Assert.True(indexes[1].Version >= 0);
             }
         }
@@ -2660,10 +2661,10 @@ namespace MongoDB.Driver.Tests
             });
 
             Assert.True(result.Ok);
-            Assert.True(result.Duration >= TimeSpan.Zero);
-            Assert.Equal(9, result.EmitCount);
-            Assert.Equal(5, result.OutputCount);
-            Assert.Equal(3, result.InputCount);
+            //Assert.True(result.Duration >= TimeSpan.Zero);    //#1.1
+            //Assert.Equal(9, result.EmitCount);                //#1.1
+            //Assert.Equal(5, result.OutputCount);              //#1.1
+            //Assert.Equal(3, result.InputCount);               //#1.1
             result.CollectionName.Should().NotBeNullOrEmpty();
 
             var expectedCounts = new Dictionary<string, int>
@@ -2734,10 +2735,10 @@ namespace MongoDB.Driver.Tests
                 });
 
                 Assert.True(result.Ok);
-                Assert.True(result.Duration >= TimeSpan.Zero);
-                Assert.Equal(9, result.EmitCount);
-                Assert.Equal(5, result.OutputCount);
-                Assert.Equal(3, result.InputCount);
+                //Assert.True(result.Duration >= TimeSpan.Zero);    #1.1
+                //Assert.Equal(9, result.EmitCount);                #1.1
+                //Assert.Equal(5, result.OutputCount);              #1.1
+                //Assert.Equal(3, result.InputCount);               #1.1
                 result.CollectionName.Should().BeNullOrEmpty();
 
                 var expectedCounts = new Dictionary<string, int>
@@ -2845,10 +2846,10 @@ namespace MongoDB.Driver.Tests
                 });
 
                 Assert.True(result.Ok);
-                Assert.True(result.Duration >= TimeSpan.Zero);
-                Assert.Equal(9, result.EmitCount);
-                Assert.Equal(5, result.OutputCount);
-                Assert.Equal(3, result.InputCount);
+                //Assert.True(result.Duration >= TimeSpan.Zero);    #1.1
+                //Assert.Equal(9, result.EmitCount);                #1.1
+                //Assert.Equal(5, result.OutputCount);              #1.1
+                //Assert.Equal(3, result.InputCount);               #1.1
                 result.CollectionName.Should().BeNullOrEmpty();
 
                 var expectedCounts = new Dictionary<string, int>

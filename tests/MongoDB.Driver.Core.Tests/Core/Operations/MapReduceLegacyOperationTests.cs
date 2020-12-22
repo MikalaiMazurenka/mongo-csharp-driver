@@ -82,7 +82,7 @@ namespace MongoDB.Driver.Core.Operations
 
             var result = ExecuteOperation(subject, async);
 
-            result["results"].Should().Be(new BsonArray(expectedResults));
+            result["results"].AsBsonArray.ToList().Should().BeEquivalentTo(new BsonArray(expectedResults)); //#1.2
         }
 
         [SkippableTheory]

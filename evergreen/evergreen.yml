@@ -290,13 +290,14 @@ functions:
           echo '{"results": [{ "status": "FAIL", "test_file": "Build", "log_raw": "No test-results.json found was created" } ]}' > ${PROJECT_DIRECTORY}/test-results.json
 
   install-dependencies:
-    type: test
-    params:
-      working_dir: mongo-csharp-driver
-      script: |
-        ${PREPARE_SHELL}
-        file="${PROJECT_DIRECTORY}/evergreen/install-dependencies.sh"
-        [ -f ${file} ] && sh ${file} || echo "${file} not available, skipping"
+    - command: shell.exec
+      type: test
+      params:
+        working_dir: mongo-csharp-driver
+        script: |
+          ${PREPARE_SHELL}
+          file="${PROJECT_DIRECTORY}/evergreen/install-dependencies.sh"
+          [ -f ${file} ] && sh ${file} || echo "${file} not available, skipping"
 
 pre:
   - func: fetch-source
@@ -349,38 +350,14 @@ axes:
   - id: version
     display_name: MongoDB Version
     values:
-#      - id: "latest"
-#        display_name: "latest"
-#        variables:
-#           VERSION: "latest"
+      - id: "4.4"
+        display_name: "4.4"
+        variables:
+           VERSION: "4.4"
       - id: "4.2"
         display_name: "4.2"
         variables:
-           VERSION: "4.2"       
-      - id: "4.0"
-        display_name: "4.0"
-        variables:
-           VERSION: "4.0"
-      - id: "3.6"
-        display_name: "3.6"
-        variables:
-           VERSION: "3.6"
-      - id: "3.4"
-        display_name: "3.4"
-        variables:
-           VERSION: "3.4"
-      - id: "3.2"
-        display_name: "3.2"
-        variables:
-           VERSION: "3.2"
-      - id: "3.0"
-        display_name: "3.0"
-        variables:
-           VERSION: "3.0"
-      - id: "2.6"
-        display_name: "2.6"
-        variables:
-           VERSION: "2.6"
+           VERSION: "4.2"
 
   - id: os
     display_name: OS
@@ -389,7 +366,7 @@ axes:
         display_name: "Windows 64-bit"
         variables:
           OS: "windows-64"
-        run_on: windows-64-vs2015-small
+        run_on: windows-64-vs2017-test
 
   - id: topology
     display_name: Topology
@@ -436,7 +413,7 @@ buildvariants:
 - name: windows-64-compile
   display_name: "Windows 64-bit compile"
   run_on:
-    - windows-64-vs2015-small
+    - windows-64-vs2017-compile
   tasks:
     - name: compile
 
