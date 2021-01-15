@@ -65,28 +65,11 @@ namespace MongoDB.Driver.Core.Authentication
         /// <inheritdoc/>
         public void Authenticate(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
-            Ensure.IsNotNull(connection, nameof(connection));
-            Ensure.IsNotNull(description, nameof(description));
-            EnsureUsernameIsNotNullOrNullIsSupported(connection, description);
-
-            if (description.IsMasterResult.SpeculativeAuthenticate != null)
-            {
-                return;
-            }
-
-            try
-            {
-                var protocol = CreateAuthenticateProtocol();
-                protocol.Execute(connection, cancellationToken);
-            }
-            catch (MongoCommandException ex)
-            {
-                throw CreateException(connection, ex);
-            }
+            Authenticate(connection, description, null, cancellationToken);
         }
 
         /// <inheritdoc/>
-        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        public void Authenticate(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
@@ -99,7 +82,36 @@ namespace MongoDB.Driver.Core.Authentication
 
             try
             {
-                var protocol = CreateAuthenticateProtocol();
+                var protocol = CreateAuthenticateProtocol(serverApi);
+                protocol.Execute(connection, cancellationToken);
+            }
+            catch (MongoCommandException ex)
+            {
+                throw CreateException(connection, ex);
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        {
+            await AuthenticateAsync(connection, description, null, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken)
+        {
+            Ensure.IsNotNull(connection, nameof(connection));
+            Ensure.IsNotNull(description, nameof(description));
+            EnsureUsernameIsNotNullOrNullIsSupported(connection, description);
+
+            if (description.IsMasterResult.SpeculativeAuthenticate != null)
+            {
+                return;
+            }
+
+            try
+            {
+                var protocol = CreateAuthenticateProtocol(serverApi);
                 await protocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
             }
             catch (MongoCommandException ex)
@@ -127,16 +139,17 @@ namespace MongoDB.Driver.Core.Authentication
             };
         }
 
-        private CommandWireProtocol<BsonDocument> CreateAuthenticateProtocol()
+        private CommandWireProtocol<BsonDocument> CreateAuthenticateProtocol(ServerApi serverApi)
         {
             var command = CreateAuthenticateCommand();
 
             var protocol = new CommandWireProtocol<BsonDocument>(
-                new DatabaseNamespace("$external"),
-                command,
-                true,
-                BsonDocumentSerializer.Instance,
-                null);
+                databaseNamespace: new DatabaseNamespace("$external"),
+                command: command,
+                slaveOk: true,
+                resultSerializer: BsonDocumentSerializer.Instance,
+                messageEncoderSettings: null,
+                serverApi: serverApi);
 
             return protocol;
         }

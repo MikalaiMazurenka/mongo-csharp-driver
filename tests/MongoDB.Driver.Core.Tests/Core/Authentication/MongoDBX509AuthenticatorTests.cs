@@ -18,15 +18,14 @@ using System.Net;
 using System.Threading;
 using FluentAssertions;
 using MongoDB.Bson;
-using MongoDB.Driver.Core.Authentication;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.Helpers;
 using Xunit;
 using MongoDB.Driver.Core.Connections;
-using System.Threading.Tasks;
 using MongoDB.Bson.TestHelpers.XunitExtensions;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Driver.Core.WireProtocol.Messages;
 
 namespace MongoDB.Driver.Core.Authentication
 {
@@ -77,29 +76,42 @@ namespace MongoDB.Driver.Core.Authentication
         [Theory]
         [ParameterAttributeData]
         public void Authenticate_should_not_throw_when_authentication_succeeds(
-            [Values(false, true)]
-            bool async)
+            [Values(false, true)] bool includeServerApi,
+            [Values(false, true)] bool async)
         {
             var subject = new MongoDBX509Authenticator("CN=client,OU=kerneluser,O=10Gen,L=New York City,ST=New York,C=US");
+
+            var serverApi = includeServerApi ? new ServerApi(ServerApiVersion.V1, true, true) : null;
+            var expectedServerApiString = includeServerApi ? ", apiVersion : \"1\", apiStrict : true, apiDeprecationErrors : true" : "";
 
             var reply = MessageHelper.BuildReply<RawBsonDocument>(
                 RawBsonDocumentHelper.FromJson("{ok: 1}"));
 
             var connection = new MockConnection(__serverId);
-            connection.Description = CreateConnectionDescription(new SemanticVersion(3, 2, 0));
             connection.EnqueueReplyMessage(reply);
+
+            var expectedRequestId = RequestMessage.CurrentGlobalRequestId + 1;
 
             Action act;
             if (async)
             {
-                act = () => subject.AuthenticateAsync(connection, __description, CancellationToken.None).GetAwaiter().GetResult();
+                act = () => subject.AuthenticateAsync(connection, __description, serverApi, CancellationToken.None).GetAwaiter().GetResult();
             }
             else
             {
-                act = () => subject.Authenticate(connection, __description, CancellationToken.None);
+                act = () => subject.Authenticate(connection, __description, serverApi, CancellationToken.None);
             }
 
             act.ShouldNotThrow();
+            SpinWait.SpinUntil(() => connection.GetSentMessages().Count >= 1, TimeSpan.FromSeconds(5)).Should().BeTrue();
+
+            var sentMessages = MessageHelper.TranslateMessagesToBsonDocuments(connection.GetSentMessages());
+            sentMessages.Count.Should().Be(1);
+
+            var actualRequestId = sentMessages[0]["requestId"].AsInt32;
+            actualRequestId.Should().BeInRange(expectedRequestId, expectedRequestId + 10);
+
+            sentMessages[0].Should().Be($"{{opcode: \"query\", requestId: {actualRequestId}, database: \"$external\", collection: \"$cmd\", batchSize: -1, slaveOk: true, query: {{ authenticate : 1, mechanism : \"MONGODB-X509\", user : \"CN=client,OU=kerneluser,O=10Gen,L=New York City,ST=New York,C=US\"{expectedServerApiString} }}}}");
         }
 
         [Theory]

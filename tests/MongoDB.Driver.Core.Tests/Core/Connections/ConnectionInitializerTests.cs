@@ -35,12 +35,13 @@ namespace MongoDB.Driver.Core.Connections
 {
     public class ConnectionInitializerTests
     {
+        private static readonly ServerApi __serverApi = null;
         private static readonly ServerId __serverId = new ServerId(new ClusterId(), new DnsEndPoint("localhost", 27017));
         private readonly ConnectionInitializer _subject;
 
         public ConnectionInitializerTests()
         {
-            _subject = new ConnectionInitializer("test", new[] { new CompressorConfiguration(CompressorType.Zlib) });
+            _subject = new ConnectionInitializer("test", new[] { new CompressorConfiguration(CompressorType.Zlib) }, __serverApi);
         }
 
         [Theory]
@@ -157,6 +158,61 @@ namespace MongoDB.Driver.Core.Connections
             }
 
             act.ShouldThrow<ArgumentNullException>();
+        }
+
+        [Theory]
+        [ParameterAttributeData]
+        public void InitializeConnection_should_use_serverApi(
+            [Values(false, true)] bool includeServerApi,
+            [Values(false, true)] bool async)
+        {
+            var serverApi = includeServerApi ? new ServerApi(ServerApiVersion.V1, true, true) : null;
+            var expectedServerApiString = includeServerApi ? ", apiVersion : \"1\", apiStrict : true, apiDeprecationErrors : true" : "";
+
+            var isMasterReply = MessageHelper.BuildReply(
+                RawBsonDocumentHelper.FromJson("{ ok : 1, connectionId : 1 }"));
+            var buildInfoReply = MessageHelper.BuildReply(
+                RawBsonDocumentHelper.FromJson("{ ok : 1, version : \"4.2.0\" }"));
+
+            var subject = new ConnectionInitializer("test", new[] { new CompressorConfiguration(CompressorType.Zlib) }, serverApi);
+
+            var connection = new MockConnection(__serverId);
+            connection.EnqueueReplyMessage(isMasterReply);
+            connection.EnqueueReplyMessage(buildInfoReply);
+
+            ConnectionDescription result;
+            if (async)
+            {
+                result = subject.InitializeConnectionAsync(connection, CancellationToken.None).GetAwaiter().GetResult();
+            }
+            else
+            {
+                result = subject.InitializeConnection(connection, CancellationToken.None);
+            }
+
+            result.ConnectionId.ServerValue.Should().Be(1);
+
+            SpinWait.SpinUntil(() => connection.GetSentMessages().Count >= 2, TimeSpan.FromSeconds(5)).Should().BeTrue();
+
+            var sentMessages = MessageHelper.TranslateMessagesToBsonDocuments(connection.GetSentMessages());
+            sentMessages.Count.Should().Be(2);
+
+            var actualRequestId1 = sentMessages[1]["requestId"].AsInt32;
+
+            sentMessages[0]["opcode"].AsString.Should().Be("query");
+            if (includeServerApi)
+            {
+                sentMessages[0]["query"]["apiVersion"].AsString.Should().Be("1");
+                sentMessages[0]["query"]["apiStrict"].AsBoolean.Should().Be(true);
+                sentMessages[0]["query"]["apiDeprecationErrors"].AsBoolean.Should().Be(true);
+            }
+            else
+            {
+                sentMessages[0]["query"].AsBsonDocument.TryGetElement("apiVersion", out _).Should().BeFalse();
+                sentMessages[0]["query"].AsBsonDocument.TryGetElement("apiStrict", out _).Should().BeFalse();
+                sentMessages[0]["query"].AsBsonDocument.TryGetElement("apiDeprecationErrors", out _).Should().BeFalse();
+            }
+            sentMessages[1].Should().Be($"{{opcode : \"query\", requestId : {actualRequestId1}, database : \"admin\", collection : \"$cmd\", batchSize : -1, slaveOk : true, query : {{ buildInfo : 1{expectedServerApiString} }}}}");
         }
 
         [Theory]

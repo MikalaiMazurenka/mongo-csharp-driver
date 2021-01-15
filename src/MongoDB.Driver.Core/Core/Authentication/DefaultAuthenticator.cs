@@ -61,31 +61,11 @@ namespace MongoDB.Driver.Core.Authentication
         /// <inheritdoc/>
         public void Authenticate(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
-            Ensure.IsNotNull(connection, nameof(connection));
-            Ensure.IsNotNull(description, nameof(description));
-
-            // If we don't have SaslSupportedMechs as part of the response, that means we didn't piggyback the initial
-            // isMaster request and should query the server (provided that the server >= 4.0), merging results into 
-            // a new ConnectionDescription
-            if (!description.IsMasterResult.HasSaslSupportedMechs
-                && Feature.ScramSha256Authentication.IsSupported(description.ServerVersion))
-            {
-                var command = CustomizeInitialIsMasterCommand(IsMasterHelper.CreateCommand());
-                var isMasterProtocol = IsMasterHelper.CreateProtocol(command);
-                var isMasterResult = IsMasterHelper.GetResult(connection, isMasterProtocol, cancellationToken);
-                var mergedIsMasterResult = new IsMasterResult(description.IsMasterResult.Wrapped.Merge(isMasterResult.Wrapped));
-                description = new ConnectionDescription(
-                    description.ConnectionId,
-                    mergedIsMasterResult,
-                    description.BuildInfoResult);
-            }
-
-            var authenticator = GetOrCreateAuthenticator(connection, description);
-            authenticator.Authenticate(connection, description, cancellationToken);
+            Authenticate(connection, description, null, cancellationToken);
         }
 
         /// <inheritdoc/>
-        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        public void Authenticate(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
@@ -97,7 +77,39 @@ namespace MongoDB.Driver.Core.Authentication
                 && Feature.ScramSha256Authentication.IsSupported(description.ServerVersion))
             {
                 var command = CustomizeInitialIsMasterCommand(IsMasterHelper.CreateCommand());
-                var isMasterProtocol = IsMasterHelper.CreateProtocol(command);
+                var isMasterProtocol = IsMasterHelper.CreateProtocol(command, serverApi);
+                var isMasterResult = IsMasterHelper.GetResult(connection, isMasterProtocol, cancellationToken);
+                var mergedIsMasterResult = new IsMasterResult(description.IsMasterResult.Wrapped.Merge(isMasterResult.Wrapped));
+                description = new ConnectionDescription(
+                    description.ConnectionId,
+                    mergedIsMasterResult,
+                    description.BuildInfoResult);
+            }
+
+            var authenticator = GetOrCreateAuthenticator(connection, description);
+            authenticator.Authenticate(connection, description, serverApi, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        {
+            await AuthenticateAsync(connection, description, null, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken)
+        {
+            Ensure.IsNotNull(connection, nameof(connection));
+            Ensure.IsNotNull(description, nameof(description));
+
+            // If we don't have SaslSupportedMechs as part of the response, that means we didn't piggyback the initial
+            // isMaster request and should query the server (provided that the server >= 4.0), merging results into 
+            // a new ConnectionDescription
+            if (!description.IsMasterResult.HasSaslSupportedMechs
+                && Feature.ScramSha256Authentication.IsSupported(description.ServerVersion))
+            {
+                var command = CustomizeInitialIsMasterCommand(IsMasterHelper.CreateCommand());
+                var isMasterProtocol = IsMasterHelper.CreateProtocol(command, serverApi);
                 var isMasterResult = await IsMasterHelper.GetResultAsync(connection, isMasterProtocol, cancellationToken).ConfigureAwait(false);
                 var mergedIsMasterResult = new IsMasterResult(description.IsMasterResult.Wrapped.Merge(isMasterResult.Wrapped));
                 description = new ConnectionDescription(
@@ -107,7 +119,7 @@ namespace MongoDB.Driver.Core.Authentication
             }
 
             var authenticator = GetOrCreateAuthenticator(connection, description);
-            await authenticator.AuthenticateAsync(connection, description, cancellationToken).ConfigureAwait(false);
+            await authenticator.AuthenticateAsync(connection, description, serverApi, cancellationToken).ConfigureAwait(false);
         }
 
 

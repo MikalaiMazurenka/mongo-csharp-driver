@@ -54,9 +54,11 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
             BsonArray initialData,
             BsonDocument test)
         {
-            if (!schemaVersion.StartsWith("1.0"))
+            var schemaSemanticVersion = SemanticVersion.Parse(schemaVersion);
+            if (schemaSemanticVersion < new SemanticVersion(1, 0, 0) ||
+                schemaSemanticVersion > new SemanticVersion(1, 1, 0))
             {
-                throw new FormatException("Schema is not 1.0.");
+                throw new FormatException($"Schema {schemaVersion} is not supported");
             }
             if (testSetRunOnRequirements != null)
             {
@@ -283,7 +285,11 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
             #endregion
 
             // protected properties
-            protected override string PathPrefix => "MongoDB.Driver.Tests.Specifications.unified_test_format.tests.valid_pass.";
+            protected override string[] PathPrefixes => new[]
+            {
+                "MongoDB.Driver.Tests.Specifications.unified_test_format.tests.valid_pass.",
+                "MongoDB.Driver.Tests.Specifications.versioned_api.tests."
+            };
 
             // protected methods
             protected override IEnumerable<JsonDrivenTestCase> CreateTestCases(BsonDocument document)
@@ -293,7 +299,12 @@ namespace MongoDB.Driver.Tests.Specifications.unified_test_format
                 {
                     foreach (var async in new[] { false, true })
                     {
-                        var name = $"{testCase.Name.Replace(PathPrefix, "")}:async={async}";
+                        var formattedName = testCase.Name;
+                        foreach (var prefix in PathPrefixes)
+                        {
+                            formattedName = formattedName.Replace(prefix, "");
+                        }
+                        var name = $"{formattedName}:async={async}";
                         var test = testCase.Test.DeepClone().AsBsonDocument.Add("async", async);
                         yield return new JsonDrivenTestCase(name, testCase.Shared, test);
                     }

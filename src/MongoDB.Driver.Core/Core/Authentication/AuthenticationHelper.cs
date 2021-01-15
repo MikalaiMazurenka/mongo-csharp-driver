@@ -29,7 +29,12 @@ namespace MongoDB.Driver.Core.Authentication
 {
     internal static class AuthenticationHelper
     {
-        public static void Authenticate(IConnection connection, ConnectionDescription description, IReadOnlyList<IAuthenticator> authenticators, CancellationToken cancellationToken)
+        public static void Authenticate(
+            IConnection connection,
+            ConnectionDescription description,
+            IReadOnlyList<IAuthenticator> authenticators,
+            ServerApi serverApi,
+            CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
@@ -40,12 +45,17 @@ namespace MongoDB.Driver.Core.Authentication
             {
                 foreach (var authenticator in authenticators)
                 {
-                    authenticator.Authenticate(connection, description, cancellationToken);
+                    authenticator.Authenticate(connection, description, serverApi, cancellationToken);
                 }
             }
         }
 
-        public static async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, IReadOnlyList<IAuthenticator> authenticators, CancellationToken cancellationToken)
+        public static async Task AuthenticateAsync(
+            IConnection connection,
+            ConnectionDescription description,
+            IReadOnlyList<IAuthenticator> authenticators,
+            ServerApi serverApi,
+            CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
@@ -56,7 +66,7 @@ namespace MongoDB.Driver.Core.Authentication
             {
                 foreach (var authenticator in authenticators)
                 {
-                    await authenticator.AuthenticateAsync(connection, description, cancellationToken).ConfigureAwait(false);
+                    await authenticator.AuthenticateAsync(connection, description, serverApi, cancellationToken).ConfigureAwait(false);
                 }
             }
         }

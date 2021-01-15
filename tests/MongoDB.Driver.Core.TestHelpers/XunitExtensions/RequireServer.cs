@@ -246,6 +246,18 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
                             }
                         }
                         break;
+                    case "serverParameters":
+                        {
+                            var serverParameters = CoreTestConfiguration.GetServerParameters();
+                            foreach (var parameter in item.Value.AsBsonDocument)
+                            {
+                                if (serverParameters[parameter.Name] != parameter.Value)
+                                {
+                                    return false;
+                                }
+                            }
+                        }
+                        break;
                     case "topologies":
                     case "topology":
                         {

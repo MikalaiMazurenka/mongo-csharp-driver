@@ -57,6 +57,7 @@ namespace MongoDB.Driver.Core.Authentication
                 new ConnectionId(new ServerId(new ClusterId(), new DnsEndPoint("localhost", 27017))),
                 new IsMasterResult(new BsonDocument("ok", 1)),
                 new BuildInfoResult(new BsonDocument("version", "2.8.0")));
+            var serverApi = new ServerApi(ServerApiVersion.V1, true, true);
 
             var mockAuthenticator = new Mock<IAuthenticator>();
             var settings = new ConnectionSettings(authenticatorFactories: new[] { new AuthenticatorFactory(() => mockAuthenticator.Object) });
@@ -68,15 +69,15 @@ namespace MongoDB.Driver.Core.Authentication
 
             if (async)
             {
-                AuthenticationHelper.AuthenticateAsync(mockConnection.Object, description, authenticators, CancellationToken.None).GetAwaiter().GetResult();
+                AuthenticationHelper.AuthenticateAsync(mockConnection.Object, description, authenticators, serverApi, CancellationToken.None).GetAwaiter().GetResult();
 
-                mockAuthenticator.Verify(a => a.AuthenticateAsync(mockConnection.Object, description, CancellationToken.None), Times.Once);
+                mockAuthenticator.Verify(a => a.AuthenticateAsync(mockConnection.Object, description, serverApi, CancellationToken.None), Times.Once);
             }
             else
             {
-                AuthenticationHelper.Authenticate(mockConnection.Object, description, authenticators, CancellationToken.None);
+                AuthenticationHelper.Authenticate(mockConnection.Object, description, authenticators, serverApi, CancellationToken.None);
 
-                mockAuthenticator.Verify(a => a.Authenticate(mockConnection.Object, description, CancellationToken.None), Times.Once);
+                mockAuthenticator.Verify(a => a.Authenticate(mockConnection.Object, description, serverApi, CancellationToken.None), Times.Once);
             }
         }
 
@@ -90,6 +91,7 @@ namespace MongoDB.Driver.Core.Authentication
                 new ConnectionId(new ServerId(new ClusterId(), new DnsEndPoint("localhost", 27017))),
                 new IsMasterResult(new BsonDocument("ok", 1).Add("setName", "rs").Add("arbiterOnly", true)),
                 new BuildInfoResult(new BsonDocument("version", "2.8.0")));
+            var serverApi = new ServerApi(ServerApiVersion.V1, true, true);
 
             var mockAuthenticator = new Mock<IAuthenticator>();
             var settings = new ConnectionSettings(authenticatorFactories: new[] { new AuthenticatorFactory(() => mockAuthenticator.Object) });
@@ -101,15 +103,15 @@ namespace MongoDB.Driver.Core.Authentication
 
             if (async)
             {
-                AuthenticationHelper.AuthenticateAsync(mockConnection.Object, description, authenticators, CancellationToken.None).GetAwaiter().GetResult();
+                AuthenticationHelper.AuthenticateAsync(mockConnection.Object, description, authenticators, serverApi, CancellationToken.None).GetAwaiter().GetResult();
 
-                mockAuthenticator.Verify(a => a.AuthenticateAsync(It.IsAny<IConnection>(), It.IsAny<ConnectionDescription>(), It.IsAny<CancellationToken>()), Times.Never);
+                mockAuthenticator.Verify(a => a.AuthenticateAsync(It.IsAny<IConnection>(), It.IsAny<ConnectionDescription>(), It.IsAny<ServerApi>(), It.IsAny<CancellationToken>()), Times.Never);
             }
             else
             {
-                AuthenticationHelper.Authenticate(mockConnection.Object, description, authenticators, CancellationToken.None);
+                AuthenticationHelper.Authenticate(mockConnection.Object, description, authenticators, serverApi, CancellationToken.None);
 
-                mockAuthenticator.Verify(a => a.Authenticate(It.IsAny<IConnection>(), It.IsAny<ConnectionDescription>(), It.IsAny<CancellationToken>()), Times.Never);
+                mockAuthenticator.Verify(a => a.Authenticate(It.IsAny<IConnection>(), It.IsAny<ConnectionDescription>(), It.IsAny<ServerApi>(), It.IsAny<CancellationToken>()), Times.Never);
             }
         }
     }

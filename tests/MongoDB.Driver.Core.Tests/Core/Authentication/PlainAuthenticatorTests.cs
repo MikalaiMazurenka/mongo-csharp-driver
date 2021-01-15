@@ -18,7 +18,6 @@ using System.Net;
 using System.Threading;
 using FluentAssertions;
 using MongoDB.Bson;
-using MongoDB.Driver.Core.Authentication;
 using MongoDB.Driver.Core.Clusters;
 using MongoDB.Driver.Core.Servers;
 using MongoDB.Driver.Core.Helpers;
@@ -75,10 +74,13 @@ namespace MongoDB.Driver.Core.Authentication
         [Theory]
         [ParameterAttributeData]
         public void Authenticate_should_not_throw_when_authentication_succeeds(
-            [Values(false, true)]
-            bool async)
+            [Values(false, true)] bool includeServerApi,
+            [Values(false, true)] bool async)
         {
             var subject = new PlainAuthenticator(__credential);
+
+            var serverApi = includeServerApi ? new ServerApi(ServerApiVersion.V1, true, true) : null;
+            var expectedServerApiString = includeServerApi ? ", apiVersion : \"1\", apiStrict : true, apiDeprecationErrors : true" : "";
 
             var saslStartReply = MessageHelper.BuildReply<RawBsonDocument>(
                 RawBsonDocumentHelper.FromJson("{conversationId: 0, payload: BinData(0,\"\"), done: true, ok: 1}"));
@@ -91,11 +93,11 @@ namespace MongoDB.Driver.Core.Authentication
             Action act;
             if (async)
             {
-                act = () => subject.AuthenticateAsync(connection, __description, CancellationToken.None).GetAwaiter().GetResult();
+                act = () => subject.AuthenticateAsync(connection, __description, serverApi, CancellationToken.None).GetAwaiter().GetResult();
             }
             else
             {
-                act = () => subject.Authenticate(connection, __description, CancellationToken.None);
+                act = () => subject.Authenticate(connection, __description, serverApi, CancellationToken.None);
             }
 
             act.ShouldNotThrow();
@@ -107,7 +109,7 @@ namespace MongoDB.Driver.Core.Authentication
             var actualRequestId = sentMessages[0]["requestId"].AsInt32;
             actualRequestId.Should().BeInRange(expectedRequestId, expectedRequestId + 10);
 
-            sentMessages[0].Should().Be("{opcode: \"query\", requestId: " + actualRequestId + ", database: \"source\", collection: \"$cmd\", batchSize: -1, slaveOk: true, query: {saslStart: 1, mechanism: \"PLAIN\", payload: new BinData(0, \"AHVzZXIAcGVuY2ls\")}}");
+            sentMessages[0].Should().Be($"{{opcode: \"query\", requestId: {actualRequestId}, database: \"source\", collection: \"$cmd\", batchSize: -1, slaveOk: true, query: {{saslStart: 1, mechanism: \"PLAIN\", payload: new BinData(0, \"AHVzZXIAcGVuY2ls\"){expectedServerApiString} }}}}");
         }
     }
 }

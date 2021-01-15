@@ -94,6 +94,7 @@ namespace MongoDB.Driver
                 localThreshold: clusterKey.LocalThreshold,
                 replicaSetName: clusterKey.ReplicaSetName,
                 maxServerSelectionWaitQueueSize: clusterKey.WaitQueueSize,
+                serverApi: clusterKey.ServerApi,
                 serverSelectionTimeout: clusterKey.ServerSelectionTimeout,
                 schemaMap: Optional.Create(clusterKey.SchemaMap),
                 scheme: clusterKey.Scheme);

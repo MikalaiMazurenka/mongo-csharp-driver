@@ -722,6 +722,45 @@ namespace MongoDB.Driver.Core.Servers
                 server.ClusterClock.ClusterTime.Should().Be(actualClusterTime);
             }
         }
+
+        [SkippableFact]
+        public void Command_should_use_serverApi()
+        {
+            RequireServer.Check().VersionGreaterThanOrEqualTo("3.6").ClusterTypes(ClusterType.ReplicaSet, ClusterType.Sharded);
+
+            var serverApi = new ServerApi(ServerApiVersion.V1);
+            var eventCapturer = new EventCapturer().Capture<CommandStartedEvent>(e => e.CommandName == "ping");
+            var builder = CoreTestConfiguration.ConfigureCluster(new ClusterBuilder())
+                .Subscribe(eventCapturer)
+                .ConfigureCluster(x => x.With(serverApi: serverApi));
+
+            using (var cluster = CoreTestConfiguration.CreateCluster(builder))
+            using (var session = cluster.StartSession())
+            {
+                var cancellationToken = CancellationToken.None;
+                var server = (Server)cluster.SelectServer(WritableServerSelector.Instance, cancellationToken);
+                using (var channel = server.GetChannel(cancellationToken))
+                {
+                    var command = BsonDocument.Parse("{ ping : 1 }");
+                    channel.Command<BsonDocument>(
+                        session,
+                        ReadPreference.Primary,
+                        DatabaseNamespace.Admin,
+                        command,
+                        null, // payloads
+                        NoOpElementNameValidator.Instance,
+                        null, // additionalOptions
+                        null, // postWriteAction
+                        CommandResponseHandling.Return,
+                        BsonDocumentSerializer.Instance,
+                        new MessageEncoderSettings(),
+                        cancellationToken);
+                }
+
+                var commandStartedEvent = eventCapturer.Next().Should().BeOfType<CommandStartedEvent>().Subject;
+                commandStartedEvent.Command["apiVersion"].AsString.Should().Be("1");
+            }
+        }
     }
 
     internal static class ServerReflector

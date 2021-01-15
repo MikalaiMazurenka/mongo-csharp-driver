@@ -13,7 +13,6 @@
 * limitations under the License.
 */
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -47,9 +46,28 @@ namespace MongoDB.Driver.Core.Authentication
         /// </summary>
         /// <param name="connection">The connection.</param>
         /// <param name="description">The connection description.</param>
+        /// <param name="serverApi">The server API.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        void Authenticate(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Authenticates the connection.
+        /// </summary>
+        /// <param name="connection">The connection.</param>
+        /// <param name="description">The connection description.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>A Task.</returns>
         Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Authenticates the connection.
+        /// </summary>
+        /// <param name="connection">The connection.</param>
+        /// <param name="description">The connection description.</param>
+        /// <param name="serverApi">The server API.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <returns>A Task.</returns>
+        Task AuthenticateAsync(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken);
 
         /// <summary>
         /// Optionally customizes isMaster command.

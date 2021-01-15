@@ -63,44 +63,11 @@ namespace MongoDB.Driver.Core.Authentication
         /// <inheritdoc/>
         public void Authenticate(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
-            Ensure.IsNotNull(connection, nameof(connection));
-            Ensure.IsNotNull(description, nameof(description));
-
-            using (var conversation = new SaslConversation(description.ConnectionId))
-            {
-                ISaslStep currentStep;
-                BsonDocument command;
-                var speculativeAuthenticateResult = description.IsMasterResult.SpeculativeAuthenticate;
-                if (_speculativeFirstStep != null && speculativeAuthenticateResult != null)
-                {
-                    currentStep = Transition(conversation, _speculativeFirstStep, speculativeAuthenticateResult, out command);
-                }
-                else
-                {
-                    currentStep = _mechanism.Initialize(connection, conversation, description);
-                    command = CreateStartCommand(currentStep);
-                }
-
-                while (currentStep != null)
-                {
-                    BsonDocument result;
-                    try
-                    {
-                        var protocol = CreateCommandProtocol(command);
-                        result = protocol.Execute(connection, cancellationToken);
-                    }
-                    catch (MongoCommandException ex)
-                    {
-                        throw CreateException(connection, ex);
-                    }
-
-                    currentStep = Transition(conversation, currentStep, result, out command);
-                }
-            }
+            Authenticate(connection, description, null, cancellationToken);
         }
 
         /// <inheritdoc/>
-        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        public void Authenticate(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken)
         {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
@@ -125,7 +92,52 @@ namespace MongoDB.Driver.Core.Authentication
                     BsonDocument result;
                     try
                     {
-                        var protocol = CreateCommandProtocol(command);
+                        var protocol = CreateCommandProtocol(command, serverApi);
+                        result = protocol.Execute(connection, cancellationToken);
+                    }
+                    catch (MongoCommandException ex)
+                    {
+                        throw CreateException(connection, ex);
+                    }
+
+                    currentStep = Transition(conversation, currentStep, result, out command);
+                }
+            }
+        }
+
+        /// <inheritdoc/>
+        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
+        {
+            await AuthenticateAsync(connection, description, null, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken)
+        {
+            Ensure.IsNotNull(connection, nameof(connection));
+            Ensure.IsNotNull(description, nameof(description));
+
+            using (var conversation = new SaslConversation(description.ConnectionId))
+            {
+                ISaslStep currentStep;
+                BsonDocument command;
+                var speculativeAuthenticateResult = description.IsMasterResult.SpeculativeAuthenticate;
+                if (_speculativeFirstStep != null && speculativeAuthenticateResult != null)
+                {
+                    currentStep = Transition(conversation, _speculativeFirstStep, speculativeAuthenticateResult, out command);
+                }
+                else
+                {
+                    currentStep = _mechanism.Initialize(connection, conversation, description);
+                    command = CreateStartCommand(currentStep);
+                }
+
+                while (currentStep != null)
+                {
+                    BsonDocument result;
+                    try
+                    {
+                        var protocol = CreateCommandProtocol(command, serverApi);
                         result = await protocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
                     }
                     catch (MongoCommandException ex)
@@ -156,14 +168,15 @@ namespace MongoDB.Driver.Core.Authentication
             return startCommand;
         }
 
-        private CommandWireProtocol<BsonDocument> CreateCommandProtocol(BsonDocument command)
+        private CommandWireProtocol<BsonDocument> CreateCommandProtocol(BsonDocument command, ServerApi serverApi)
         {
             return new CommandWireProtocol<BsonDocument>(
-                new DatabaseNamespace(DatabaseName),
-                command,
-                true,
-                BsonDocumentSerializer.Instance,
-                null);
+                databaseNamespace: new DatabaseNamespace(DatabaseName),
+                command: command,
+                slaveOk: true,
+                resultSerializer: BsonDocumentSerializer.Instance,
+                messageEncoderSettings: null,
+                serverApi: serverApi);
         }
 
         private BsonDocument CreateContinueCommand(ISaslStep currentStep, BsonDocument result)

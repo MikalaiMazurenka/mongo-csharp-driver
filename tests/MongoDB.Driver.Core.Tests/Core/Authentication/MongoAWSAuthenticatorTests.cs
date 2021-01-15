@@ -16,6 +16,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Text;
 using System.Threading;
 using FluentAssertions;
 using MongoDB.Bson;
@@ -56,6 +57,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
         [Theory]
         [ParameterAttributeData]
         public void Authenticate_should_have_expected_result(
+            [Values(false, true)] bool includeServerApi,
             [Values(false, true)] bool async)
         {
             var dateTime = DateTime.UtcNow;
@@ -63,6 +65,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             var serverNonce = Combine(clientNonce, __randomByteGenerator.Generate(ClientNonceLength));
             var host = "sts.amazonaws.com";
             var credential = new UsernamePasswordCredential("$external", "permanentuser", "FAKEFAKEFAKEFAKEFAKEfakefakefakefakefake");
+            var serverApi = includeServerApi ? new ServerApi(ServerApiVersion.V1, true, true) : null;
 
             AwsSignatureVersion4.CreateAuthorizationRequest(
                 dateTime,
@@ -109,11 +112,11 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
 
             if (async)
             {
-                subject.AuthenticateAsync(connection, __connectionDescription, CancellationToken.None).GetAwaiter().GetResult();
+                subject.AuthenticateAsync(connection, __connectionDescription, serverApi, CancellationToken.None).GetAwaiter().GetResult();
             }
             else
             {
-                subject.Authenticate(connection, __connectionDescription, CancellationToken.None);
+                subject.Authenticate(connection, __connectionDescription, serverApi, CancellationToken.None);
             }
 
             SpinWait.SpinUntil(() => connection.GetSentMessages().Count >= 2, TimeSpan.FromSeconds(5)).Should().BeTrue();
@@ -124,8 +127,8 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             var actualRequestId0 = sentMessages[0]["requestId"].AsInt32;
             var actualRequestId1 = sentMessages[1]["requestId"].AsInt32;
 
-            var expectedFirstMessage = GetExpectedSaslStartMessage(actualRequestId0, expectedClientFirstMessage);
-            var expectedSecondMessage = GetExpectedSaslContinueMessage(actualRequestId1, expectedClientSecondMessage);
+            var expectedFirstMessage = GetExpectedSaslStartMessage(actualRequestId0, expectedClientFirstMessage, serverApi);
+            var expectedSecondMessage = GetExpectedSaslContinueMessage(actualRequestId1, expectedClientSecondMessage, serverApi);
 
             sentMessages[0].Should().Be(expectedFirstMessage);
             sentMessages[1].Should().Be(expectedSecondMessage);
@@ -289,6 +292,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
         [Theory]
         [ParameterAttributeData]
         public void Authenticate_with_session_token_should_have_expected_result(
+            [Values(false, true)] bool includeServerApi,
             [Values(false, true)] bool async)
         {
             var dateTime = DateTime.UtcNow;
@@ -297,6 +301,7 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             var host = "sts.amazonaws.com";
             var credential = new UsernamePasswordCredential("$external", "permanentuser", "FAKEFAKEFAKEFAKEFAKEfakefakefakefakefake");
             var sessionToken = "MXUpbuzwzPo67WKCNYtdBq47taFtIpt+SVx58hNx1/jSz37h9d67dtUOg0ejKrv83u8ai+VFZxMx=";
+            var serverApi = includeServerApi ? new ServerApi(ServerApiVersion.V1, true, true) : null;
 
             AwsSignatureVersion4.CreateAuthorizationRequest(
                 dateTime,
@@ -345,11 +350,11 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
 
             if (async)
             {
-                subject.AuthenticateAsync(connection, __connectionDescription, CancellationToken.None).GetAwaiter().GetResult();
+                subject.AuthenticateAsync(connection, __connectionDescription, serverApi, CancellationToken.None).GetAwaiter().GetResult();
             }
             else
             {
-                subject.Authenticate(connection, __connectionDescription, CancellationToken.None);
+                subject.Authenticate(connection, __connectionDescription, serverApi, CancellationToken.None);
             }
 
             SpinWait.SpinUntil(() => connection.GetSentMessages().Count >= 2, TimeSpan.FromSeconds(5)).Should().BeTrue();
@@ -360,15 +365,15 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
             var actualRequestId0 = sentMessages[0]["requestId"].AsInt32;
             var actualRequestId1 = sentMessages[1]["requestId"].AsInt32;
 
-            var expectedFirstMessage = GetExpectedSaslStartMessage(actualRequestId0, expectedClientFirstMessage);
-            var expectedSecondMessage = GetExpectedSaslContinueMessage(actualRequestId1, expectedClientSecondMessage);
+            var expectedFirstMessage = GetExpectedSaslStartMessage(actualRequestId0, expectedClientFirstMessage, serverApi);
+            var expectedSecondMessage = GetExpectedSaslContinueMessage(actualRequestId1, expectedClientSecondMessage, serverApi);
 
             sentMessages[0].Should().Be(expectedFirstMessage);
             sentMessages[1].Should().Be(expectedSecondMessage);
         }
 
         // private methods
-        private static string GetExpectedSaslContinueMessage(int requestId, BsonDocument clientMessage)
+        private static string GetExpectedSaslContinueMessage(int requestId, BsonDocument clientMessage, ServerApi serverApi)
         {
             return
                 "{" +
@@ -383,11 +388,12 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
                         "\"saslContinue\" : 1, " +
                         "\"conversationId\" : 1, " +
                         $"\"payload\" : new BinData(0, \"{ToBase64(clientMessage.ToBson())}\") " +
+                        GetServerApiString(serverApi) +
                     "}" +
                 "}";
         }
 
-        private static string GetExpectedSaslStartMessage(int requestId, BsonDocument clientMessage)
+        private static string GetExpectedSaslStartMessage(int requestId, BsonDocument clientMessage, ServerApi serverApi)
         {
             return
                 "{" +
@@ -402,8 +408,28 @@ namespace MongoDB.Driver.Core.Tests.Core.Authentication
                         "\"saslStart\" : 1, " +
                         "\"mechanism\" : \"MONGODB-AWS\", " +
                         $"\"payload\" : new BinData(0, \"{ToBase64(clientMessage.ToBson())}\") " +
+                        GetServerApiString(serverApi) +
                     "}" +
                 "}";
+        }
+
+        private static string GetServerApiString(ServerApi serverApi)
+        {
+            var serverApiStringBuilder = new StringBuilder();
+            if (serverApi != null)
+            {
+                serverApiStringBuilder.Append($", \"apiVersion\" : \"{serverApi.Version}\"");
+                if (serverApi.Strict.HasValue)
+                {
+                    serverApiStringBuilder.Append($", \"apiStrict\" : {serverApi.Strict.ToString().ToLowerInvariant()}");
+                }
+                if (serverApi.DeprecationErrors.HasValue)
+                {
+                    serverApiStringBuilder.Append($", \"apiDeprecationErrors\" : {serverApi.DeprecationErrors.ToString().ToLowerInvariant()}");
+                }
+            }
+
+            return serverApiStringBuilder.ToString();
         }
 
         private static byte[] Combine(byte[] first, byte[] second)

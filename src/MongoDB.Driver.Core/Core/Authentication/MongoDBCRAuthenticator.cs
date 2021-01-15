@@ -16,7 +16,6 @@
 using System;
 using System.Security;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Bson;
@@ -71,14 +70,20 @@ namespace MongoDB.Driver.Core.Authentication
         /// <inheritdoc/>
         public void Authenticate(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
+            Authenticate(connection, description, null, cancellationToken);
+        }
+
+        /// <inheritdoc/>
+        public void Authenticate(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken)
+        {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
 
             try
             {
-                var getNonceProtocol = CreateGetNonceProtocol();
+                var getNonceProtocol = CreateGetNonceProtocol(serverApi);
                 var getNonceReply = getNonceProtocol.Execute(connection, cancellationToken);
-                var authenticateProtocol = CreateAuthenticateProtocol(getNonceReply);
+                var authenticateProtocol = CreateAuthenticateProtocol(getNonceReply, serverApi);
                 authenticateProtocol.Execute(connection, cancellationToken);
             }
             catch (MongoCommandException ex)
@@ -90,14 +95,20 @@ namespace MongoDB.Driver.Core.Authentication
         /// <inheritdoc/>
         public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, CancellationToken cancellationToken)
         {
+            await AuthenticateAsync(connection, description, null, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <inheritdoc/>
+        public async Task AuthenticateAsync(IConnection connection, ConnectionDescription description, ServerApi serverApi, CancellationToken cancellationToken)
+        {
             Ensure.IsNotNull(connection, nameof(connection));
             Ensure.IsNotNull(description, nameof(description));
 
             try
             {
-                var getNonceProtocol = CreateGetNonceProtocol();
+                var getNonceProtocol = CreateGetNonceProtocol(serverApi);
                 var getNonceReply = await getNonceProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
-                var authenticateProtocol = CreateAuthenticateProtocol(getNonceReply);
+                var authenticateProtocol = CreateAuthenticateProtocol(getNonceReply, serverApi);
                 await authenticateProtocol.ExecuteAsync(connection, cancellationToken).ConfigureAwait(false);
             }
             catch (MongoCommandException ex)
@@ -113,7 +124,7 @@ namespace MongoDB.Driver.Core.Authentication
         }
 
         // private methods
-        private CommandWireProtocol<BsonDocument> CreateAuthenticateProtocol(BsonDocument getNonceReply)
+        private CommandWireProtocol<BsonDocument> CreateAuthenticateProtocol(BsonDocument getNonceReply, ServerApi serverApi)
         {
             var nonce = getNonceReply["nonce"].AsString;
             var command = new BsonDocument
@@ -124,11 +135,12 @@ namespace MongoDB.Driver.Core.Authentication
                 { "key", CreateKey(_credential.Username, _credential.Password, nonce) }
             };
             var protocol = new CommandWireProtocol<BsonDocument>(
-                new DatabaseNamespace(_credential.Source),
-                command,
-                true,
-                BsonDocumentSerializer.Instance,
-                null);
+                databaseNamespace: new DatabaseNamespace(_credential.Source),
+                command: command,
+                slaveOk: true,
+                resultSerializer: BsonDocumentSerializer.Instance,
+                messageEncoderSettings: null,
+                serverApi: serverApi);
             return protocol;
         }
 
@@ -138,15 +150,16 @@ namespace MongoDB.Driver.Core.Authentication
             return new MongoAuthenticationException(connection.ConnectionId, message, ex);
         }
 
-        private CommandWireProtocol<BsonDocument> CreateGetNonceProtocol()
+        private CommandWireProtocol<BsonDocument> CreateGetNonceProtocol(ServerApi serverApi)
         {
             var command = new BsonDocument("getnonce", 1);
             var protocol = new CommandWireProtocol<BsonDocument>(
-                new DatabaseNamespace(_credential.Source),
-                command,
-                true,
-                BsonDocumentSerializer.Instance,
-                null);
+                databaseNamespace: new DatabaseNamespace(_credential.Source),
+                command: command,
+                slaveOk: true,
+                resultSerializer: BsonDocumentSerializer.Instance,
+                messageEncoderSettings: null,
+                serverApi: serverApi);
             return protocol;
         }
 

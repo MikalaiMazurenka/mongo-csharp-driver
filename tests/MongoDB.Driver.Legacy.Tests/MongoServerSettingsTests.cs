@@ -112,6 +112,7 @@ namespace MongoDB.Driver.Tests
 #pragma warning restore 618
             settings.SslSettings = new SslSettings { CheckCertificateRevocation = !url.TlsDisableCertificateRevocationCheck };
             settings.SdamLogFilename = "unimatrix-zero";
+            settings.ServerApi = new ServerApi(ServerApiVersion.V1, true, true);
 
             var clone = settings.Clone();
 
@@ -225,6 +226,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(null, settings.SdamLogFilename);
             Assert.Equal(_localHost, settings.Server);
             Assert.Equal(_localHost, settings.Servers.First());
+            Assert.Equal(null, settings.ServerApi);
             Assert.Equal(1, settings.Servers.Count());
             Assert.Equal(MongoDefaults.ServerSelectionTimeout, settings.ServerSelectionTimeout);
             Assert.Equal(MongoDefaults.SocketTimeout, settings.SocketTimeout);
@@ -448,6 +450,10 @@ namespace MongoDB.Driver.Tests
             Assert.False(clone.Equals(settings));
 
             clone = settings.Clone();
+            clone.ServerApi = new ServerApi(ServerApiVersion.V1, true, true);
+            Assert.False(clone.Equals(settings));
+
+            clone = settings.Clone();
             clone.Server = new MongoServerAddress("someotherhost");
             Assert.False(clone.Equals(settings));
 
@@ -599,6 +605,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(url.RetryWrites, settings.RetryWrites);
             Assert.Equal(url.Scheme, settings.Scheme);
             Assert.Equal(clientSettings.SdamLogFilename, settings.SdamLogFilename);
+            Assert.Equal(null, settings.ServerApi);
             Assert.True(url.Servers.SequenceEqual(settings.Servers));
             Assert.Equal(url.ServerSelectionTimeout, settings.ServerSelectionTimeout);
             Assert.Equal(url.SocketTimeout, settings.SocketTimeout);
@@ -699,6 +706,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(url.RetryReads, settings.RetryReads);
             Assert.Equal(url.RetryWrites, settings.RetryWrites);
             Assert.Equal(url.Scheme, settings.Scheme);
+            Assert.Equal(null, settings.ServerApi);
             Assert.True(url.Servers.SequenceEqual(settings.Servers));
             Assert.Equal(url.ServerSelectionTimeout, settings.ServerSelectionTimeout);
             Assert.Equal(url.SocketTimeout, settings.SocketTimeout);
@@ -1021,6 +1029,21 @@ namespace MongoDB.Driver.Tests
         }
 
         [Fact]
+        public void TestServerApi()
+        {
+            var settings = new MongoServerSettings();
+            Assert.Equal(null, settings.ServerApi);
+
+            var serverApi = new ServerApi(ServerApiVersion.V1, true, true);
+            settings.ServerApi = serverApi;
+            Assert.Equal(serverApi, settings.ServerApi);
+
+            settings.Freeze();
+            Assert.Equal(serverApi, settings.ServerApi);
+            Assert.Throws<InvalidOperationException>(() => { settings.ServerApi = serverApi; });
+        }
+
+        [Fact]
         public void TestServersWithOneServer()
         {
             var settings = new MongoServerSettings();
@@ -1270,6 +1293,7 @@ namespace MongoDB.Driver.Tests
 #pragma warning disable 618
             var credential = MongoCredential.CreateMongoCRCredential("source", "username", "password");
 #pragma warning restore 618
+            var serverApi = new ServerApi(ServerApiVersion.V1, true, true);
             var servers = new[] { new MongoServerAddress("localhost") };
             var sslSettings = new SslSettings
             {
@@ -1298,6 +1322,7 @@ namespace MongoDB.Driver.Tests
                 ReplicaSetName = "rs",
                 Scheme = ConnectionStringScheme.MongoDBPlusSrv,
                 SdamLogFilename = "navi",
+                ServerApi = serverApi,
                 Servers = servers,
                 ServerSelectionTimeout = TimeSpan.FromSeconds(6),
                 SocketTimeout = TimeSpan.FromSeconds(4),
@@ -1340,6 +1365,7 @@ namespace MongoDB.Driver.Tests
             result.Scheme.Should().Be(subject.Scheme);
             result.SdamLogFilename.Should().Be(subject.SdamLogFilename);
             result.SendBufferSize.Should().Be(MongoDefaults.TcpSendBufferSize);
+            result.ServerApi.Should().Be(subject.ServerApi);
             result.Servers.Should().Equal(subject.Servers);
             result.ServerSelectionTimeout.Should().Be(subject.ServerSelectionTimeout);
             result.SocketTimeout.Should().Be(subject.SocketTimeout);

@@ -44,6 +44,7 @@ namespace MongoDB.Driver.Core.WireProtocol
         private readonly ReadPreference _readPreference;
         private readonly CommandResponseHandling _responseHandling;
         private readonly IBsonSerializer<TCommandResult> _resultSerializer;
+        private readonly ServerApi _serverApi;
         private readonly ICoreSession _session;
 
         // constructors
@@ -52,14 +53,16 @@ namespace MongoDB.Driver.Core.WireProtocol
             BsonDocument command,
             bool slaveOk,
             IBsonSerializer<TCommandResult> resultSerializer,
-            MessageEncoderSettings messageEncoderSettings)
+            MessageEncoderSettings messageEncoderSettings,
+            ServerApi serverApi)
             : this(
                 databaseNamespace,
                 command,
                 slaveOk,
                 CommandResponseHandling.Return,
                 resultSerializer,
-                messageEncoderSettings)
+                messageEncoderSettings,
+                serverApi)
         {
         }
 
@@ -69,7 +72,8 @@ namespace MongoDB.Driver.Core.WireProtocol
             bool slaveOk,
             CommandResponseHandling commandResponseHandling,
             IBsonSerializer<TCommandResult> resultSerializer,
-            MessageEncoderSettings messageEncoderSettings)
+            MessageEncoderSettings messageEncoderSettings,
+            ServerApi serverApi)
             : this(
                 NoCoreSession.Instance,
                 slaveOk ? ReadPreference.PrimaryPreferred : ReadPreference.Primary,
@@ -81,7 +85,8 @@ namespace MongoDB.Driver.Core.WireProtocol
                 null, // postWriteAction
                 commandResponseHandling,
                 resultSerializer,
-                messageEncoderSettings)
+                messageEncoderSettings,
+                serverApi)
         {
         }
 
@@ -97,6 +102,35 @@ namespace MongoDB.Driver.Core.WireProtocol
             CommandResponseHandling responseHandling,
             IBsonSerializer<TCommandResult> resultSerializer,
             MessageEncoderSettings messageEncoderSettings)
+            : this(
+                  session,
+                  readPreference,
+                  databaseNamespace,
+                  command,
+                  commandPayloads,
+                  commandValidator,
+                  additionalOptions,
+                  postWriteAction,
+                  responseHandling,
+                  resultSerializer,
+                  messageEncoderSettings,
+                  null)
+        {
+        }
+
+        public CommandWireProtocol(
+            ICoreSession session,
+            ReadPreference readPreference,
+            DatabaseNamespace databaseNamespace,
+            BsonDocument command,
+            IEnumerable<Type1CommandMessageSection> commandPayloads,
+            IElementNameValidator commandValidator,
+            BsonDocument additionalOptions,
+            Action<IMessageEncoderPostProcessor> postWriteAction,
+            CommandResponseHandling responseHandling,
+            IBsonSerializer<TCommandResult> resultSerializer,
+            MessageEncoderSettings messageEncoderSettings,
+            ServerApi serverApi)
         {
             if (responseHandling != CommandResponseHandling.Return &&
                 responseHandling != CommandResponseHandling.NoResponseExpected &&
@@ -116,6 +150,7 @@ namespace MongoDB.Driver.Core.WireProtocol
             _resultSerializer = Ensure.IsNotNull(resultSerializer, nameof(resultSerializer));
             _messageEncoderSettings = messageEncoderSettings;
             _postWriteAction = postWriteAction; // can be null
+            _serverApi = serverApi; // can be null
         }
 
         // public properties
@@ -148,7 +183,8 @@ namespace MongoDB.Driver.Core.WireProtocol
                 _responseHandling,
                 _resultSerializer,
                 _messageEncoderSettings,
-                _postWriteAction);
+                _postWriteAction,
+                _serverApi);
         }
 
         private IWireProtocol<TCommandResult> CreateCommandUsingQueryMessageWireProtocol()
@@ -166,7 +202,8 @@ namespace MongoDB.Driver.Core.WireProtocol
                 responseHandling,
                 _resultSerializer,
                 _messageEncoderSettings,
-                _postWriteAction);
+                _postWriteAction,
+                _serverApi);
         }
 
         private IWireProtocol<TCommandResult> CreateSupportedWireProtocol(IConnection connection)
