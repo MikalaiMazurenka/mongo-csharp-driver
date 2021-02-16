@@ -6,8 +6,185 @@
     <description>Recent content on MongoDB .NET Driver</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Thu, 23 Jul 2020 00:00:00 +0000</lastBuildDate>
+    <lastBuildDate>Fri, 12 Feb 2021 15:36:56 +0000</lastBuildDate>
     <atom:link href="/mongo-csharp-driver/2.12/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Versioned API</title>
+      <link>/mongo-csharp-driver/2.12/reference/driver/versioned_api/</link>
+      <pubDate>Fri, 12 Feb 2021 15:36:56 +0000</pubDate>
+      
+      <guid>/mongo-csharp-driver/2.12/reference/driver/versioned_api/</guid>
+      <description>
+
+&lt;h2 id=&#34;versioned-api&#34;&gt;Versioned API&lt;/h2&gt;
+
+&lt;p&gt;Versioned API is a new feature in MongoDB 5.0 that allows user-selectable API versions, subsets of MongoDB
+server semantics, to be declared on a client. During communication with a server, clients with a declared
+API version will force the server to behave in a manner compatible with the API version. Declaring an API
+version on a client can be used to ensure consistent responses from a server, providing long term API
+stability for an application. The declared API version is applied to all commands run through the client, including those sent through
+the generic RunCommand helper. Specifying versioned API options in the command document AND declaring an API version on the client is not supported and will lead to undefined behaviour.&lt;/p&gt;
+
+&lt;p&gt;You can specify &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/apidocs/html/T_MongoDB_Driver_Core_ServerApi.htm
+&#34;&gt;&lt;code&gt;ServerApi&lt;/code&gt;&lt;/a&gt; via &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/apidocs/html/T_MongoDB_Driver_MongoClientSettings.htm
+&#34;&gt;&lt;code&gt;MongoClientSettings&lt;/code&gt;&lt;/a&gt;:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;var serverApi = new ServerApi(ServerApiVersion.V1);
+var settings = new MongoClientSettings { ServerApi = serverApi };
+var client = new MongoClient(settings);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/apidocs/html/T_MongoDB_Driver_Core_ServerApi.htm
+&#34;&gt;&lt;code&gt;ServerApi&lt;/code&gt;&lt;/a&gt; can be specified only when creating a &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/apidocs/html/T_MongoDB_Driver_MongoClient.htm
+&#34;&gt;&lt;code&gt;MongoClient&lt;/code&gt;&lt;/a&gt; and cannot be changed during the course of execution. Thus to run any command with a different
+API version or without declaring one, create a separate &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/apidocs/html/T_MongoDB_Driver_MongoClient.htm
+&#34;&gt;&lt;code&gt;MongoClient&lt;/code&gt;&lt;/a&gt; that declares the appropriate API version.&lt;/p&gt;
+
+&lt;p&gt;The &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/apidocs/html/T_MongoDB_Driver_Core_ServerApi.htm
+&#34;&gt;&lt;code&gt;ServerApi&lt;/code&gt;&lt;/a&gt; consists of 3 fields. One mandatory: &lt;code&gt;serverApiVersion&lt;/code&gt; and two optional: &lt;code&gt;strict&lt;/code&gt; and &lt;code&gt;deprecationErrors&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h3 id=&#34;server-api-version&#34;&gt;Server API version&lt;/h3&gt;
+
+&lt;p&gt;The &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/apidocs/html/T_MongoDB_Driver_Core_ServerApiVersion.htm
+&#34;&gt;&lt;code&gt;ServerApiVersion&lt;/code&gt;&lt;/a&gt; is a required parameter of type &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/apidocs/html/T_MongoDB_Driver_Core_ServerApi.htm
+&#34;&gt;&lt;code&gt;ServerApi&lt;/code&gt;&lt;/a&gt; and represents the version number that the server should behave in compatiblity with. Currently only version 1 is available. It can be acquired via a static property:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;var serverApiVersion = ServerApiVersion.V1;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;strict-flag&#34;&gt;Strict flag&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code&gt;strict&lt;/code&gt; flag is optional and defaults to false. Setting &lt;code&gt;strict&lt;/code&gt; to true causes commands (or their specific behavior, like command options or aggregation pipeline stages) to fail if they are not part of the declared API version.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;var serverApi = new ServerApi(ServerApiVersion.V1, strict: true);
+var settings = new MongoClientSettings { ServerApi = serverApi };
+var client = new MongoClient(settings);
+var database = client.GetDatabase(&amp;quot;db&amp;quot;);
+var collection = database.GetCollection&amp;lt;BsonDocument&amp;gt;(&amp;quot;coll&amp;quot;);
+var result = collection.Distinct((FieldDefinition&amp;lt;BsonDocument, int&amp;gt;)&amp;quot;a.b&amp;quot;, new BsonDocument(&amp;quot;x&amp;quot;, 1)); // Fails with:
+// MongoDB.Driver.MongoCommandException : Command distinct failed: Provided apiStrict:true, but the command distinct is not in API Version 1.
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h3 id=&#34;deprecationerrors-flag&#34;&gt;DeprecationErrors flag&lt;/h3&gt;
+
+&lt;p&gt;The &lt;code&gt;deprecationErrors&lt;/code&gt; flag is optional and defaults to false. Setting &lt;code&gt;deprecationErrors&lt;/code&gt; to true causes commands (or their specific behavior) to fail with an error if they are deprecated in the declared API version.&lt;/p&gt;
+
+&lt;p&gt;&lt;div class=&#34;admonition note&#34;&gt;
+&lt;h5 class=&#34;admonition-title&#34;&gt;Note&lt;/h5&gt;
+Currently there are no deprecations in version 1, so a theoretical example is used.
+&lt;/div&gt;
+&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;var serverApi = new ServerApi(ServerApiVersion.V1, deprecationErrors: true);
+var settings = new MongoClientSettings { ServerApi = serverApi };
+var client = new MongoClient(settings);
+var database = client.GetDatabase(&amp;quot;db&amp;quot;);
+var result = database.RunCommand&amp;lt;BsonDocument&amp;gt;(new BsonDocument(&amp;quot;commandDeprecatedInV1&amp;quot;, 1)); // Example fail:
+// MongoDB.Driver.MongoCommandException : Command commandDeprecatedInV1 failed: Provided deprecationErrors:true, but the command commandDeprecatedInV1 is deprecated in API Version 1.
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Background</title>
+      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/background/</link>
+      <pubDate>Thu, 23 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/background/</guid>
+      <description>
+
+&lt;h2 id=&#34;background-information&#34;&gt;Background information&lt;/h2&gt;
+
+&lt;p&gt;Guids were originally represented in BSON as BsonBinaryData values of subtype 3. Unfortunately, different drivers
+inadvertently used different byte orders when converting a Guid to a 16 byte binary value. To standardize on a
+single canonical representation BsonBinaryData subtype 4 was created with a well defined byte order.&lt;/p&gt;
+
+&lt;p&gt;The C# driver&amp;rsquo;s support for Guids was originally based on the premise that all Guids in a single collection must
+be represented the same way (i.e. using the same BsonBinaryData sub type and byte order). In order to accomplish this
+the representation of Guids is enforced at the BSON reader and writer levels (because a single reader or writer is
+used to read or write an entire document from or to the collection).&lt;/p&gt;
+
+&lt;p&gt;However, this original premise has not stood the test of time.&lt;/p&gt;
+
+&lt;p&gt;The first issue we ran into was that the server
+started returning UUIDs (i.e. Guids) in metadata using standard subtype 4. If a collection was configured to use
+subtype 3 (which it usually was since that is the default) the driver could not deserialize the Guids in the metadata
+without throwing an exception. We worked around this by temporarily reconfiguring the BSON reader while reading the metadata.&lt;/p&gt;
+
+&lt;p&gt;The second issue is that the original premise was too strict. There are valid reasons why a single collection might
+have a mix of Guid representations, and we need to allow that.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>V2 mode</title>
+      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/v2mode/</link>
+      <pubDate>Thu, 23 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/v2mode/</guid>
+      <description>
+
+&lt;h2 id=&#34;v2-guidrepresentationmode-deprecated&#34;&gt;V2 GuidRepresentationMode (Deprecated)&lt;/h2&gt;
+
+&lt;p&gt;In V2 mode the central principle is that all Guids in a collection must be represented the same way. In order to enforce
+this the representation of Guids is not controlled at the individual serializer level, but rather at the reader/writer
+level since the same reader/writer is used to read/write an entire document.&lt;/p&gt;
+
+&lt;p&gt;All of the following properties and methods are only relevant to V2 mode and are now deprecated:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;BsonDefaults GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;BsonBinaryData implicit conversion to or from Guid&lt;/li&gt;
+&lt;li&gt;BsonBinaryData constructor taking a Guid (without a GuidRepresentation)&lt;/li&gt;
+&lt;li&gt;BsonBinaryData constructor taking (byte[], BsonBinarySubType, GuidRepresentation)&lt;/li&gt;
+&lt;li&gt;BsonBinaryData GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;BsonValue implicit conversion from Guid or Guid? (Nullable&amp;lt;Guid&amp;gt;)&lt;/li&gt;
+&lt;li&gt;BsonDocumentReaderSettings constructor taking a GuidRepresentation&lt;/li&gt;
+&lt;li&gt;BsonDocumentWriterSettings constructor taking a GuidRepresentation&lt;/li&gt;
+&lt;li&gt;BsonReaderSettings GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;BsonWriterSettings GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;IBsonReaderExtentions ReadBinaryDataWithGuidRepresentationUnspecified extension method&lt;/li&gt;
+&lt;li&gt;MongoClientSettings GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;MongoCollectionSettings GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;MongoDatabaseSettings GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;MongoDefaults GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;MongoUrl GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;MongoUrlBuilder GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;MongoGridFSSettings GuidRepresentation property&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Note: the BsonDefaults GuidRepresentationMode property is itself deprecated even though it is new because it is only
+intended to be use during the transition period and will be removed when support for V2 mode is removed.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>V3 mode</title>
+      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/v3mode/</link>
+      <pubDate>Thu, 23 Jul 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/v3mode/</guid>
+      <description>
+
+&lt;h2 id=&#34;v3-guidrepresentationmode&#34;&gt;V3 GuidRepresentationMode&lt;/h2&gt;
+
+&lt;p&gt;In V3 mode the central principle is that the representation of Guids is controlled at the level of each individual
+property of a document by configuring the serializer for that property. The recommendation is that all Guids in a
+collection be represented uniformly using the standard BsonBinaryData subtype 4, but when working with historical
+data it is acceptable for different Guid fields in the same document to be represented differently.&lt;/p&gt;
+
+&lt;p&gt;The following existing methods behave differently in V3 mode:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;BsonBinaryReader.ReadBinaryData method ignores readerSettings.GuidRepresentation&lt;/li&gt;
+&lt;li&gt;BsonBinaryWriter.WriteBinaryData method ignores writerSettings.GuidRepresentation&lt;/li&gt;
+&lt;li&gt;JsonReader ReadBinaryData method ignores readerSettings.GuidRepresentation&lt;/li&gt;
+&lt;li&gt;JsonWriter ignores writerSettings.GuidRepresentation&lt;/li&gt;
+&lt;li&gt;BsonBinaryData ToGuid without GuidRepresentation argument is only valid for sub type 4&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
     
     <item>
       <title>GuidRepresentationMode</title>
@@ -58,101 +235,44 @@ not possible to mix use of both modes in the same application.&lt;/p&gt;
     </item>
     
     <item>
-      <title>V2 mode</title>
-      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/v2mode/</link>
+      <title>Guid Serialization</title>
+      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/</link>
       <pubDate>Thu, 23 Jul 2020 00:00:00 +0000</pubDate>
       
-      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/v2mode/</guid>
+      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/</guid>
       <description>
 
-&lt;h2 id=&#34;v2-guidrepresentationmode-deprecated&#34;&gt;V2 GuidRepresentationMode (Deprecated)&lt;/h2&gt;
+&lt;h1 id=&#34;guid-serialization&#34;&gt;Guid serialization&lt;/h1&gt;
 
-&lt;p&gt;In V2 mode the central principle is that all Guids in a collection must be represented the same way. In order to enforce
-this the representation of Guids is not controlled at the individual serializer level, but rather at the reader/writer
-level since the same reader/writer is used to read/write an entire document.&lt;/p&gt;
+&lt;p&gt;We are making changes to how Guids will be serialized in the future. For the time being the driver will
+continue to serialize Guids as it has in the past, in order to not break backward compatibility. You
+can opt-in to the new way of serializing Guids by setting the GuidRepresentationMode to V3.&lt;/p&gt;
 
-&lt;p&gt;All of the following properties and methods are only relevant to V2 mode and are now deprecated:&lt;/p&gt;
+&lt;p&gt;The folowing sections contain more information:&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;BsonDefaults GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;BsonBinaryData implicit conversion to or from Guid&lt;/li&gt;
-&lt;li&gt;BsonBinaryData constructor taking a Guid (without a GuidRepresentation)&lt;/li&gt;
-&lt;li&gt;BsonBinaryData constructor taking (byte[], BsonBinarySubType, GuidRepresentation)&lt;/li&gt;
-&lt;li&gt;BsonBinaryData GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;BsonValue implicit conversion from Guid or Guid? (Nullable&amp;lt;Guid&amp;gt;)&lt;/li&gt;
-&lt;li&gt;BsonDocumentReaderSettings constructor taking a GuidRepresentation&lt;/li&gt;
-&lt;li&gt;BsonDocumentWriterSettings constructor taking a GuidRepresentation&lt;/li&gt;
-&lt;li&gt;BsonReaderSettings GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;BsonWriterSettings GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;IBsonReaderExtentions ReadBinaryDataWithGuidRepresentationUnspecified extension method&lt;/li&gt;
-&lt;li&gt;MongoClientSettings GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;MongoCollectionSettings GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;MongoDatabaseSettings GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;MongoDefaults GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;MongoUrl GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;MongoUrlBuilder GuidRepresentation property&lt;/li&gt;
-&lt;li&gt;MongoGridFSSettings GuidRepresentation property&lt;/li&gt;
+&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/background/&#34;&gt;Background&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/guidrepresentationmode/&#34;&gt;GuidRepresentationMode&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/serializerchanges/&#34;&gt;Serializer changes&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-
-&lt;p&gt;Note: the BsonDefaults GuidRepresentationMode property is itself deprecated even though it is new because it is only
-intended to be use during the transition period and will be removed when support for V2 mode is removed.&lt;/p&gt;
 </description>
     </item>
     
     <item>
-      <title>Background</title>
-      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/background/</link>
+      <title>Serializer changes</title>
+      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/serializerchanges/</link>
       <pubDate>Thu, 23 Jul 2020 00:00:00 +0000</pubDate>
       
-      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/background/</guid>
+      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/serializerchanges/</guid>
       <description>
 
-&lt;h2 id=&#34;background-information&#34;&gt;Background information&lt;/h2&gt;
+&lt;h1 id=&#34;serializer-changes&#34;&gt;Serializer changes&lt;/h1&gt;
 
-&lt;p&gt;Guids were originally represented in BSON as BsonBinaryData values of subtype 3. Unfortunately, different drivers
-inadvertently used different byte orders when converting a Guid to a 16 byte binary value. To standardize on a
-single canonical representation BsonBinaryData subtype 4 was created with a well defined byte order.&lt;/p&gt;
-
-&lt;p&gt;The C# driver&amp;rsquo;s support for Guids was originally based on the premise that all Guids in a single collection must
-be represented the same way (i.e. using the same BsonBinaryData sub type and byte order). In order to accomplish this
-the representation of Guids is enforced at the BSON reader and writer levels (because a single reader or writer is
-used to read or write an entire document from or to the collection).&lt;/p&gt;
-
-&lt;p&gt;However, this original premise has not stood the test of time.&lt;/p&gt;
-
-&lt;p&gt;The first issue we ran into was that the server
-started returning UUIDs (i.e. Guids) in metadata using standard subtype 4. If a collection was configured to use
-subtype 3 (which it usually was since that is the default) the driver could not deserialize the Guids in the metadata
-without throwing an exception. We worked around this by temporarily reconfiguring the BSON reader while reading the metadata.&lt;/p&gt;
-
-&lt;p&gt;The second issue is that the original premise was too strict. There are valid reasons why a single collection might
-have a mix of Guid representations, and we need to allow that.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>V3 mode</title>
-      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/v3mode/</link>
-      <pubDate>Thu, 23 Jul 2020 00:00:00 +0000</pubDate>
-      
-      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/v3mode/</guid>
-      <description>
-
-&lt;h2 id=&#34;v3-guidrepresentationmode&#34;&gt;V3 GuidRepresentationMode&lt;/h2&gt;
-
-&lt;p&gt;In V3 mode the central principle is that the representation of Guids is controlled at the level of each individual
-property of a document by configuring the serializer for that property. The recommendation is that all Guids in a
-collection be represented uniformly using the standard BsonBinaryData subtype 4, but when working with historical
-data it is acceptable for different Guid fields in the same document to be represented differently.&lt;/p&gt;
-
-&lt;p&gt;The following existing methods behave differently in V3 mode:&lt;/p&gt;
+&lt;p&gt;The following sections describe changes to the two serializers to handle Guids differently:&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;BsonBinaryReader.ReadBinaryData method ignores readerSettings.GuidRepresentation&lt;/li&gt;
-&lt;li&gt;BsonBinaryWriter.WriteBinaryData method ignores writerSettings.GuidRepresentation&lt;/li&gt;
-&lt;li&gt;JsonReader ReadBinaryData method ignores readerSettings.GuidRepresentation&lt;/li&gt;
-&lt;li&gt;JsonWriter ignores writerSettings.GuidRepresentation&lt;/li&gt;
-&lt;li&gt;BsonBinaryData ToGuid without GuidRepresentation argument is only valid for sub type 4&lt;/li&gt;
+&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/guidserializerchanges/&#34;&gt;GuidSerializer changes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/objectserializerchanges/&#34;&gt;ObjectSerializer changes&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>
@@ -203,49 +323,6 @@ relying on the driver&amp;rsquo;s auto mapping to map C# classes to document sch
 &lt;p&gt;If most of your Guids use the same representation and only a few use a different representation, you could alternatively register
 a global GuidSerializer (as shown above) for the most commonly used representation, and only use the BsonGuidRepresentation attribute
 to mark the ones that use a different representation.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Guid Serialization</title>
-      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/</link>
-      <pubDate>Thu, 23 Jul 2020 00:00:00 +0000</pubDate>
-      
-      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/</guid>
-      <description>
-
-&lt;h1 id=&#34;guid-serialization&#34;&gt;Guid serialization&lt;/h1&gt;
-
-&lt;p&gt;We are making changes to how Guids will be serialized in the future. For the time being the driver will
-continue to serialize Guids as it has in the past, in order to not break backward compatibility. You
-can opt-in to the new way of serializing Guids by setting the GuidRepresentationMode to V3.&lt;/p&gt;
-
-&lt;p&gt;The folowing sections contain more information:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/background/&#34;&gt;Background&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/guidrepresentationmode/&#34;&gt;GuidRepresentationMode&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/serializerchanges/&#34;&gt;Serializer changes&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Serializer changes</title>
-      <link>/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/serializerchanges/</link>
-      <pubDate>Thu, 23 Jul 2020 00:00:00 +0000</pubDate>
-      
-      <guid>/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/serializerchanges/</guid>
-      <description>
-
-&lt;h1 id=&#34;serializer-changes&#34;&gt;Serializer changes&lt;/h1&gt;
-
-&lt;p&gt;The following sections describe changes to the two serializers to handle Guids differently:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/guidserializerchanges/&#34;&gt;GuidSerializer changes&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;- &lt;a href=&#34;/mongo-csharp-driver/2.12/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/objectserializerchanges/&#34;&gt;ObjectSerializer changes&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
 </description>
     </item>
     
@@ -428,13 +505,6 @@ client-side without any server-side configuration or directives. Client-side
 field level encryption supports workloads where applications must guarantee that
 unauthorized parties, including server administrators, cannot read the encrypted
 data.&lt;/p&gt;
-
-&lt;p&gt;&lt;div class=&#34;admonition important&#34;&gt;
-&lt;h5 class=&#34;admonition-title&#34;&gt;important&lt;/h5&gt;
-&lt;p&gt;Client-side field level encryption is supported only on Windows.&lt;/p&gt;
-
-&lt;/div&gt;
-&lt;/p&gt;
 
 &lt;h2 id=&#34;mongocryptd-configuration&#34;&gt;mongocryptd configuration&lt;/h2&gt;
 
@@ -1608,226 +1678,6 @@ the connection to continue (i.e. soft-fail).&lt;/p&gt;
 
 &lt;p&gt;Industry best practices recommend, and some regulations require, the use of TLS 1.1 or newer. No application changes are required
 for the driver to make use of the newest TLS protocols.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Sessions and Transactions</title>
-      <link>/mongo-csharp-driver/2.12/reference/driver/crud/sessions_and_transactions/</link>
-      <pubDate>Fri, 29 Jun 2018 13:45:00 +0000</pubDate>
-      
-      <guid>/mongo-csharp-driver/2.12/reference/driver/crud/sessions_and_transactions/</guid>
-      <description>
-
-&lt;h2 id=&#34;sessions&#34;&gt;Sessions&lt;/h2&gt;
-
-&lt;p&gt;A session is used to group together a series of operations that are related to each other and should be executed with the same session options. Sessions are also used for transactions.&lt;/p&gt;
-
-&lt;p&gt;New overloaded methods that take a session parameter have been added for all operation methods in the driver. You execute multiple operations in the same session by passing the same session value to each operation.&lt;/p&gt;
-
-&lt;p&gt;When you call an older operation method that does not take a session parameter, the driver will start an implicit session to execute that one operation and then immediately end the implicit session.&lt;/p&gt;
-
-&lt;h3 id=&#34;startsession-and-startsessionasync&#34;&gt;StartSession and StartSessionAsync&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;IClientSessionHandle StartSession(ClientSessionOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
-Task&amp;lt;IClientSessionHandle&amp;gt; StartSessionAsync(ClientSessionOptions options = null, CancellationToken cancellationToken = default(CancellationToken));
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;A session is started by calling the StartSession or StartSessionAsync methods of IMongoClient:&lt;/p&gt;
-
-&lt;p&gt;You must end a session when you no longer need it. You end a session by calling Dispose, which will happen automatically if you put the session inside a using statement.&lt;/p&gt;
-
-&lt;p&gt;The recommended way of using a session is:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;var sessionOptions = new ClientSessionOptions { ... };
-using (var session = client.StartSession(sessionOptions, cancellationToken))
-{
-    // execute some operations passing the session as an argument to each operation
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;or&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;var sessionOptions = new ClientSessionOptions { ... };
-using (var session = await client.StartSessionAsync(sessionOptions, cancellationToken))
-{
-    // execute some operations passing the session as an argument to each operation
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;A session is typically short lived. You start a session, execute some operations, and end the session.&lt;/p&gt;
-
-&lt;h3 id=&#34;clientsessionoptions&#34;&gt;ClientSessionOptions&lt;/h3&gt;
-
-&lt;p&gt;The ClientSessionOptions class is used to specify any desired options when calling StartSession.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;public class ClientSessionOptions
-{
-    public bool? CausalConsistency { get; set; }
-    public TransactionOptions DefaultTransactionOptions { get; set; }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h4 id=&#34;causalconsistency&#34;&gt;CausalConsistency&lt;/h4&gt;
-
-&lt;p&gt;Set to true if you want all operations in a session to be causally consistent.&lt;/p&gt;
-
-&lt;h4 id=&#34;defaulttransactionoptions&#34;&gt;DefaultTransactionOptions&lt;/h4&gt;
-
-&lt;p&gt;You can provide default transaction options to be used for any options that are not provided when StartTransaction is called.&lt;/p&gt;
-
-&lt;h3 id=&#34;iclientsession-properties-and-methods&#34;&gt;IClientSession properties and methods&lt;/h3&gt;
-
-&lt;p&gt;The IClientSession interface defines the properties and methods available on a session.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;public interface IClientSession : IDisposable
-{
-    IMongoClient Client { get; }
-    BsonDocument ClusterTime { get; }
-    bool IsInTransaction { get; }
-    BsonTimestamp OperationTime { get; }
-    ClientSessionOptions Options { get; }
-
-    void AdvanceClusterTime(BsonDocument newClusterTime);
-    void AdvanceOperationTime(BsonTimestamp newOperationTime);
-
-    // see also transaction related methods documented below
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Note: a few members of IClientSession have been deliberately omitted from this documentation, either because they are rarely used or because they are for internal use only.&lt;/p&gt;
-
-&lt;h4 id=&#34;client&#34;&gt;Client&lt;/h4&gt;
-
-&lt;p&gt;The Client property returns a reference to the IMongoClient instance that was used to start this session.&lt;/p&gt;
-
-&lt;h4 id=&#34;clustertime&#34;&gt;ClusterTime&lt;/h4&gt;
-
-&lt;p&gt;The ClusterTime property returns the highest cluster time that has been seen by this client. The value is an opaque BsonDocument containing a cluster time that has been returned by the server. While an application might never inspect the actual value, it might set this value (by calling AdvanceClusterTime) when initializing a causally consistent session.&lt;/p&gt;
-
-&lt;h3 id=&#34;isintransaction&#34;&gt;IsInTransaction&lt;/h3&gt;
-
-&lt;p&gt;Specifies whether the session is currently in a transaction. A session is in a transaction after StartTransaction has been called and until either AbortTransaction or CommitTransaction has been called.&lt;/p&gt;
-
-&lt;h3 id=&#34;operationtime&#34;&gt;OperationTime&lt;/h3&gt;
-
-&lt;p&gt;The operation time returned by the server for the most recent operation in this session. Operation times are used by the driver to ensure causal consistency when the ClientSessionOptions specify that causal consistency is desired. While an application might never use the actual value, it might set this value (by calling AdvanceOperationTime) when initializing a causally consistent session.&lt;/p&gt;
-
-&lt;h3 id=&#34;options&#34;&gt;Options&lt;/h3&gt;
-
-&lt;p&gt;Returns the options that were passed to StartSession.&lt;/p&gt;
-
-&lt;h3 id=&#34;advanceclustertime-and-advanceoperationtime&#34;&gt;AdvanceClusterTime and AdvanceOperationTime&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;void AdvanceClusterTime(BsonDocument newClusterTime);
-void AdvanceOperationTime(BsonTimestamp newOperationTime);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Call these methods to advance the cluster and operation times when you want subsequent operations in this session to be causally consistent with operations that have executed outside of this session. Typically the values you pass to AdvanceClusterTime and AdvanceOperation time will come from the ClusterTime and OperationTime properties of some other session.&lt;/p&gt;
-
-&lt;h3 id=&#34;transaction-methods&#34;&gt;Transaction methods&lt;/h3&gt;
-
-&lt;p&gt;The methods to start, abort or commit a transaction are documented in the next section.&lt;/p&gt;
-
-&lt;h2 id=&#34;transactions&#34;&gt;Transactions&lt;/h2&gt;
-
-&lt;p&gt;Transactions are started, committed or aborted using methods of IClientSession. A session can only execute one transaction at a time, but a session can execute more than one transaction as long as each transaction is committed or aborted before the next one is started.&lt;/p&gt;
-
-&lt;h3 id=&#34;starttransaction&#34;&gt;StartTransaction&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;void StartTransaction(TransactionOptions transactionOptions = null);
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Start a transaction by calling StartTransaction, optionally specifying options for the transaction.&lt;/p&gt;
-
-&lt;p&gt;Each transaction option can be specified at any of the following levels:&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;StartTransaction in the options parameter&lt;/li&gt;
-&lt;li&gt;StartSession in the defaultTransactionOptions parameter&lt;/li&gt;
-&lt;li&gt;Defaulted&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;You can specify different options at different levels. An option specified in StartTransaction overrides the same option specified in the defaultTransactionOptions passed to StartSession, which in turn overrides the default value.&lt;/p&gt;
-
-&lt;h4 id=&#34;transactionoptions&#34;&gt;TransactionOptions&lt;/h4&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;public class TransactionOptions
-{
-    public ReadConcern ReadConcern { get; };
-    public ReadPreference ReadPreference { get; };
-    public WriteConcern WriteConcern { get; };
-
-    public TransactionOptions(
-        Optional&amp;lt;ReadConcern&amp;gt; readConcern = default(Optional&amp;lt;ReadConcern&amp;gt;),
-        Optional&amp;lt;ReadPreference&amp;gt; readPreference = default(Optional&amp;lt;ReadPreference&amp;gt;),
-        Optional&amp;lt;WriteConcern&amp;gt; writeConcern = default(Optional&amp;lt;WriteConcern&amp;gt;));
-
-    public TransactionOptions With(
-        Optional&amp;lt;ReadConcern&amp;gt; readConcern = default(Optional&amp;lt;ReadConcern&amp;gt;),
-        Optional&amp;lt;ReadPreference&amp;gt; readPreference = default(Optional&amp;lt;ReadPreference&amp;gt;),
-        Optional&amp;lt;WriteConcern&amp;gt; writeConcern = default(Optional&amp;lt;WriteConcern&amp;gt;))
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Create an instance of TransactionOptions either by calling the constructor with any desired optional arguments, or by calling the With method on an existing instance of TransactionOptions to create a new instance with some values changed.&lt;/p&gt;
-
-&lt;h5 id=&#34;readconcern&#34;&gt;ReadConcern&lt;/h5&gt;
-
-&lt;p&gt;The ReadConcern used while in the transaction. All operations in the transaction use the ReadConcern specified when StartTransaction is called.&lt;/p&gt;
-
-&lt;h5 id=&#34;readpreference&#34;&gt;ReadPreference&lt;/h5&gt;
-
-&lt;p&gt;The ReadPreference used while in the transaction. Currently, the ReadPreference for a transaction must be Primary.&lt;/p&gt;
-
-&lt;h5 id=&#34;writeconcern&#34;&gt;WriteConcern&lt;/h5&gt;
-
-&lt;p&gt;The WriteConcern used for this transaction. The WriteConcern only applies when committing the transaction, not to the individual operations executed while in the transaction.&lt;/p&gt;
-
-&lt;h3 id=&#34;committransaction-and-committransactionasync&#34;&gt;CommitTransaction and CommitTransactionAsync&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;void CommitTransaction(CancellationToken cancellationToken = default(CancellationToken));
-Task CommitTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;You must call CommitTransaction or CommitTransactionAsync in order for a transaction to be committed. If a session is ended while a transaction is in progress the transaction will be automatically aborted.&lt;/p&gt;
-
-&lt;p&gt;The commit is executed with the WriteConcern specified by the transaction options.&lt;/p&gt;
-
-&lt;h3 id=&#34;aborttransaction-and-aborttransactionasync&#34;&gt;AbortTransaction and AbortTransactionAsync&lt;/h3&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;void AbortTransaction(CancellationToken cancellationToken = default(CancellationToken));
-Task AbortTransactionAsync(CancellationToken cancellationToken = default(CancellationToken));
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Call AbortTransaction or AbortTransactionAsync to abort a transaction. Since any transaction in progress is automatically aborted when a session is ended, you can also implicitly abort an uncommitted transaction by simply ending the session.&lt;/p&gt;
-
-&lt;p&gt;In this example we rely on the implied transaction abort:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;using (var session = client.StartSession())
-{
-    session.StartTransaction();
-    // execute operations using the session
-    session.CommitTransaction(); // if an exception is thrown before reaching here the transaction will be implicitly aborted
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;When writing an async program you may want to avoid using the implied abort transaction that occurs when Dispose is called on a session with a transaction in progress, because Dispose is a blocking operation. To be fully async, even in the case where the transaction needs to be aborted, you might instead write:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-csharp&#34;&gt;using (var session = await client.StartSessionAsync())
-{
-    try
-    {
-        // execute async operations using the session
-    }
-    catch
-    {
-        await session.AbortTransactionAsync(); // now Dispose on the session has nothing to do and won&#39;t block
-        throw;
-    }
-    await session.CommitTransactionAsync();
-}
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     

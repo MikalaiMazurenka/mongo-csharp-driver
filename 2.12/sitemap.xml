@@ -3,12 +3,17 @@
   
   <url>
     <loc>/mongo-csharp-driver/2.12/</loc>
-    <lastmod>2020-07-23T00:00:00+00:00</lastmod>
+    <lastmod>2021-02-12T15:36:56+00:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
-    <loc>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/guidrepresentationmode/</loc>
+    <loc>/mongo-csharp-driver/2.12/reference/driver/versioned_api/</loc>
+    <lastmod>2021-02-12T15:36:56+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/mongo-csharp-driver/2.12/reference/bson/guidserialization/background/</loc>
     <lastmod>2020-07-23T00:00:00+00:00</lastmod>
   </url>
   
@@ -18,17 +23,12 @@
   </url>
   
   <url>
-    <loc>/mongo-csharp-driver/2.12/reference/bson/guidserialization/background/</loc>
-    <lastmod>2020-07-23T00:00:00+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/v3mode/</loc>
     <lastmod>2020-07-23T00:00:00+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/guidserializerchanges/</loc>
+    <loc>/mongo-csharp-driver/2.12/reference/bson/guidserialization/guidrepresentationmode/guidrepresentationmode/</loc>
     <lastmod>2020-07-23T00:00:00+00:00</lastmod>
   </url>
   
@@ -39,6 +39,11 @@
   
   <url>
     <loc>/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/serializerchanges/</loc>
+    <lastmod>2020-07-23T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/mongo-csharp-driver/2.12/reference/bson/guidserialization/serializerchanges/guidserializerchanges/</loc>
     <lastmod>2020-07-23T00:00:00+00:00</lastmod>
   </url>
   
@@ -148,11 +153,6 @@
   </url>
   
   <url>
-    <loc>/mongo-csharp-driver/2.12/examples/</loc>
-    <lastmod>2015-03-17T15:36:56+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/mongo-csharp-driver/2.12/examples/exporting_json/</loc>
     <lastmod>2015-03-17T15:36:56+00:00</lastmod>
   </url>
@@ -163,12 +163,12 @@
   </url>
   
   <url>
-    <loc>/mongo-csharp-driver/2.12/getting_started/</loc>
+    <loc>/mongo-csharp-driver/2.12/examples/</loc>
     <lastmod>2015-03-17T15:36:56+00:00</lastmod>
   </url>
   
   <url>
-    <loc>/mongo-csharp-driver/2.12/getting_started/admin_quick_tour/</loc>
+    <loc>/mongo-csharp-driver/2.12/getting_started/</loc>
     <lastmod>2015-03-17T15:36:56+00:00</lastmod>
   </url>
   
@@ -183,7 +183,7 @@
   </url>
   
   <url>
-    <loc>/mongo-csharp-driver/2.12/reference/bson/bson_document/</loc>
+    <loc>/mongo-csharp-driver/2.12/getting_started/admin_quick_tour/</loc>
     <lastmod>2015-03-17T15:36:56+00:00</lastmod>
   </url>
   
@@ -194,6 +194,11 @@
   
   <url>
     <loc>/mongo-csharp-driver/2.12/reference/bson/bson/</loc>
+    <lastmod>2015-03-17T15:36:56+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/mongo-csharp-driver/2.12/reference/bson/bson_document/</loc>
     <lastmod>2015-03-17T15:36:56+00:00</lastmod>
   </url>
   
@@ -213,17 +218,17 @@
   </url>
   
   <url>
-    <loc>/mongo-csharp-driver/2.12/reference/bson/serialization/</loc>
-    <lastmod>2015-03-17T15:36:56+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/mongo-csharp-driver/2.12/reference/bson/mapping/polymorphism/</loc>
     <lastmod>2015-03-17T15:36:56+00:00</lastmod>
   </url>
   
   <url>
     <loc>/mongo-csharp-driver/2.12/reference/bson/mapping/schema_changes/</loc>
+    <lastmod>2015-03-17T15:36:56+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/mongo-csharp-driver/2.12/reference/bson/serialization/</loc>
     <lastmod>2015-03-17T15:36:56+00:00</lastmod>
   </url>
   
@@ -243,7 +248,17 @@
   </url>
   
   <url>
+    <loc>/mongo-csharp-driver/2.12/reference/driver/definitions/</loc>
+    <lastmod>2015-03-17T15:36:56+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/mongo-csharp-driver/2.12/reference/driver/crud/writing/</loc>
+    <lastmod>2015-03-17T15:36:56+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/mongo-csharp-driver/2.12/reference/driver/expressions/</loc>
     <lastmod>2015-03-17T15:36:56+00:00</lastmod>
   </url>
   
@@ -253,17 +268,7 @@
   </url>
   
   <url>
-    <loc>/mongo-csharp-driver/2.12/reference/driver/definitions/</loc>
-    <lastmod>2015-03-17T15:36:56+00:00</lastmod>
-  </url>
-  
-  <url>
     <loc>/mongo-csharp-driver/2.12/reference/driver/</loc>
-    <lastmod>2015-03-17T15:36:56+00:00</lastmod>
-  </url>
-  
-  <url>
-    <loc>/mongo-csharp-driver/2.12/reference/driver/expressions/</loc>
     <lastmod>2015-03-17T15:36:56+00:00</lastmod>
   </url>
   
