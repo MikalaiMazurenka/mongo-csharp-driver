@@ -1631,6 +1631,8 @@ namespace MongoDB.Driver.Tests
         [Fact]
         public void TestGeoHaystackSearch()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #3 Geo
+
             if (_primary.InstanceType != MongoServerInstanceType.ShardRouter)
             {
                 _collection.Drop();
@@ -1665,6 +1667,8 @@ namespace MongoDB.Driver.Tests
         [Fact]
         public void TestGeoHaystackSearchWithMaxTime()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #3 Geo
+
             if (_primary.Supports(FeatureId.MaxTime))
             {
                 if (_primary.InstanceType != MongoServerInstanceType.ShardRouter)
@@ -1699,6 +1703,8 @@ namespace MongoDB.Driver.Tests
         [Fact]
         public void TestGeoHaystackSearch_Typed()
         {
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #3 Geo
+
             if (_primary.InstanceType != MongoServerInstanceType.ShardRouter)
             {
                 _collection.Drop();
