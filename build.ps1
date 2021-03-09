@@ -108,7 +108,7 @@ $MODULES_PACKAGES_CONFIG = Join-Path $MODULES_DIR "packages.config"
 ###########################################################################
 
 $DotNetChannel = "2.1";
-$DotNetVersion = "Latest";
+$DotNetVersion = "3.1.302";
 $DotNetInstallerUri = "https://dot.net/v1/dotnet-install.ps1";
 Function Remove-PathVariable([string]$VariableToRemove)
 {
