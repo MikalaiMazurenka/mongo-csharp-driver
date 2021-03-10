@@ -1628,10 +1628,10 @@ namespace MongoDB.Driver.Tests
         }
 #pragma warning restore
 
-        [Fact]
+        [SkippableFact]
         public void TestGeoHaystackSearch()
         {
-            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #3 Geo
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #4 Geo
 
             if (_primary.InstanceType != MongoServerInstanceType.ShardRouter)
             {
@@ -1664,10 +1664,10 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGeoHaystackSearchWithMaxTime()
         {
-            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #3 Geo
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #4 Geo
 
             if (_primary.Supports(FeatureId.MaxTime))
             {
@@ -1700,10 +1700,10 @@ namespace MongoDB.Driver.Tests
             }
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestGeoHaystackSearch_Typed()
         {
-            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #3 Geo
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #4 Geo
 
             if (_primary.InstanceType != MongoServerInstanceType.ShardRouter)
             {
