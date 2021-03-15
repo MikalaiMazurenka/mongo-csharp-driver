@@ -117,6 +117,13 @@ if [[ "$CLIENT_PEM" != "nil" ]]; then
   CLIENT_PEM=${CLIENT_PEM} source .evergreen/convert-client-cert-to-pkcs12.sh
 fi
 
+# fix GitVersion attempting to find master branch
+git fetch origin +refs/heads/*:refs/remotes/origin/* --unshallow
+# fix MsBuild implicitly using PLATFORM environment variable
+unset PLATFORM
+# fix MsBuild implicitly using VERSION environment variable
+unset VERSION
+
 if [[ -z "$MONGO_X509_CLIENT_CERTIFICATE_PATH" && -z "$MONGO_X509_CLIENT_CERTIFICATE_PASSWORD" ]]; then
   powershell.exe '.\build.ps1 -target' $TARGET
 else
