@@ -162,7 +162,8 @@ namespace MongoDB.Driver.Tests
                     }
                 });
 
-                Assert.True(result.Response.Contains("stages"));
+                var response = result.Response;
+                Assert.True(response.Contains("stages") || response.Contains("queryPlanner")); // #3 AggregateExplain
             }
         }
 

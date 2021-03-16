@@ -9,5 +9,7 @@ See respective ticket: [CSHARP-2329: Skip ParallelScan tests when server version
 See respective ticket: [CSHARP-2738: Deprecate mapparams, out.sharded, and out.nonAtomic arguments to mapReduce](https://jira.mongodb.org/browse/CSHARP-2738)
 3. `IndexInfo.Namespace` property throws exception upon accessing, because `'ns'` field was removed from index definition in server version 4.4.
 See respective ticket: [CSHARP-2684: Server latest removed the “ns” field from index definitions](https://jira.mongodb.org/browse/CSHARP-2684)
+3. `AggregateExplain` operation structure changed. No big deal, since it is intended to be read by humans.
+See respective ticket: [CSHARP-2842: The format of Aggregate Explain response has been changed](https://jira.mongodb.org/browse/CSHARP-2842)
 
 ### latest server compatibility issues
