@@ -675,7 +675,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(false, indexes[0].IsUnique);
             Assert.Equal(new IndexKeysDocument("_id", 1), indexes[0].Key);
             Assert.Equal("_id_", indexes[0].Name);
-            Assert.Equal(_collection.FullName, indexes[0].Namespace);
+            AssertNamespace(indexes[0]);
             Assert.True(indexes[0].Version >= 0);
 
             var result = _collection.CreateIndex("x");
@@ -691,7 +691,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(false, indexes[0].IsUnique);
             Assert.Equal(new IndexKeysDocument("_id", 1), indexes[0].Key);
             Assert.Equal("_id_", indexes[0].Name);
-            Assert.Equal(_collection.FullName, indexes[0].Namespace);
+            AssertNamespace(indexes[0]);
             Assert.True(indexes[0].Version >= 0);
             Assert.Equal(false, indexes[1].DroppedDups);
             Assert.Equal(false, indexes[1].IsBackground);
@@ -699,7 +699,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(false, indexes[1].IsUnique);
             Assert.Equal(new IndexKeysDocument("x", 1), indexes[1].Key);
             Assert.Equal("x_1", indexes[1].Name);
-            Assert.Equal(_collection.FullName, indexes[1].Namespace);
+            AssertNamespace(indexes[0]);
             Assert.True(indexes[1].Version >= 0);
 
             // note: DropDups is silently ignored in server 2.8
@@ -3549,6 +3549,20 @@ namespace MongoDB.Driver.Tests
         {
             var description = client.Cluster.Description;
             return description.LogicalSessionTimeout.HasValue;
+        }
+
+        private void AssertNamespace(IndexInfo indexInfo)
+        {
+            if (CoreTestConfiguration.ServerVersion < new SemanticVersion(4, 3, 0, ""))
+            {
+                Assert.Equal(_collection.FullName, indexInfo.Namespace);
+            }
+            else
+            {
+                var exception = Record.Exception(() => indexInfo.Namespace);
+                var e = exception.Should().BeOfType<KeyNotFoundException>().Subject;
+                e.Message.Should().Be("Element 'ns' not found.");
+            }
         }
 
         private void CheckExpectedResult(ExpectedWriteConcernResult expectedResult, WriteConcernResult result)
