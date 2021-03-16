@@ -64,6 +64,10 @@ provision_compressor () {
 ############################################
 #            Main Program                  #
 ############################################
+
+echo "Adding certificates"
+./.evergreen/add-certs-if-needed.sh
+
 echo "Initial MongoDB URI:" $MONGODB_URI
 # Provision the correct connection string and set up SSL if needed
 if [ "$TOPOLOGY" == "sharded_cluster" ]; then
