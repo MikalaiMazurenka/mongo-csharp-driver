@@ -42,7 +42,7 @@ namespace MongoDB.Driver.Tests.Jira.CSharp269
             _database.GridFS.Chunks.Drop();
         }
 
-        [Fact]
+        [SkippableFact]
         public void TestUploadAndDownload()
         {
             MongoGridFSFileInfo uploadedFileInfo;
