@@ -56,5 +56,12 @@ else
   export TARGET="TestLinux"
 fi
 
+# fix GitVersion attempting to find master branch
+git fetch origin +refs/heads/*:refs/remotes/origin/* --unshallow
+# fix MsBuild implicitly using PLATFORM environment variable
+unset PLATFORM
+# fix MsBuild implicitly using VERSION environment variable
+unset VERSION
+
 for var in TMP TEMP NUGET_PACKAGES NUGET_HTTP_CACHE_PATH APPDATA; do setx $var z:\\data\\tmp; export $var=z:\\data\\tmp; done
 powershell.exe .\\build.ps1 -target ${TARGET}
