@@ -16,5 +16,7 @@ See respective ticket: [CSHARP-3423: Fix CSharp269Tests.TestUploadAndDownload Gr
 5. 🦖 `GeoHaystack` operation was removed from 4.9.0 server.
 See respective ticket: [CSHARP-3249: Skip geoSearch and geoHaystack tests when running against server version that doesn't support these commands](https://jira.mongodb.org/browse/CSHARP-3249)
 6. 🦖 `ReIndex` command fails on replica set and sharded cluster configurations, but works on standalone as it used to. This operation is part of legacy API. See respective change in 2.11.0 driver: [CSHARP-3058: Make 'reIndex' a standalone-only command](https://jira.mongodb.org/browse/CSHARP-3058)
+7. `CreateIndexesOperation` result field `expireAfterSeconds` value is rounded since server version 4.9.0.
+See respective ticket: [CSHARP-3294: Fix CreateIndexesOperationTests tests on latests](https://jira.mongodb.org/browse/CSHARP-3294)
 
 ### latest server compatibility issues
