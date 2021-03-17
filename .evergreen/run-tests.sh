@@ -50,7 +50,7 @@ fi
 
 echo "Running $AUTH tests over $SSL for $TOPOLOGY and connecting to $MONGODB_URI"
 
-if [ "$OS" == "windows-64" ]; then
+if [[ "$OS" =~ Windows|windows ]]; then
   export TARGET="TestWindows"
 else
   export TARGET="TestLinux"
