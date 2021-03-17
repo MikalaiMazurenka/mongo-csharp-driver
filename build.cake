@@ -58,7 +58,7 @@ Task("BuildNet45")
         DotNetBuild(solutionFile, settings => settings
             .SetConfiguration(configuration)
             .SetVerbosity(Verbosity.Minimal)
-            .WithProperty("TargetFrameworkVersion", "v4.5"));
+            .WithProperty("TargetFrameworkVersion", "v4.5.2"));
 
         EnsureDirectoryExists(artifactsBinNet45Directory);
         foreach (var projectName in srcProjectNames)
