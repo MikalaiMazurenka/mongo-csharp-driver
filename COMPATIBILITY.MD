@@ -15,6 +15,6 @@ See respective ticket: [CSHARP-2842: The format of Aggregate Explain response ha
 See respective ticket: [CSHARP-3423: Fix CSharp269Tests.TestUploadAndDownload GridFs test on sharded cluster](https://jira.mongodb.org/browse/CSHARP-3423)
 5. 🦖 `GeoHaystack` operation was removed from 4.9.0 server.
 See respective ticket: [CSHARP-3249: Skip geoSearch and geoHaystack tests when running against server version that doesn't support these commands](https://jira.mongodb.org/browse/CSHARP-3249)
-6. 🦖 `ReIndex` command fails on replica set configuration, but works on standalone as it used to. This operation is part of legacy API. See respective change in 2.11.0 driver: [CSHARP-3058: Make 'reIndex' a standalone-only command](https://jira.mongodb.org/browse/CSHARP-3058)
+6. 🦖 `ReIndex` command fails on replica set and sharded cluster configurations, but works on standalone as it used to. This operation is part of legacy API. See respective change in 2.11.0 driver: [CSHARP-3058: Make 'reIndex' a standalone-only command](https://jira.mongodb.org/browse/CSHARP-3058)
 
 ### latest server compatibility issues
