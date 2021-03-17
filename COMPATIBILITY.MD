@@ -11,5 +11,7 @@ See respective ticket: [CSHARP-2738: Deprecate mapparams, out.sharded, and out.n
 See respective ticket: [CSHARP-2684: Server latest removed the “ns” field from index definitions](https://jira.mongodb.org/browse/CSHARP-2684)
 3. `AggregateExplain` operation structure changed. No big deal, since it is intended to be read by humans.
 See respective ticket: [CSHARP-2842: The format of Aggregate Explain response has been changed](https://jira.mongodb.org/browse/CSHARP-2842)
+4. 🦖 `GridFS.Download` not working on sharded cluster configuration.
+See respective ticket: [CSHARP-3423: Fix CSharp269Tests.TestUploadAndDownload GridFs test on sharded cluster](https://jira.mongodb.org/browse/CSHARP-3423)
 
 ### latest server compatibility issues
