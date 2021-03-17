@@ -2975,7 +2975,7 @@ namespace MongoDB.Driver.Tests
         [Fact]
         public void TestReIndex()
         {
-            if (_primary.InstanceType != MongoServerInstanceType.ShardRouter)
+            if (_primary.InstanceType == MongoServerInstanceType.StandAlone) // #6 ReIndex
             {
                 _collection.Drop();
                 _collection.Insert(new BsonDocument("x", 1));
