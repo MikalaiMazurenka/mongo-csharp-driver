@@ -163,7 +163,7 @@ namespace MongoDB.Driver.Tests
                 });
 
                 var response = result.Response;
-                Assert.True(response.Contains("stages") || response.Contains("queryPlanner")); // #3 AggregateExplain
+                Assert.True(response.Contains("stages") || response.Contains("queryPlanner")); // #5 AggregateExplain
             }
         }
 
@@ -676,7 +676,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(false, indexes[0].IsUnique);
             Assert.Equal(new IndexKeysDocument("_id", 1), indexes[0].Key);
             Assert.Equal("_id_", indexes[0].Name);
-            AssertNamespace(indexes[0]);
+            AssertNamespace(indexes[0]); // #4 IndexInfo.Namespace
             Assert.True(indexes[0].Version >= 0);
 
             var result = _collection.CreateIndex("x");
@@ -692,7 +692,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(false, indexes[0].IsUnique);
             Assert.Equal(new IndexKeysDocument("_id", 1), indexes[0].Key);
             Assert.Equal("_id_", indexes[0].Name);
-            AssertNamespace(indexes[0]);
+            AssertNamespace(indexes[0]); // #4 IndexInfo.Namespace
             Assert.True(indexes[0].Version >= 0);
             Assert.Equal(false, indexes[1].DroppedDups);
             Assert.Equal(false, indexes[1].IsBackground);
@@ -700,7 +700,7 @@ namespace MongoDB.Driver.Tests
             Assert.Equal(false, indexes[1].IsUnique);
             Assert.Equal(new IndexKeysDocument("x", 1), indexes[1].Key);
             Assert.Equal("x_1", indexes[1].Name);
-            AssertNamespace(indexes[0]);
+            AssertNamespace(indexes[0]); // #4 IndexInfo.Namespace
             Assert.True(indexes[1].Version >= 0);
 
             // note: DropDups is silently ignored in server 2.8
@@ -1611,7 +1611,7 @@ namespace MongoDB.Driver.Tests
         [SkippableFact]
         public void TestGeoHaystackSearch()
         {
-            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #5 GeoHaystack
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #7 GeoHaystack
 
             if (_primary.InstanceType != MongoServerInstanceType.ShardRouter)
             {
@@ -1647,7 +1647,7 @@ namespace MongoDB.Driver.Tests
         [SkippableFact]
         public void TestGeoHaystackSearchWithMaxTime()
         {
-            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #5 GeoHaystack
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #7 GeoHaystack
             
             if (_primary.Supports(FeatureId.MaxTime))
             {
@@ -1683,7 +1683,7 @@ namespace MongoDB.Driver.Tests
         [SkippableFact]
         public void TestGeoHaystackSearch_Typed()
         {
-            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #5 GeoHaystack
+            RequireServer.Check().VersionLessThan(new SemanticVersion(4, 9, 0, "")); // #7 GeoHaystack
             
             if (_primary.InstanceType != MongoServerInstanceType.ShardRouter)
             {
@@ -2667,10 +2667,10 @@ namespace MongoDB.Driver.Tests
             });
 
             Assert.True(result.Ok);
-            //Assert.True(result.Duration >= TimeSpan.Zero); // #1 MapReduce
-            //Assert.Equal(9, result.EmitCount); // #1 MapReduce
-            //Assert.Equal(5, result.OutputCount); // #1 MapReduce
-            //Assert.Equal(3, result.InputCount); // #1 MapReduce
+            //Assert.True(result.Duration >= TimeSpan.Zero); // #3 MapReduce
+            //Assert.Equal(9, result.EmitCount); // #3 MapReduce
+            //Assert.Equal(5, result.OutputCount); // #3 MapReduce
+            //Assert.Equal(3, result.InputCount); // #3 MapReduce
             result.CollectionName.Should().NotBeNullOrEmpty();
 
             var expectedCounts = new Dictionary<string, int>
@@ -2741,10 +2741,10 @@ namespace MongoDB.Driver.Tests
                 });
 
                 Assert.True(result.Ok);
-                //Assert.True(result.Duration >= TimeSpan.Zero); // #1 MapReduce
-                //Assert.Equal(9, result.EmitCount); // #1 MapReduce
-                //Assert.Equal(5, result.OutputCount); // #1 MapReduce
-                //Assert.Equal(3, result.InputCount); // #1 MapReduce
+                //Assert.True(result.Duration >= TimeSpan.Zero); // #3 MapReduce
+                //Assert.Equal(9, result.EmitCount); // #3 MapReduce
+                //Assert.Equal(5, result.OutputCount); // #3 MapReduce
+                //Assert.Equal(3, result.InputCount); // #3 MapReduce
                 result.CollectionName.Should().BeNullOrEmpty();
 
                 var expectedCounts = new Dictionary<string, int>
@@ -2852,10 +2852,10 @@ namespace MongoDB.Driver.Tests
                 });
 
                 Assert.True(result.Ok);
-                //Assert.True(result.Duration >= TimeSpan.Zero); // #1 MapReduce
-                //Assert.Equal(9, result.EmitCount); // #1 MapReduce
-                //Assert.Equal(5, result.OutputCount); // #1 MapReduce
-                //Assert.Equal(3, result.InputCount); // #1 MapReduce
+                //Assert.True(result.Duration >= TimeSpan.Zero); // #3 MapReduce
+                //Assert.Equal(9, result.EmitCount); // #3 MapReduce
+                //Assert.Equal(5, result.OutputCount); // #3 MapReduce
+                //Assert.Equal(3, result.InputCount); // #3 MapReduce
                 result.CollectionName.Should().BeNullOrEmpty();
 
                 var expectedCounts = new Dictionary<string, int>
