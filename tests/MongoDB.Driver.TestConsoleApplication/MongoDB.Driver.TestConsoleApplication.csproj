@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp2.1;net452</TargetFrameworks>
+    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+    <LangVersion>9</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -29,10 +30,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <ProjectReference Include="..\..\src\MongoDB.Bson\MongoDB.Bson.csproj" />
     <ProjectReference Include="..\..\src\MongoDB.Driver\MongoDB.Driver.csproj" />
-    <ProjectReference Include="..\..\src\MongoDB.Driver.Core\MongoDB.Driver.Core.csproj" />
-    <ProjectReference Include="..\..\src\MongoDB.Driver.Legacy\MongoDB.Driver.Legacy.csproj" />
   </ItemGroup>
 
 </Project>
