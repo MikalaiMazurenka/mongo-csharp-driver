@@ -21,6 +21,7 @@ using MongoDB.Driver;
 using MongoDB.Driver.GridFS;
 using Xunit;
 using MongoDB.Driver.Builders;
+using MongoDB.Driver.Core.TestHelpers.XunitExtensions;
 
 namespace MongoDB.Driver.Tests.Jira.CSharp269
 {
@@ -45,6 +46,8 @@ namespace MongoDB.Driver.Tests.Jira.CSharp269
         [SkippableFact]
         public void TestUploadAndDownload()
         {
+            RequireServer.Check().ClusterTypes(Core.Clusters.ClusterType.Standalone, Core.Clusters.ClusterType.ReplicaSet); // #4 GridFS.Download
+
             MongoGridFSFileInfo uploadedFileInfo;
 
             var text = "HelloWorld";
