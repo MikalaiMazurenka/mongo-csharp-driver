@@ -83,11 +83,11 @@ namespace MongoDB.Driver.Tests
         [SkippableFact]
         public void TestCreateCollectionSetIndexOptionDefaults()
         {
-            RequireServer.Check().Supports(Feature.IndexOptionsDefaults).ClusterTypes(ClusterType.Standalone, ClusterType.ReplicaSet);
+            RequireServer.Check().Supports(Feature.IndexOptionsDefaults).ClusterTypes(ClusterType.Standalone, ClusterType.ReplicaSet); // #3 mmapv1
             var collection = _database.GetCollection("testindexoptiondefaults");
             collection.Drop();
             Assert.False(collection.Exists());
-            var storageEngine = CoreTestConfiguration.GetStorageEngine();
+            var storageEngine = CoreTestConfiguration.GetStorageEngine(); // #3 mmapv1
             var storageEngineOptions = new BsonDocument(storageEngine, new BsonDocument());
             var indexOptionDefaults = new IndexOptionDefaults { StorageEngine = storageEngineOptions };
             var expectedIndexOptionDefaultsDocument = new BsonDocument("storageEngine", storageEngineOptions);

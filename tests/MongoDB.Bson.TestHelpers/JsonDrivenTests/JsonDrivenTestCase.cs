@@ -48,7 +48,7 @@ namespace MongoDB.Bson.TestHelpers.JsonDrivenTests
         {
             _name = info.GetValue<string>(nameof(_name));
             _shared = BsonDocument.Parse(info.GetValue<string>(nameof(_shared)));
-            _test = BsonDocument.Parse(info.GetValue<string>(nameof(_test)));
+            _test = BsonDocument.Parse(info.GetValue<string>(nameof(_test))); // Fix VS test running issue
         }
 
         public void Serialize(IXunitSerializationInfo info)

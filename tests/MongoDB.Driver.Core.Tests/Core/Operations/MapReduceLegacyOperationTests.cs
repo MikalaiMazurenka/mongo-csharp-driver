@@ -83,7 +83,7 @@ namespace MongoDB.Driver.Core.Operations
             var result = ExecuteOperation(subject, async);
             var results = result["results"].AsBsonArray.ToList();
 
-            results.Should().BeEquivalentTo(new BsonArray(expectedResults));
+            results.Should().BeEquivalentTo(new BsonArray(expectedResults)); // #5 MapReduce
         }
 
         [SkippableTheory]
