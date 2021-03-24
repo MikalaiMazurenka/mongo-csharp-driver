@@ -50,15 +50,6 @@ namespace MongoDB.Driver.Core
             return this;
         }
 
-        public EventCapturer CaptureBySpecName(string specEventName, IEnumerable<string> commandNotTocapture = null, bool useDefaltCommandNotToCapture = true)
-        {
-            var eventType = EventSpecMapper.GetEventName(specEventName);
-            _eventsToCapture.Add(
-                eventType,
-                o => CommandCapturer.ShouldCapture(o, commandNotTocapture ?? Enumerable.Empty<string>(), useDefaltCommandNotToCapture)); // only command events use predicate filters
-            return this;
-        }
-
         public int Count
         {
             get
@@ -171,33 +162,6 @@ namespace MongoDB.Driver.Core
 
         private class CommandCapturer
         {
-            #region static
-            private static string[] __defaultCommandNamesNotToCapturer = new[]
-            {
-                "authenticate",
-                "buildInfo",
-                "configureFailPoint",
-                "getLastError",
-                "getnonce",
-                "isMaster",
-                "saslContinue",
-                "saslStart"
-            };
-
-            public static bool ShouldCapture(object @event, IEnumerable<string> commandsNotTocapture, bool useDefaltCommandNotToCapture)
-            {
-                return @event switch
-                {
-                    CommandStartedEvent typedEvent => !GetCommandNotToCapture().Contains(typedEvent.CommandName),
-                    CommandFailedEvent typedEvent => !GetCommandNotToCapture().Contains(typedEvent.CommandName),
-                    CommandSucceededEvent typedEvent => !GetCommandNotToCapture().Contains(typedEvent.CommandName),
-                    _ => true,
-                };
-
-                IEnumerable<string> GetCommandNotToCapture() => useDefaltCommandNotToCapture ? Enumerable.Concat(commandsNotTocapture, __defaultCommandNamesNotToCapturer) : commandsNotTocapture;
-            }
-            #endregion
-
             private readonly EventCapturer _parent;
 
             public CommandCapturer(EventCapturer parent)

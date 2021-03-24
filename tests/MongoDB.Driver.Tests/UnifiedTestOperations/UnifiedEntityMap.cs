@@ -18,6 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MongoDB.Bson;
 using MongoDB.Driver.Core;
+using MongoDB.Driver.Core.Events;
 using MongoDB.Driver.GridFS;
 using MongoDB.Driver.TestHelpers;
 
@@ -230,8 +231,16 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                             {
                                 throw new Exception($"Client entity with id '{id}' already exists.");
                             }
-                            var client = CreateClient(entity, id, clientEventCapturers);
+                            CreateClient(entity, out var client, out var eventCapturers);
                             clients.Add(id, client);
+                            foreach (var eventCapturer in eventCapturers)
+                            {
+                                if (clientEventCapturers.ContainsKey(eventCapturer.Key))
+                                {
+                                    throw new Exception($"Event capturer entity with id '{eventCapturer.Key}' already exists.");
+                                }
+                                clientEventCapturers.Add(eventCapturer.Key, eventCapturer.Value);
+                            }
                             break;
                         case "collection":
                             if (collections.ContainsKey(id))
@@ -305,26 +314,37 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             return new GridFSBucket(database);
         }
 
-        private DisposableMongoClient CreateClient(
-            BsonDocument entity,
-            string clientId,
-            Dictionary<string, EventCapturer> clientEventCapturers)
+        private void CreateClient(BsonDocument entity, out DisposableMongoClient client, out Dictionary<string, EventCapturer> eventCapturers)
         {
-            var commandNamesToSkipInEvents = new List<string>();
-            List<(string Key, IEnumerable<string> Events, List<string> CommandNotToCapture)> eventTypesToCapture = new ();
+            eventCapturers = new Dictionary<string, EventCapturer>();
+            var commandNamesToSkip = new List<string>
+            {
+                "authenticate",
+                "buildInfo",
+                "configureFailPoint",
+                "getLastError",
+                "getnonce",
+                "isMaster",
+                "saslContinue",
+                "saslStart"
+            };
+            var clientEventTypesToCapture = new List<string>();
+            var clientCommandNamesToSkip = new List<string>();
             var readConcern = ReadConcern.Default;
             var retryReads = true;
             var retryWrites = true;
             var useMultipleShardRouters = false;
             var writeConcern = WriteConcern.Acknowledged;
             ServerApi serverApi = null;
+            string clientId = null;
 
             foreach (var element in entity)
             {
                 switch (element.Name)
                 {
                     case "id":
-                        // handled on higher level
+                        // handled on higher level, recorded for client event capturer
+                        clientId = element.Value.AsString;
                         break;
                     case "uriOptions":
                         foreach (var option in element.Value.AsBsonDocument)
@@ -354,11 +374,10 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         useMultipleShardRouters = element.Value.AsBoolean;
                         break;
                     case "observeEvents":
-                        var observeEvents = element.Value.AsBsonArray.Select(x => x.AsString);
-                        eventTypesToCapture.Add((clientId, observeEvents, commandNamesToSkipInEvents));
+                        clientEventTypesToCapture.AddRange(element.Value.AsBsonArray.Select(x => x.AsString));
                         break;
                     case "ignoreCommandMonitoringEvents":
-                        commandNamesToSkipInEvents.AddRange(element.Value.AsBsonArray.Select(x => x.AsString));
+                        clientCommandNamesToSkip.AddRange(element.Value.AsBsonArray.Select(x => x.AsString));
                         break;
                     case "serverApi":
                         ServerApiVersion serverApiVersion = null;
@@ -395,12 +414,12 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         }
                         break;
                     case "storeEventsAsEntities":
-                        var eventsBatches = element.Value.AsBsonArray;
-                        foreach (var batch in eventsBatches.Cast<BsonDocument>())
+                        var eventNamesToCapture = new List<string>();
+                        foreach (var storeEventsAsEntity in element.Value.AsBsonArray.Select(e => e.AsBsonDocument))
                         {
-                            var id = batch["id"].AsString;
-                            var events = batch["events"].AsBsonArray.Select(e => e.AsString);
-                            eventTypesToCapture.Add((id, events, CommandNotToCapture: null));
+                            var id = storeEventsAsEntity["id"].AsString;
+                            var events = storeEventsAsEntity["events"].AsBsonArray.Select(e => e.AsString);
+                            eventCapturers.Add(id, CreateEventCapturer(events, commandNamesToSkip));
                         }
                         break;
                     default:
@@ -408,20 +427,14 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 }
             }
 
-            if (eventTypesToCapture.Count > 0)
+            if (clientEventTypesToCapture.Count > 0)
             {
-                foreach (var eventsDetails in eventTypesToCapture)
-                {
-                    var eventCapturer = new EventCapturer();
-                    foreach (var @event in eventsDetails.Events)
-                    {
-                        eventCapturer = eventCapturer.CaptureBySpecName(@event, eventsDetails.CommandNotToCapture);
-                    }
-                    clientEventCapturers.Add(eventsDetails.Key, eventCapturer);
-                }
+                clientCommandNamesToSkip.AddRange(commandNamesToSkip);
+                eventCapturers.Add(clientId, CreateEventCapturer(clientEventTypesToCapture, clientCommandNamesToSkip));
             }
 
-            return DriverTestConfiguration.CreateDisposableClient(
+            var localEventCapturers = eventCapturers; // copy value of eventCapturer ref variable to a local variable (to avoid error CS1628)
+            client = DriverTestConfiguration.CreateDisposableClient(
                 settings =>
                 {
                     settings.RetryReads = retryReads;
@@ -430,11 +443,11 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                     settings.WriteConcern = writeConcern;
                     settings.HeartbeatInterval = TimeSpan.FromMilliseconds(5); // the default value for spec tests
                     settings.ServerApi = serverApi;
-                    if (clientEventCapturers.Count > 0)
+                    if (localEventCapturers.Count > 0)
                     {
                         settings.ClusterConfigurator = c =>
                         {
-                            foreach (var eventCapturer in clientEventCapturers)
+                            foreach (var eventCapturer in localEventCapturers)
                             {
                                 c.Subscribe(eventCapturer.Value);
                             }
@@ -442,6 +455,62 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                     }
                 },
                 useMultipleShardRouters);
+        }
+
+        private EventCapturer CreateEventCapturer(IEnumerable<string> eventTypesToCapture, IEnumerable<string> commandNamesToSkip)
+        {
+            var eventCapturer = new EventCapturer();
+
+            foreach (var eventTypeToCapture in eventTypesToCapture)
+            {
+                switch (eventTypeToCapture)
+                {
+                    case "commandStartedEvent":
+                        eventCapturer = eventCapturer.Capture<CommandStartedEvent>(x => !commandNamesToSkip.Contains(x.CommandName));
+                        break;
+                    case "commandSucceededEvent":
+                        eventCapturer = eventCapturer.Capture<CommandSucceededEvent>(x => !commandNamesToSkip.Contains(x.CommandName));
+                        break;
+                    case "commandFailedEvent":
+                        eventCapturer = eventCapturer.Capture<CommandFailedEvent>(x => !commandNamesToSkip.Contains(x.CommandName));
+                        break;
+                    case "connectionCreatedEvent":
+                        eventCapturer = eventCapturer.Capture<ConnectionPoolClosedEvent>();
+                        break;
+                    case "connectionReadyEvent":
+                        throw new NotImplementedException();
+                    case "connectionClosedEvent":
+                        eventCapturer = eventCapturer.Capture<ConnectionClosedEvent>();
+                        break;
+                    case "connectionCheckOutStartedEvent":
+                        eventCapturer = eventCapturer.Capture<ConnectionPoolCheckingOutConnectionEvent>();
+                        break;
+                    case "connectionCheckOutFailedEvent":
+                        eventCapturer = eventCapturer.Capture<ConnectionPoolCheckingOutConnectionFailedEvent>();
+                        break;
+                    case "connectionCheckedOutEvent":
+                        eventCapturer = eventCapturer.Capture<ConnectionPoolCheckedOutConnectionEvent>();
+                        break;
+                    case "ConnectionCheckedInEvent":
+                        eventCapturer = eventCapturer.Capture<ConnectionPoolCheckedInConnectionEvent>();
+                        break;
+                    case "poolCreatedEvent":
+                        eventCapturer = eventCapturer.Capture<ConnectionPoolOpenedEvent>();
+                        break;
+                    case "poolReadyEvent":
+                        throw new NotImplementedException();
+                    case "poolClearedEvent":
+                        eventCapturer = eventCapturer.Capture<ConnectionPoolClearedEvent>();
+                        break;
+                    case "poolClosedEvent":
+                        eventCapturer = eventCapturer.Capture<ConnectionPoolClosedEvent>();
+                        break;
+                    default:
+                        throw new FormatException($"Invalid event name: {eventTypeToCapture}.");
+                }
+            }
+
+            return eventCapturer;
         }
 
         private IMongoCollection<BsonDocument> CreateCollection(BsonDocument entity, Dictionary<string, IMongoDatabase> databases)

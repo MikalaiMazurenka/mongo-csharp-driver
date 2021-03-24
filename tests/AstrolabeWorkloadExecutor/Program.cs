@@ -89,8 +89,9 @@ namespace WorkloadExecutor
             var events = new BsonArray();
             if (entityMap.EventCapturers.TryGetValue("events", out var eventCapturer))
             {
-                var specEvents = eventCapturer.Events.Select(e => AstralabeEventsHandler.CreateEventDocument(e));
-                events.AddRange(specEvents);
+                var eventHandler = new AstrolabeEventConverter();
+                var convertedEvents = eventCapturer.Events.Select(e => eventHandler.Convert(e));
+                events.AddRange(convertedEvents);
             }
 
             var eventsDocument = new BsonDocument
