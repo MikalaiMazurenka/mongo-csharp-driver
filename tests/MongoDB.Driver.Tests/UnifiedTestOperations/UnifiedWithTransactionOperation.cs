@@ -20,7 +20,7 @@ using MongoDB.Bson;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
-    public class UnifiedWithTransactionOperation : IUnifiedOperationWithCreateAndRunOperationCallback
+    public class UnifiedWithTransactionOperation : IUnifiedAssertOperation
     {
         private readonly BsonArray _operations;
         private readonly TransactionOptions _options;
@@ -36,14 +36,14 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             _options = options;
         }
 
-        public void Execute(Action<BsonDocument, bool, CancellationToken> assertOperationCallback, CancellationToken cancellationToken)
+        public void Execute(Action<BsonDocument, UnifiedEntityMap, bool, CancellationToken> assertOperationCallback, UnifiedEntityMap entityMap, CancellationToken cancellationToken)
         {
             _session.WithTransaction(
                 callback: (session, token) =>
                 {
                     foreach (var operationItem in _operations)
                     {
-                        assertOperationCallback(operationItem.AsBsonDocument, false, token);
+                        assertOperationCallback(operationItem.AsBsonDocument, entityMap, false, token);
                     }
 
                     return (object)null;
@@ -52,14 +52,14 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                 cancellationToken: cancellationToken);
         }
 
-        public async Task ExecuteAsync(Action<BsonDocument, bool, CancellationToken> assertOperationCallback, CancellationToken cancellationToken)
+        public async Task ExecuteAsync(Action<BsonDocument, UnifiedEntityMap, bool, CancellationToken> assertOperationCallback, UnifiedEntityMap entityMap, CancellationToken cancellationToken)
         {
             await _session.WithTransactionAsync(
                 callbackAsync: (session, token) =>
                 {
                     foreach (var operationItem in _operations)
                     {
-                        assertOperationCallback(operationItem.AsBsonDocument, true, token);
+                        assertOperationCallback(operationItem.AsBsonDocument, entityMap, true, token);
                     }
 
                     return Task.FromResult<object>(null);

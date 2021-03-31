@@ -86,8 +86,13 @@ namespace AstrolabeWorkloadExecutor
             };
 
         public static BsonDocument CreateCmapEventDocument(string eventName, DateTime observedAt, ConnectionId connectionId) =>
-            CreateCmapEventDocument(eventName, observedAt, connectionId.ServerId)
-            .Add("connectionId", connectionId.LocalValue);
+            new BsonDocument
+            {
+                { "name", eventName },
+                { "observedAt", GetCurrentTimeSeconds(observedAt) },
+                { "address", GetAddress(connectionId.ServerId) },
+                { "connectionId", connectionId.LocalValue}
+            };
 
         public static BsonDocument CreateCommandEventDocument(string eventName, DateTime observedAt, string commandName, int requestId) =>
             new BsonDocument

@@ -35,11 +35,11 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
         private readonly Dictionary<string, IMongoDatabase> _databases;
         private readonly Dictionary<string, BsonArray> _errorDocumentsMap;
         private readonly Dictionary<string, BsonArray> _failureDocumentsMap;
-        private readonly Dictionary<string, long> _iterationCounts;
+        private readonly Dictionary<string, long> _iterationCountMap;
         private readonly Dictionary<string, BsonValue> _results;
         private readonly Dictionary<string, IClientSessionHandle> _sessions;
         private readonly Dictionary<string, BsonDocument> _sessionIds;
-        private readonly Dictionary<string, long> _successCounts;
+        private readonly Dictionary<string, long> _successCountMap;
 
         // public constructors
         public UnifiedEntityMap(
@@ -65,21 +65,34 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             _databases = databases;
             _errorDocumentsMap = errorDocumentsMap;
             _failureDocumentsMap = failureDocumentsMap;
-            _iterationCounts = iterationCounts;
+            _iterationCountMap = iterationCounts;
             _results = results;
             _sessions = sessions;
             _sessionIds = sessionIds;
-            _successCounts = successCounts;
+            _successCountMap = successCounts;
         }
 
-        // public properties
-        public Dictionary<string, BsonArray> ErrorDocumentsMap => _errorDocumentsMap;
-        public Dictionary<string, EventCapturer> EventCapturers => _clientEventCapturers;
-        public Dictionary<string, BsonArray> FailureDocumentsMap => _failureDocumentsMap;
-        public Dictionary<string, long> IterationCounts => _iterationCounts;
-        public Dictionary<string, long> SuccessCounts => _successCounts;
-
         // public methods
+        public void AddErrorDocuments(string errorDocumentsId, BsonArray errorDocuments)
+        {
+            _errorDocumentsMap.Add(errorDocumentsId, errorDocuments);
+        }
+
+        public void AddFailureDocuments(string failureDocumentsId, BsonArray failureDocuments)
+        {
+            _failureDocumentsMap.Add(failureDocumentsId, failureDocuments);
+        }
+
+        public void AddIterationCount(string iterationCountId, long iterationCount)
+        {
+            _iterationCountMap.Add(iterationCountId, iterationCount);
+        }
+
+        public void AddSuccessCount(string successCountId, long successCount)
+        {
+            _successCountMap.Add(successCountId, successCount);
+        }
+
         public void AddChangeStream(string changeStreamId, IEnumerator<ChangeStreamDocument<BsonDocument>> changeStream)
         {
             _changeStreams.Add(changeStreamId, changeStream);
@@ -115,6 +128,23 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             }
         }
 
+        public UnifiedAstrolabeExecutionResult GetAstrolabeExecutionResult(
+            string errorDocumentsKey,
+            string eventCapturerKey,
+            string failureDocumentsKey,
+            string iterationCountKey,
+            string successCountKey)
+        {
+            return new UnifiedAstrolabeExecutionResult
+            {
+                ErrorDocuments = _errorDocumentsMap.ContainsKey(errorDocumentsKey) ? _errorDocumentsMap[errorDocumentsKey] : null,
+                EventCapturer = _clientEventCapturers.ContainsKey(eventCapturerKey) ? _clientEventCapturers[eventCapturerKey] : null,
+                FailureDocuments = _failureDocumentsMap.ContainsKey(failureDocumentsKey) ? _failureDocumentsMap[failureDocumentsKey] : null,
+                IterationCount = _iterationCountMap.ContainsKey(iterationCountKey) ? _iterationCountMap[iterationCountKey] : null,
+                SuccessCount = _successCountMap.ContainsKey(successCountKey) ? _successCountMap[successCountKey] : null
+            };
+        }
+
         public IGridFSBucket GetBucket(string bucketId)
         {
             return _buckets[bucketId];
@@ -138,6 +168,11 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
         public IMongoDatabase GetDatabase(string databaseId)
         {
             return _databases[databaseId];
+        }
+
+        public EventCapturer GetEventCapturer(string clientId)
+        {
+            return _clientEventCapturers[clientId];
         }
 
         public BsonValue GetResult(string resultId)
@@ -315,7 +350,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
             var clientEventCapturers = new Dictionary<string, EventCapturer>();
             string clientId = null;
             var commandNamesToSkipInEvents = new List<string>();
-            List<(string Key, IEnumerable<string> Events, List<string> CommandNotToCapture)> eventTypesToCapture = new ();
+            List<(string Key, IEnumerable<string> Events, List<string> CommandNotToCapture)> eventTypesToCapture = new();
             var readConcern = ReadConcern.Default;
             var retryReads = true;
             var retryWrites = true;

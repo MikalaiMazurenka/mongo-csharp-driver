@@ -1,4 +1,4 @@
-﻿/* Copyright 2020-present MongoDB Inc.
+﻿/* Copyright 2021-present MongoDB Inc.
 *
 * Licensed under the Apache License, Version 2.0 (the "License");
 * you may not use this file except in compliance with the License.
@@ -13,16 +13,17 @@
 * limitations under the License.
 */
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Driver.Core;
 
 namespace MongoDB.Driver.Tests.UnifiedTestOperations
 {
-    public interface IUnifiedAssertOperation : IUnifiedTestOperation
+    public class UnifiedAstrolabeExecutionResult
     {
-        void Execute(Action<BsonDocument, UnifiedEntityMap, bool, CancellationToken> assertOperationCallback, UnifiedEntityMap entityMap, CancellationToken cancellationToken);
-        Task ExecuteAsync(Action<BsonDocument, UnifiedEntityMap, bool, CancellationToken> assertOperationCallback, UnifiedEntityMap entityMap, CancellationToken cancellationToken);
+        public BsonArray ErrorDocuments { get; set; }
+        public EventCapturer EventCapturer { get; set; }
+        public BsonArray FailureDocuments { get; set; }
+        public long? IterationCount { get; set; }
+        public long? SuccessCount { get; set; }
     }
 }

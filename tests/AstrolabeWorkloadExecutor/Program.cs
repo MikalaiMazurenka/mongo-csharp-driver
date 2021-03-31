@@ -44,7 +44,8 @@ namespace WorkloadExecutor
             var resultsDir = Environment.GetEnvironmentVariable("RESULTS_DIR");
             var eventsPath = Path.Combine(resultsDir ?? "", "events.json");
             var resultsPath = Path.Combine(resultsDir ?? "", "results.json");
-            Console.WriteLine($"dotnet main> Results will be written to {resultsPath},\nEvents will be written to {eventsPath}...");
+            Console.WriteLine($"dotnet main> Results will be written to {resultsPath}");
+            Console.WriteLine($"dotnet main> Events will be written to {eventsPath}");
 
             Console.CancelKeyPress += cancelHandler;
 
@@ -55,76 +56,70 @@ namespace WorkloadExecutor
                 async = true;
             }
 
-            var entityMap = ExecuteWorkload(connectionString, driverWorkload, async, cancellationTokenSource.Token);
-            var resultDetails = HandleWorkloadResult(entityMap: entityMap);
+            using (var entityMap = ExecuteWorkload(driverWorkload, async, cancellationTokenSource.Token))
+            {
+                ExtractResults(entityMap, out var eventsJson, out var resultsJson);
+
+                Console.WriteLine("dotnet main finally> Writing final results and events files");
+                File.WriteAllText(resultsPath, resultsJson);
+                File.WriteAllText(eventsPath, eventsJson);
+            }
 
             Console.CancelKeyPress -= cancelHandler;
-
-            Console.WriteLine("dotnet main finally> Writing final results and events files");
-            WriteToFile(resultsPath, resultDetails.ResultsJson);
-            WriteToFile(eventsPath, resultDetails.EventsJson);
 
             // ensure all messages are propagated to the astrolabe time immediately
             Console.Error.Flush();
             Console.Out.Flush();
         }
 
-        private static (string EventsJson, string ResultsJson) HandleWorkloadResult(UnifiedEntityMap entityMap)
+        private static void ExtractResults(UnifiedEntityMap entityMap, out string eventsJson, out string resultsJson)
         {
             Ensure.IsNotNull(entityMap, nameof(entityMap));
 
-            var iterationsCount = GetValueOrDefault(entityMap.IterationCounts, "iterations", @default: -1);
-            var successesCount = GetValueOrDefault(entityMap.SuccessCounts, "successes", @default: -1);
+            var executionResult = entityMap.GetAstrolabeExecutionResult(
+                "errors",
+                "events",
+                "failures",
+                "iterations",
+                "successes");
 
-            var errorDocuments = GetValueOrDefault(entityMap.ErrorDocumentsMap, "errors", @default: new BsonArray());
-            var errorCount  = errorDocuments.Count;
-            var failuresDocuments = GetValueOrDefault(entityMap.FailureDocumentsMap, "failures", @default: new BsonArray());
-            var failuresCount = failuresDocuments.Count;
-
-            var events = new BsonArray();
-            if (entityMap.EventCapturers.TryGetValue("events", out var eventCapturer))
-            {
-                var specEvents = eventCapturer.Events.Select(AstrolabeEventsHandler.CreateEventDocument);
-                events.AddRange(specEvents);
-            }
+            var events = new BsonArray(executionResult.EventCapturer?.Events?.Select(AstrolabeEventsHandler.CreateEventDocument));
 
             var eventsDocument = new BsonDocument
             {
                 { "events", events },
-                { "errors", errorDocuments },
-                { "failures", failuresDocuments }
+                { "errors", executionResult.ErrorDocuments ?? new BsonArray() },
+                { "failures", executionResult.FailureDocuments ?? new BsonArray() }
             };
 
             var resultsDocument = new BsonDocument
             {
-                { "numErrors", errorCount },
-                { "numFailures", failuresCount },
-                { "numSuccesses", successesCount },
-                { "numIterations", iterationsCount }
+                { "numErrors", executionResult.ErrorDocuments?.Count ?? 0 },
+                { "numFailures", executionResult.FailureDocuments?.Count ?? 0 },
+                { "numSuccesses", executionResult.SuccessCount ?? -1 },
+                { "numIterations", executionResult.IterationCount ?? -1 }
             };
 
             var jsonWritterSettings = new JsonWriterSettings
             {
                 OutputMode = JsonOutputMode.RelaxedExtendedJson
             };
-            return (eventsDocument.ToJson(jsonWritterSettings), resultsDocument.ToJson(jsonWritterSettings));
 
-            T GetValueOrDefault<T>(Dictionary<string, T> dictionary, string key, T @default) => dictionary.TryGetValue(key, out var value) ? value : @default;
+            eventsJson = eventsDocument.ToJson(jsonWritterSettings);
+            resultsJson = resultsDocument.ToJson(jsonWritterSettings);
         }
 
-        private static UnifiedEntityMap ExecuteWorkload(string connectionString, BsonDocument driverWorkload, bool async, CancellationToken cancellationToken)
+        private static UnifiedEntityMap ExecuteWorkload(BsonDocument driverWorkload, bool async, CancellationToken cancellationToken)
         {
-            Environment.SetEnvironmentVariable("MONGODB_URI", connectionString); // force using atlas connection string in our internal test connection strings
-
             var factory = new TestCaseFactory();
             var testCase = factory.CreateTestCase(driverWorkload, async);
-            using (var testsExecutor = new UnifiedTestFormatExecutor(
-                allowKillSessions: false,
-                terminationCancellationToken: cancellationToken))
+
+            using (var testsExecutor = new UnifiedTestFormatExecutor())
             {
-                testsExecutor.Run(testCase);
+                var entityMap = testsExecutor.Run(testCase);
                 Console.WriteLine("dotnet ExecuteWorkload> Returning...");
-                return testsExecutor.EntityMap;
+
+                return entityMap;
             }
         }
 
@@ -144,11 +139,6 @@ namespace WorkloadExecutor
             CancelWorkloadTask(cancellationTokenSource);
         }
 
-        private static void WriteToFile(string path, string json)
-        {
-            File.WriteAllText(path, json);
-        }
-
         internal class TestCaseFactory : JsonDrivenTestCaseFactory
         {
             public JsonDrivenTestCase CreateTestCase(BsonDocument driverWorkload, bool async)
@@ -159,7 +149,10 @@ namespace WorkloadExecutor
                 return testCase;
             }
 
-            protected override string GetTestCaseName(BsonDocument shared, BsonDocument test, int index) => $"Astrolabe command line arguments:{base.GetTestName(test, index)}";
+            protected override string GetTestCaseName(BsonDocument shared, BsonDocument test, int index)
+            {
+                return $"Astrolabe command line arguments:{base.GetTestName(test, index)}";
+            }
         }
     }
 }

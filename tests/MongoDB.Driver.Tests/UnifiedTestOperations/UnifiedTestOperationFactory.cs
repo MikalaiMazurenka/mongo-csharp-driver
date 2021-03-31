@@ -22,12 +22,10 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
     public class UnifiedTestOperationFactory
     {
         private readonly UnifiedEntityMap _entityMap;
-        private readonly CancellationToken _terminationCancellationToken;
 
-        public UnifiedTestOperationFactory(UnifiedEntityMap entityMap, CancellationToken terminationCancellationToken)
+        public UnifiedTestOperationFactory(UnifiedEntityMap entityMap)
         {
             _entityMap = entityMap;
-            _terminationCancellationToken = terminationCancellationToken;
         }
 
         public IUnifiedTestOperation CreateOperation(string operationName, string targetEntityId, BsonDocument operationArguments)
@@ -62,7 +60,7 @@ namespace MongoDB.Driver.Tests.UnifiedTestOperations
                         case "failPoint":
                             return new UnifiedFailPointOperationBuilder(_entityMap).Build(operationArguments);
                         case "loop":
-                            return new UnifiedLoopOperationBuilder(_entityMap, _terminationCancellationToken).Build(operationArguments);
+                            return new UnifiedLoopOperationBuilder(_entityMap).Build(operationArguments);
                         case "targetedFailPoint":
                             return new UnifiedTargetedFailPointOperationBuilder(_entityMap).Build(operationArguments);
                         default:
