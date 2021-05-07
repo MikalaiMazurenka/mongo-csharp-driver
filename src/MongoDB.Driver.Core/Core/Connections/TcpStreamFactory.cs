@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -48,6 +49,15 @@ namespace MongoDB.Driver.Core.Connections
         // methods
         public Stream CreateStream(EndPoint endPoint, CancellationToken cancellationToken)
         {
+            var sw = Stopwatch.StartNew();
+            var result = CreateStreamInternal(endPoint, cancellationToken);
+            Console.WriteLine($"CSET: {sw.ElapsedTicks}");
+
+            return result;
+        }
+
+        internal Stream CreateStreamInternal(EndPoint endPoint, CancellationToken cancellationToken)
+        {
 #if NET452
             var socket = CreateSocket(endPoint);
             Connect(socket, endPoint, cancellationToken);
@@ -79,6 +89,15 @@ namespace MongoDB.Driver.Core.Connections
         }
 
         public async Task<Stream> CreateStreamAsync(EndPoint endPoint, CancellationToken cancellationToken)
+        {
+            var sw = Stopwatch.StartNew();
+            var result = await CreateStreamAsyncInternal(endPoint, cancellationToken).ConfigureAwait(false);
+            Console.WriteLine($"CSAET: {sw.ElapsedTicks}");
+
+            return result;
+        }
+
+        public async Task<Stream> CreateStreamAsyncInternal(EndPoint endPoint, CancellationToken cancellationToken)
         {
 #if NET452
             var socket = CreateSocket(endPoint);
