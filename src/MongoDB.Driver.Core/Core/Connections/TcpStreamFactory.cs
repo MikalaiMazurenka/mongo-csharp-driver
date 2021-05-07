@@ -15,6 +15,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -23,6 +24,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using MongoDB.Driver.Core.Configuration;
 using MongoDB.Driver.Core.Misc;
+using MongoDB.Shared;
 
 namespace MongoDB.Driver.Core.Connections
 {
@@ -48,66 +50,90 @@ namespace MongoDB.Driver.Core.Connections
         // methods
         public Stream CreateStream(EndPoint endPoint, CancellationToken cancellationToken)
         {
-#if NET452
-            var socket = CreateSocket(endPoint);
-            Connect(socket, endPoint, cancellationToken);
-            return CreateNetworkStream(socket);
-#else
-            var resolved = ResolveEndPoints(endPoint);
-            for (int i = 0; i < resolved.Length; i++)
+            var sw = Stopwatch.StartNew();
+            var result = CreateStreamInternal(endPoint, cancellationToken);
+            Console.WriteLine($"CSET: {sw.ElapsedTicks}");
+
+            return result;
+        }
+
+        internal Stream CreateStreamInternal(EndPoint endPoint, CancellationToken cancellationToken)
+        {
+            if (OperatingSystemHelper.CurrentOperatingSystem == OperatingSystemPlatform.Windows)
             {
-                try
+                var socket = CreateSocket(endPoint);
+                Connect(socket, endPoint, cancellationToken);
+                return CreateNetworkStream(socket);
+            }
+            else
+            {
+                var resolved = ResolveEndPoints(endPoint);
+                for (int i = 0; i < resolved.Length; i++)
                 {
-                    var socket = CreateSocket(resolved[i]);
-                    Connect(socket, resolved[i], cancellationToken);
-                    return CreateNetworkStream(socket);
-                }
-                catch
-                {
-                    // if we have tried all of them and still failed,
-                    // then blow up.
-                    if (i == resolved.Length - 1)
+                    try
                     {
-                        throw;
+                        var socket = CreateSocket(resolved[i]);
+                        Connect(socket, resolved[i], cancellationToken);
+                        return CreateNetworkStream(socket);
+                    }
+                    catch
+                    {
+                        // if we have tried all of them and still failed,
+                        // then blow up.
+                        if (i == resolved.Length - 1)
+                        {
+                            throw;
+                        }
                     }
                 }
-            }
 
-            // we should never get here...
-            throw new InvalidOperationException("Unabled to resolve endpoint.");
-#endif
+                // we should never get here...
+                throw new InvalidOperationException("Unabled to resolve endpoint.");
+            }
         }
 
         public async Task<Stream> CreateStreamAsync(EndPoint endPoint, CancellationToken cancellationToken)
         {
-#if NET452
-            var socket = CreateSocket(endPoint);
-            await ConnectAsync(socket, endPoint, cancellationToken).ConfigureAwait(false);
-            return CreateNetworkStream(socket);
-#else
-            var resolved = await ResolveEndPointsAsync(endPoint).ConfigureAwait(false);
-            for (int i = 0; i < resolved.Length; i++)
+            var sw = Stopwatch.StartNew();
+            var result = await CreateStreamAsyncInternal(endPoint, cancellationToken).ConfigureAwait(false);
+            Console.WriteLine($"CSAET: {sw.ElapsedTicks}");
+
+            return result;
+        }
+
+        public async Task<Stream> CreateStreamAsyncInternal(EndPoint endPoint, CancellationToken cancellationToken)
+        {
+            if (OperatingSystemHelper.CurrentOperatingSystem == OperatingSystemPlatform.Windows)
             {
-                try
+                var socket = CreateSocket(endPoint);
+                await ConnectAsync(socket, endPoint, cancellationToken).ConfigureAwait(false);
+                return CreateNetworkStream(socket);
+            }
+            else
+            {
+                var resolved = await ResolveEndPointsAsync(endPoint).ConfigureAwait(false);
+                for (int i = 0; i < resolved.Length; i++)
                 {
-                    var socket = CreateSocket(resolved[i]);
-                    await ConnectAsync(socket, resolved[i], cancellationToken).ConfigureAwait(false);
-                    return CreateNetworkStream(socket);
-                }
-                catch
-                {
-                    // if we have tried all of them and still failed,
-                    // then blow up.
-                    if (i == resolved.Length - 1)
+                    try
                     {
-                        throw;
+                        var socket = CreateSocket(resolved[i]);
+                        await ConnectAsync(socket, resolved[i], cancellationToken).ConfigureAwait(false);
+                        return CreateNetworkStream(socket);
+                    }
+                    catch
+                    {
+                        // if we have tried all of them and still failed,
+                        // then blow up.
+                        if (i == resolved.Length - 1)
+                        {
+                            throw;
+                        }
                     }
                 }
-            }
 
-            // we should never get here...
-            throw new InvalidOperationException("Unabled to resolve endpoint.");
-#endif
+                // we should never get here...
+                throw new InvalidOperationException("Unabled to resolve endpoint.");
+            }
         }
 
         // non-public methods
@@ -179,9 +205,7 @@ namespace MongoDB.Driver.Core.Connections
                 try
                 {
                     var dnsEndPoint = endPoint as DnsEndPoint;
-#if !NET452
-                    await socket.ConnectAsync(endPoint).ConfigureAwait(false);
-#else
+#if NET452
                     if (dnsEndPoint != null)
                     {
                         // mono doesn't support DnsEndPoint in its BeginConnect method.
@@ -191,6 +215,8 @@ namespace MongoDB.Driver.Core.Connections
                     {
                         await Task.Factory.FromAsync(socket.BeginConnect(endPoint, null, null), socket.EndConnect).ConfigureAwait(false);
                     }
+#else
+                    await socket.ConnectAsync(endPoint).ConfigureAwait(false);
 #endif
                     ChangeState(2); // note: might not actually go to state 2 if already in state 3 or 4
                 }
