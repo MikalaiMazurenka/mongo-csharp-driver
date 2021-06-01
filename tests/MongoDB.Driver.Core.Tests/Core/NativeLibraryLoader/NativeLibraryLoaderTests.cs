@@ -29,11 +29,6 @@ namespace MongoDB.Driver.Core.Tests.Core.NativeLibraryLoader
         [InlineData("mongo-csharp-driver", "mongo-csharp-driver")]
         [InlineData("mongo csharp driver", "mongo csharp driver")]
         [InlineData("&mongo$csharp@driver%", "&mongo$csharp@driver%")]
-
-        // the default assembly-based logic. Ideally expectedRootTestFolder should be mongo-csharp-driver,
-        // but since it's not mocked logic, it limits us where we can run our tests from. Avoid it by
-        // making a test assertation less strict
-        [InlineData(null, "")]
         public void GetLibraryBasePath_should_get_correct_paths(string rootTestFolder, string expectedRootTestFolder)
         {
             string testAssemblyCodeBaseUri = null; // use assembly-based CodeBase for null
@@ -54,6 +49,17 @@ namespace MongoDB.Driver.Core.Tests.Core.NativeLibraryLoader
 
             var expectedResult = Path.Combine(expectedRootTestFolder, GetCommonTestAssemblyFolderEnding());
             result.Should().EndWith(expectedResult);
+        }
+
+        [Fact]
+        public void GetBaseAssemblyUri_should_have_expected_paths_ending()
+        {
+            var subject = new TestRelativeLibraryLocator(testAssemblyUri: null); // in this case assembly-based CodeBase is used
+
+            var result = subject.GetLibraryBasePath();
+
+            var expectedResultEnding = GetCommonTestAssemblyFolderEnding();
+            result.Should().EndWith(expectedResultEnding);
         }
 
         // private methods
