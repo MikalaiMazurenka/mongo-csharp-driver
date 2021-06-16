@@ -22,6 +22,7 @@ using Xunit;
 namespace MongoDB.Driver.Tests.Specifications.transactions
 {
     [Trait("Category", "SupportLoadBalancing")]
+    [Trait("Category", "transactions")]
     public sealed class TransactionUnifiedTestRunner
     {
         [SkippableTheory]

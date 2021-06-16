@@ -313,7 +313,7 @@ Task("TestGssapi")
     .DoesForEach(
         GetFiles("./**/MongoDB.Driver.Tests.csproj"),
         testProject =>
-	{
+    {
         var settings = new DotNetCoreTestSettings
         {
             NoBuild = true,
@@ -329,11 +329,54 @@ Task("TestGssapi")
             case "testgssapinetstandard20": settings.Framework = "netcoreapp2.1"; break;
             case "testgssapinetstandard21": settings.Framework = "netcoreapp3.0"; break;
         }
-		DotNetCoreTest(
-			testProject.FullPath,
+        DotNetCoreTest(
+            testProject.FullPath,
             settings
-		);
-	});
+        );
+    });
+
+Task("TestServerless")
+    .IsDependentOn("Build")
+    .DoesForEach(
+        GetFiles("./**/MongoDB.Driver.Tests.csproj"),
+        testProject =>
+        {
+            var categories = new[] { "crud-v1", "crud-unified", "retryable-writes", "retryable-reads", "versioned-api", "sessions", "transactions" };
+            var filter = "";
+            for (int i = 0; i < categories.Length; i++)
+            {
+                filter += $"Category=\"{categories[i]}\"";
+                if (i != categories.Length - 1)
+                {
+                    filter += "|";
+                }
+            }
+            var targetFramework = Environment.GetEnvironmentVariable("FRAMEWORK");
+            var framework = "";
+            switch (targetFramework.ToLowerInvariant())
+            {
+                case "net452": framework = "net452"; break;
+                case "netstandard15": framework = "netcoreapp1.1"; break;
+                case "netstandard20": framework = "netcoreapp2.1"; break;
+                case "netstandard21": framework = "netcoreapp3.0"; break;
+            }
+            foreach (var category in categories)
+            {
+                DotNetCoreTest(
+                    testProject.FullPath,
+                    new DotNetCoreTestSettings
+                    {
+                        NoBuild = true,
+                        NoRestore = true,
+                        Configuration = configuration,
+                        ArgumentCustomization = args => args.Append("-- RunConfiguration.TargetPlatform=x64"),
+                        Filter = $"Category=\"{category}\"",
+                        Framework = framework
+                    }
+                );
+            }
+        })
+    .DeferOnError();
 
 Task("TestGssapiNet452").IsDependentOn("TestGssapi");
 Task("TestGssapiNetStandard15").IsDependentOn("TestGssapi");

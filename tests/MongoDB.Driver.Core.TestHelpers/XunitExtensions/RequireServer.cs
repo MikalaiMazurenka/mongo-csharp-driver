@@ -272,6 +272,17 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
                             }
                         }
                         break;
+                    case "serverless":
+                        {
+                            var serverlessValue = item.Value.AsString;
+                            switch (serverlessValue)
+                            {
+                                case "forbid":
+                                    return Environment.GetEnvironmentVariable("SERVERLESS") == null;
+                                default:
+                                    throw new FormatException($"Invalid run on serverless requirement value: '{item.Value}'.");
+                            }
+                        }
                     case "serverParameters":
                         {
                             var serverParameters = CoreTestConfiguration.GetServerParameters();
@@ -295,8 +306,6 @@ namespace MongoDB.Driver.Core.TestHelpers.XunitExtensions
                             }
                         }
                         break;
-                    case "serverless":
-                        return false; // TODO: not implemented yet
                     default:
                         throw new FormatException($"Unrecognized requirement field: '{item.Name}'");
                 }

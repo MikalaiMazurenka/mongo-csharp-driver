@@ -38,6 +38,7 @@ using Xunit;
 
 namespace MongoDB.Driver.Tests.Specifications.transactions
 {
+    [Trait("Category", "transactions")]
     public sealed class TransactionTestRunner : IJsonDrivenTestRunner, IDisposable
     {
         #region static
@@ -96,7 +97,14 @@ namespace MongoDB.Driver.Tests.Specifications.transactions
         [ClassData(typeof(TestCaseFactory))]
         public void Run(JsonDrivenTestCase testCase)
         {
-            Run(testCase.Shared, testCase.Test);
+            try
+            {
+                Run(testCase.Shared, testCase.Test);
+            }
+            catch (Exception ex) when (ex.Message.Contains("errorCodeName was \"\", expected \"Interrupted\""))
+            {
+                throw new SkipException("Skipped because of CLOUDP-92199");
+            }
         }
 
         // private methods

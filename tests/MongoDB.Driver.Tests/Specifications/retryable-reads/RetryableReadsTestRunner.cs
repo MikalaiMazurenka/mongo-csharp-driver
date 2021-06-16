@@ -35,6 +35,7 @@ using Xunit;
 namespace MongoDB.Driver.Tests.Specifications.retryable_reads
 {
     [Trait("Category", "SupportLoadBalancing")]
+    [Trait("Category", "retryable-reads")]
     public sealed class RetryableReadsTestRunner
     {
         #region static
@@ -61,7 +62,18 @@ namespace MongoDB.Driver.Tests.Specifications.retryable_reads
         [ClassData(typeof(TestCaseFactory))]
         public void Run(JsonDrivenTestCase testCase)
         {
-            Run(testCase.Shared, testCase.Test);
+            try
+            {
+                Run(testCase.Shared, testCase.Test);
+            }
+            catch (Exception ex) when (ex.InnerException != null && ex.InnerException.Message.Contains("Duplicate element name 'totalSizeMb'"))
+            {
+                throw new SkipException("Skipped because of CLOUDP-92618");
+            }
+            catch (Exception ex) when (ex.InnerException != null && ex.InnerException.Message.Contains("Command mapReduce failed: CMD_NOT_ALLOWED: mapReduce"))
+            {
+                throw new SkipException("Skipped because of CLOUDP-93419");
+            }
         }
 
         // private methods
@@ -86,6 +98,12 @@ namespace MongoDB.Driver.Tests.Specifications.retryable_reads
                 "result",
                 "expectations",
                 "async");
+
+            //var failPointSet = false;
+            //if (test.Contains("failPoint"))
+            //{
+            //    failPointSet = true;
+            //}
 
             if (shared.TryGetValue("runOn", out var runOn))
             {

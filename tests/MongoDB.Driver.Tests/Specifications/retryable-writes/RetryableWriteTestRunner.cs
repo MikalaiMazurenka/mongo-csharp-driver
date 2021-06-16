@@ -28,6 +28,7 @@ using Xunit.Abstractions;
 namespace MongoDB.Driver.Tests.Specifications.retryable_writes
 {
     [Trait("Category", "SupportLoadBalancing")]
+    [Trait("Category", "retryable-writes")]
     public class RetryableWriteTestRunner
     {
         private readonly string _databaseName = DriverTestConfiguration.DatabaseNamespace.DatabaseName;
